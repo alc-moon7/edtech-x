@@ -1,0 +1,132 @@
+"use client";
+
+import { useStudent } from "@/lib/store";
+import { User, BookOpen, AlertCircle, TrendingUp, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export default function ParentDashboard() {
+    const { courses, progress, userStats } = useStudent();
+
+    // Mock child details
+    const child = {
+        name: "Arian Ahmed",
+        class: "Class 10",
+        school: "Dhaka Residential Model College",
+        avatar: "bg-blue-500"
+    };
+
+    return (
+        <div className="space-y-8">
+            {/* Header & Child Profile */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold font-heading">Parent Dashboard</h1>
+                    <p className="text-muted-foreground">Monitoring progress for <span className="font-semibold text-foreground">{child.name}</span></p>
+                </div>
+
+                <div className="flex items-center gap-4 bg-card p-2 pr-6 rounded-xl border border-border">
+                    <div className={`h-12 w-12 rounded-lg ${child.avatar} flex items-center justify-center text-white font-bold text-xl`}>
+                        {child.name.charAt(0)}
+                    </div>
+                    <div>
+                        <p className="font-medium">{child.name}</p>
+                        <p className="text-xs text-muted-foreground">{child.class} • {child.school}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Key Metrics */}
+            <div className="grid gap-6 md:grid-cols-3">
+                <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
+                    <Clock className="h-8 w-8 text-primary mb-3" />
+                    <h3 className="text-2xl font-bold">12.5 hrs</h3>
+                    <p className="text-sm text-muted-foreground">Study Time (This Week)</p>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
+                    <TrendingUp className="h-8 w-8 text-green-500 mb-3" />
+                    <h3 className="text-2xl font-bold">{userStats.totalPoints} pts</h3>
+                    <p className="text-sm text-muted-foreground">Total Learning Points</p>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
+                    <BookOpen className="h-8 w-8 text-secondary mb-3" />
+                    <h3 className="text-2xl font-bold">85%</h3>
+                    <p className="text-sm text-muted-foreground">Avg. Quiz Score</p>
+                </div>
+            </div>
+
+            {/* Detail Sections */}
+            <div className="grid lg:grid-cols-3 gap-8">
+                {/* Course Progress Table */}
+                <div className="lg:col-span-2 rounded-xl border border-border bg-card overflow-hidden">
+                    <div className="p-6 border-b border-border">
+                        <h3 className="font-semibold text-lg">Course Activity</h3>
+                    </div>
+                    <div>
+                        {courses.map(course => {
+                            const courseStats = progress[course.id as keyof typeof progress] || { completedLessons: [] };
+                            const total = course.chapters.reduce((acc, ch) => acc + ch.lessons.length, 0);
+                            const completed = courseStats.completedLessons.length;
+                            const percent = Math.round((completed / total) * 100) || 0;
+
+                            return (
+                                <div key={course.id} className="p-4 flex items-center justify-between border-b border-border last:border-0 hover:bg-muted/30">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`h-10 w-10 rounded-lg ${course.image} flex items-center justify-center text-xs font-bold`}>
+                                            {course.title.substring(0, 2)}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-sm">{course.title}</p>
+                                            <p className="text-xs text-muted-foreground">{completed}/{total} Lessons</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                                            <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
+                                        </div>
+                                        <span className="text-sm font-bold w-8 text-right">{percent}%</span>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* Alerts & Insights */}
+                <div className="space-y-6">
+                    <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-6">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+                            <div>
+                                <h4 className="font-semibold text-yellow-800">Performance Alert</h4>
+                                <p className="text-sm text-yellow-700 mt-1">
+                                    Quiz scores in <strong>Physics - Motion</strong> dropped by 10% this week. Suggested revision: "Equations of Motion".
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-card p-6">
+                        <h3 className="font-semibold text-lg mb-4">Weekly Schedule</h3>
+                        <div className="space-y-3">
+                            <ScheduleItem day="Today" subject="Math: Algebra" time="4:00 PM" />
+                            <ScheduleItem day="Tomorrow" subject="English: Grammar" time="5:30 PM" />
+                            <ScheduleItem day="Wed" subject="Physics: Lab" time="3:00 PM" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function ScheduleItem({ day, subject, time }: { day: string, subject: string, time: string }) {
+    return (
+        <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-3">
+                <span className="w-16 text-muted-foreground">{day}</span>
+                <span className="font-medium">{subject}</span>
+            </div>
+            <span className="text-xs bg-muted px-2 py-1 rounded">{time}</span>
+        </div>
+    )
+}

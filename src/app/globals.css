@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-outfit);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  :root {
+    /* HomeSchool Palette */
+    --background: #F5F8FF;
+    /* Soft Purple White */
+    --foreground: #1E1E2E;
+    /* Text Primary */
+
+    --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-outfit: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+    --card: #FFFFFF;
+    /* Surface */
+    --card-foreground: #1E1E2E;
+
+    --popover: #FFFFFF;
+    /* Surface */
+    --popover-foreground: #1E1E2E;
+
+    --primary: #6366F1;
+    /* Violet Learning Tone */
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #14B8A6;
+    /* Teal Innovation */
+    --secondary-foreground: #FFFFFF;
+
+    --muted: #F3F4F6;
+    --muted-foreground: #6B7280;
+    /* Text Secondary */
+
+    --accent: #FBBF24;
+    /* Vibrant Education Gold */
+    --accent-foreground: #1E1E2E;
+
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #E5E7EB;
+    --input: #E5E7EB;
+    --ring: #6366F1;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Mapped standard dark mode colors to full HSL strings for compatibility */
+    --background: hsl(222.2 84% 4.9%);
+    --foreground: hsl(210 40% 98%);
+
+    --card: hsl(222.2 84% 4.9%);
+    --card-foreground: hsl(210 40% 98%);
+
+    --popover: hsl(222.2 84% 4.9%);
+    --popover-foreground: hsl(210 40% 98%);
+
+    --primary: hsl(217.2 91.2% 59.8%);
+    --primary-foreground: hsl(222.2 47.4% 11.2%);
+
+    --secondary: hsl(217.2 32.6% 17.5%);
+    --secondary-foreground: hsl(210 40% 98%);
+
+    --muted: hsl(217.2 32.6% 17.5%);
+    --muted-foreground: hsl(215 20.2% 65.1%);
+
+    --accent: hsl(217.2 32.6% 17.5%);
+    --accent-foreground: hsl(210 40% 98%);
+
+    --destructive: hsl(0 62.8% 30.6%);
+    --destructive-foreground: hsl(210 40% 98%);
+
+    --border: hsl(217.2 32.6% 17.5%);
+    --input: hsl(217.2 32.6% 17.5%);
+    --ring: hsl(212.7 26.8% 83.9%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
