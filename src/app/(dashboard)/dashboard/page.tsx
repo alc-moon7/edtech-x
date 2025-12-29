@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/Card"; // Assuming Card component exists
 import { BookOpen, Clock, Trophy, Target } from "lucide-react";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { Leaderboard } from "@/components/dashboard/Leaderboard";
@@ -77,7 +76,7 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-muted/50">
                                 <div>
                                     <p className="font-medium">Advanced Algebra</p>
-                                    <p className="text-xs text-muted-foreground">Mathematics • Class 10</p>
+                                    <p className="text-xs text-muted-foreground">Mathematics - Class 10</p>
                                 </div>
                                 <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90">
                                     View

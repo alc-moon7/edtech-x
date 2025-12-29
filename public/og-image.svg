@@ -1,0 +1,29 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F5F8FF" />
+      <stop offset="50%" stop-color="#E8EDFF" />
+      <stop offset="100%" stop-color="#D7E5FF" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#14B8A6" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="980" cy="120" r="140" fill="#6366F1" opacity="0.12" />
+  <circle cx="140" cy="520" r="160" fill="#14B8A6" opacity="0.12" />
+  <rect x="140" y="170" width="920" height="300" rx="32" fill="white" opacity="0.85" />
+  <rect x="180" y="210" width="90" height="90" rx="20" fill="url(#accent)" />
+  <path d="M210 260H250" stroke="white" stroke-width="10" stroke-linecap="round" />
+  <path d="M230 240V280" stroke="white" stroke-width="10" stroke-linecap="round" />
+  <text x="290" y="260" font-family="Outfit, Inter, sans-serif" font-size="52" font-weight="700" fill="#1E1E2E">
+    HomeSchool
+  </text>
+  <text x="290" y="320" font-family="Inter, sans-serif" font-size="28" fill="#4B5563">
+    Interactive learning for Class 6-12 students
+  </text>
+  <text x="290" y="365" font-family="Inter, sans-serif" font-size="20" fill="#6B7280">
+    Lessons, quizzes, analytics, and parent visibility in one platform
+  </text>
+</svg>

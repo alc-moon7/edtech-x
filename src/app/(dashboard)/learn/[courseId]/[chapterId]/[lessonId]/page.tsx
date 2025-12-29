@@ -1,48 +1,69 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useStudent } from "@/lib/store";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle, ChevronRight, PlayCircle, FileText, HelpCircle, LayoutList } from "lucide-react";
+import {
+    ArrowLeft,
+    CheckCircle,
+    ChevronRight,
+    FileText,
+    HelpCircle,
+    LayoutList,
+    PlayCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { QuizComponent } from "@/components/learning/QuizComponent";
 import { getNextLesson } from "@/lib/dataHelpers";
 
 export default function LessonPlayerPage() {
     const params = useParams();
     const navigate = useNavigate();
     const { courses, progress, markLessonComplete } = useStudent();
+    const [quizCompleted, setQuizCompleted] = useState(false);
 
     const courseId = params.courseId as string;
     const chapterId = params.chapterId as string;
     const lessonId = params.lessonId as string;
 
-    const course = courses.find(c => c.id === courseId);
-    const chapter = course?.chapters.find(ch => ch.id === chapterId);
-    const lesson = chapter?.lessons.find(l => l.id === lessonId);
+    const course = courses.find((c) => c.id === courseId);
+    const chapter = course?.chapters.find((ch) => ch.id === chapterId);
+    const lesson = chapter?.lessons.find((l) => l.id === lessonId);
 
-    // Handle 404
     if (!course || !chapter || !lesson) {
         return <div className="p-8 text-center">Lesson not found.</div>;
     }
 
     const userProgress = progress[courseId as keyof typeof progress] || { completedLessons: [] };
     const isCompleted = userProgress.completedLessons.includes(lessonId);
+    const isQuiz = lesson.type === "quiz";
+    const quizCount =
+        lesson.type === "quiz" && "questions" in lesson ? lesson.questions : undefined;
+
+    const lessonMeta = lesson.type === "quiz" ? `${quizCount ?? 5} Questions` : lesson.duration ?? "10 min";
+
+    useEffect(() => {
+        setQuizCompleted(isCompleted);
+    }, [isCompleted, lessonId]);
 
     const handleComplete = () => {
         markLessonComplete(courseId, lessonId);
-
-        // Auto-navigate to next lesson? Or just show next button?
-        // Let's just mark it and maybe show a toast (omitted for MVP)
+        if (isQuiz) {
+            setQuizCompleted(true);
+        }
     };
 
     const nextLesson = getNextLesson(courseId, chapterId, lessonId);
 
     return (
         <div className="flex h-[calc(100vh-theme(spacing.16))] overflow-hidden">
-            {/* Sidebar (Lesson List) - Hidden on Mobile for MVP simplicity, usually responsive drawer */}
             <div className="hidden md:flex w-80 flex-col border-r bg-card overflow-y-auto">
                 <div className="p-4 border-b">
-                    <Link to={`/courses/${courseId}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2 mb-2">
+                    <Link
+                        to={`/courses/${courseId}`}
+                        className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2 mb-2"
+                    >
                         <ArrowLeft className="h-4 w-4" /> Back to Course
                     </Link>
                     <h2 className="font-bold line-clamp-1">{course.title}</h2>
@@ -55,8 +76,8 @@ export default function LessonPlayerPage() {
                         const isActive = l.id === lessonId;
 
                         let TypeIcon = PlayCircle;
-                        if (l.type === 'article') TypeIcon = FileText;
-                        if (l.type === 'quiz') TypeIcon = HelpCircle;
+                        if (l.type === "article") TypeIcon = FileText;
+                        if (l.type === "quiz") TypeIcon = HelpCircle;
 
                         return (
                             <Link
@@ -68,15 +89,15 @@ export default function LessonPlayerPage() {
                                     lCompleted && !isActive ? "text-muted-foreground" : ""
                                 )}
                             >
-                                <div className={cn(
-                                    "p-1.5 rounded-md",
-                                    isActive ? "bg-primary text-white" : "bg-muted text-muted-foreground"
-                                )}>
+                                <div
+                                    className={cn(
+                                        "p-1.5 rounded-md",
+                                        isActive ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                                    )}
+                                >
                                     <TypeIcon className="h-4 w-4" />
                                 </div>
-                                <div className="flex-1 text-sm line-clamp-2">
-                                    {l.title}
-                                </div>
+                                <div className="flex-1 text-sm line-clamp-2">{l.title}</div>
                                 {lCompleted && <CheckCircle className="h-4 w-4 text-green-500" />}
                             </Link>
                         );
@@ -84,42 +105,37 @@ export default function LessonPlayerPage() {
                 </div>
             </div>
 
-            {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background/50">
-                {/* Mobile Header (simplified) */}
                 <div className="md:hidden p-4 border-b bg-card flex items-center justify-between">
                     <Link to={`/courses/${courseId}`} className="text-muted-foreground">
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
                     <span className="font-semibold truncate mx-4">{lesson.title}</span>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" aria-label="Open lesson list">
                         <LayoutList className="h-5 w-5" />
                     </Button>
                 </div>
 
                 <div className="flex-1 p-4 md:p-8 max-w-4xl mx-auto w-full">
-                    <div className="aspect-video bg-black rounded-xl shadow-lg mb-8 flex items-center justify-center relative overflow-hidden group">
-                        {lesson.type === 'video' ? (
-                            <div className="text-center">
-                                <PlayCircle className="h-20 w-20 text-white/50 group-hover:text-white transition-colors mx-auto mb-4" />
-                                <p className="text-white/70">Video Placeholder</p>
-                                <p className="text-xs text-white/50">{lesson.id}</p>
-                            </div>
-                        ) : lesson.type === 'article' ? (
-                            <div className="bg-white text-black w-full h-full p-8 overflow-y-auto text-left">
-                                <h2 className="text-2xl font-bold mb-4">{lesson.title}</h2>
-                                <p className="text-lg leading-relaxed text-gray-700">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat...
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="text-center text-white">
-                                <HelpCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                                <h3 className="text-xl font-bold">Quiz Mode</h3>
-                                <p>Click "Start Quiz" to begin</p>
-                            </div>
-                        )}
-                    </div>
+                    {!isQuiz && (
+                        <div className="aspect-video bg-black rounded-xl shadow-lg mb-8 flex items-center justify-center relative overflow-hidden group">
+                            {lesson.type === "video" ? (
+                                <div className="text-center">
+                                    <PlayCircle className="h-20 w-20 text-white/50 group-hover:text-white transition-colors mx-auto mb-4" />
+                                    <p className="text-white/70">Video lesson preview</p>
+                                    <p className="text-xs text-white/50">{lesson.id}</p>
+                                </div>
+                            ) : (
+                                <div className="bg-white text-black w-full h-full p-8 overflow-y-auto text-left">
+                                    <h2 className="text-2xl font-bold mb-4">{lesson.title}</h2>
+                                    <p className="text-base leading-relaxed text-gray-700">
+                                        This reading explains the core ideas of {lesson.title} with examples and
+                                        quick checks. Use the key takeaways below to guide your revision.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b pb-6 mb-6">
                         <div>
@@ -128,7 +144,7 @@ export default function LessonPlayerPage() {
                                 <span className="px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-medium uppercase text-[10px] tracking-wider">
                                     {lesson.type}
                                 </span>
-                                <span>• {lesson.type === 'quiz' ? '5 Questions' : lesson.duration}</span>
+                                <span>{lessonMeta}</span>
                             </div>
                         </div>
 
@@ -140,10 +156,15 @@ export default function LessonPlayerPage() {
                                     "flex-1 md:flex-none gap-2",
                                     isCompleted ? "text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700" : ""
                                 )}
+                                disabled={isQuiz && !quizCompleted && !isCompleted}
                             >
                                 {isCompleted ? (
-                                    <><CheckCircle className="h-4 w-4" /> Completed</>
-                                ) : "Mark Complete"}
+                                    <>
+                                        <CheckCircle className="h-4 w-4" /> Completed
+                                    </>
+                                ) : (
+                                    "Mark Complete"
+                                )}
                             </Button>
 
                             {nextLesson && (
@@ -158,13 +179,58 @@ export default function LessonPlayerPage() {
                         </div>
                     </div>
 
-                    <div className="prose max-w-none text-muted-foreground">
-                        <h3 className="text-foreground">About this lesson</h3>
-                        <p>
-                            In this lesson, we will explore the fundamental concepts of {lesson.title}.
-                            Ensure you have your notebook ready to take down important key points.
-                        </p>
-                    </div>
+                    {isQuiz ? (
+                        <div className="space-y-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                                <h2 className="text-lg font-semibold">Quiz instructions</h2>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    Answer each question to test your understanding. Your score is saved
+                                    automatically for progress tracking.
+                                </p>
+                            </div>
+                            <QuizComponent
+                                courseId={courseId}
+                                quizId={lesson.id}
+                                onComplete={handleComplete}
+                            />
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                                <h3 className="text-lg font-semibold">Lesson goals</h3>
+                                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4 text-primary" />
+                                        Understand the key ideas behind {lesson.title}
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4 text-primary" />
+                                        Apply the concept to common exam questions
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4 text-primary" />
+                                        Identify common mistakes and avoid them
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                                <h3 className="text-lg font-semibold">Key takeaways</h3>
+                                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                                    {[
+                                        "Definitions and core formulas",
+                                        "Worked examples you can revisit",
+                                        "Quick checks to confirm understanding",
+                                        "Revision notes for exam prep",
+                                    ].map((item) => (
+                                        <div key={item} className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                                            {item}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

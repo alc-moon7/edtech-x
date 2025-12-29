@@ -30,7 +30,7 @@ export default function ParentDashboard() {
                     </div>
                     <div>
                         <p className="font-medium">{child.name}</p>
-                        <p className="text-xs text-muted-foreground">{child.class} • {child.school}</p>
+                        <p className="text-xs text-muted-foreground">{child.class} - {child.school}</p>
                     </div>
                 </div>
             </div>

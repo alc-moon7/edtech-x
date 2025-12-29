@@ -9,8 +9,14 @@ import { USERS } from '@/lib/mockData';
 import { UserRole } from '@/lib/mockData';
 import { BookOpen, Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePageMeta } from '@/lib/usePageMeta';
 
 export default function LoginPage() {
+    usePageMeta({
+        title: "Sign in",
+        description: "Sign in to access HomeSchool learning dashboards.",
+    });
+
     const navigate = useNavigate();
     const [selectedRole, setSelectedRole] = useState<UserRole>('student');
     const [email, setEmail] = useState('');
@@ -20,12 +26,9 @@ export default function LoginPage() {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate API delay
         setTimeout(() => {
-            // Simple mock mock auth
-            const user = USERS.find(u => u.role === selectedRole); // Just get the first user of this role for MVP
+            const user = USERS.find(u => u.role === selectedRole);
             if (user) {
-                // In real app, we would set a cookie/token here
                 console.log('Logged in as:', user);
                 navigate(`/${selectedRole}`);
             } else {
@@ -78,13 +81,15 @@ export default function LoginPage() {
 
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Email</label>
+                                <label htmlFor="login-email" className="text-sm font-medium">
+                                    Email
+                                </label>
                                 <Input
+                                    id="login-email"
                                     type="email"
                                     placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    // For demo, prepopulate based on role if empty
                                     onFocus={() => {
                                         if (!email) {
                                             const demoUser = USERS.find(u => u.role === selectedRole);
@@ -94,8 +99,10 @@ export default function LoginPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium">Password</label>
-                                <Input type="password" placeholder="••••••••" defaultValue="password" />
+                                <label htmlFor="login-password" className="text-sm font-medium">
+                                    Password
+                                </label>
+                                <Input id="login-password" type="password" placeholder="Enter your password" defaultValue="password" />
                             </div>
 
                             <Button type="submit" className="w-full" disabled={loading}>

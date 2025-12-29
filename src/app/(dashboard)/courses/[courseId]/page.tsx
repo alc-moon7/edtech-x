@@ -90,9 +90,10 @@ export default function CourseDetailPage() {
                                                     <div className="font-medium group-hover:text-primary transition-colors">
                                                         {lesson.title}
                                                     </div>
-                                                    <div className="text-xs text-muted-foreground">
-                                                        {lesson.type === 'quiz' ? `${// @ts-ignore
-                                                            lesson.questions} Questions` : lesson.duration}
+                                            <div className="text-xs text-muted-foreground">
+                                                        {lesson.type === 'quiz'
+                                                            ? `${"questions" in lesson ? lesson.questions : 5} Questions`
+                                                            : lesson.duration}
                                                     </div>
                                                 </div>
                                             </div>

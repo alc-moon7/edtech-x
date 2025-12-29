@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/Button"; // Assuming simple button or I'll just use tailwind
-import { CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle, RefreshCw } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { MOCK_QUIZ_Questions } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
@@ -28,6 +27,7 @@ export function QuizComponent({
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [score, setScore] = useState(0);
     const [showResult, setShowResult] = useState(false);
+    const [finalScore, setFinalScore] = useState<number | null>(null);
     const [answerState, setAnswerState] = useState<'idle' | 'correct' | 'incorrect'>('idle');
 
     const handleOptionSelect = (index: number) => {
@@ -37,12 +37,10 @@ export function QuizComponent({
 
     const handleSubmit = () => {
         const correct = activeQuestions[currentIndex].correctAnswer;
-        if (selectedOption === correct) {
-            setScore(prev => prev + 1);
-            setAnswerState('correct');
-        } else {
-            setAnswerState('incorrect');
-        }
+        const isCorrect = selectedOption === correct;
+        const updatedScore = score + (isCorrect ? 1 : 0);
+        setScore(updatedScore);
+        setAnswerState(isCorrect ? 'correct' : 'incorrect');
 
         setTimeout(() => {
             if (currentIndex < activeQuestions.length - 1) {
@@ -50,17 +48,26 @@ export function QuizComponent({
                 setSelectedOption(null);
                 setAnswerState('idle');
             } else {
-                finishQuiz();
+                finishQuiz(updatedScore);
             }
-        }, 1500);
+        }, 1200);
     };
 
-    const finishQuiz = () => {
+    const finishQuiz = (correctCount: number) => {
         setShowResult(true);
         // Calculate percentage
-        const finalScore = Math.round(((score + (answerState === 'correct' ? 1 : 0)) / activeQuestions.length) * 100);
-        saveQuizScore(courseId, quizId, finalScore);
-        onComplete();
+        const percentScore = Math.round((correctCount / activeQuestions.length) * 100);
+        setFinalScore(percentScore);
+        saveQuizScore(courseId, quizId, percentScore);
+    };
+
+    const handleRetry = () => {
+        setCurrentIndex(0);
+        setSelectedOption(null);
+        setScore(0);
+        setShowResult(false);
+        setFinalScore(null);
+        setAnswerState('idle');
     };
 
     if (showResult) {
@@ -70,10 +77,10 @@ export function QuizComponent({
                     <CheckCircle className="h-8 w-8" />
                 </div>
                 <h3 className="text-2xl font-bold">Quiz Completed!</h3>
-                <p className="text-muted-foreground">You scored {Math.round((score / activeQuestions.length) * 100)}%</p>
+                <p className="text-muted-foreground">You scored {finalScore ?? 0}%</p>
                 <div className="flex gap-4">
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={handleRetry}
                         className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
                     >
                         <RefreshCw className="h-4 w-4" /> Try Again

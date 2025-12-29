@@ -72,7 +72,7 @@ export function Sidebar() {
                 </Link>
             </div>
 
-            <div className="flex-1 flex flex-col gap-1 px-4 py-4">
+            <nav className="flex-1 flex flex-col gap-1 px-4 py-4" aria-label="Dashboard">
                 {sidebarItems.map((item) => {
                     const Icon = item.icon;
 
@@ -95,7 +95,7 @@ export function Sidebar() {
                         </NavLink>
                     );
                 })}
-            </div>
+            </nav>
 
             <div className="p-4 border-t border-border">
                 <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
