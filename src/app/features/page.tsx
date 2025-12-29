@@ -147,7 +147,7 @@ export default function FeaturesPage() {
             Try the platform free or reach out for a guided walkthrough.
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row">
-            <Link to="/login">
+            <Link to="/signup">
               <Button size="lg" className="rounded-full bg-white text-primary hover:bg-white/90">
                 Start free
               </Button>

@@ -182,7 +182,7 @@ export default function Home() {
               insights for students, parents, and schools.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link to="/login">
+              <Link to="/signup">
                 <Button size="lg" className="rounded-full px-8 text-base">
                   Get started free
                 </Button>
@@ -464,7 +464,7 @@ export default function Home() {
           <p className="max-w-2xl text-white/90">
             Start free today and upgrade when you are ready for full access and advanced analytics.
           </p>
-          <Link to="/login">
+          <Link to="/signup">
             <Button size="lg" className="rounded-full bg-white text-primary hover:bg-white/90">
               Start learning
             </Button>

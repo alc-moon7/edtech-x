@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
     LayoutDashboard,
@@ -14,6 +14,7 @@ import {
     Shield,
     HelpCircle
 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 const sidebarItems = [
     {
@@ -59,6 +60,15 @@ const sidebarItems = [
 ];
 
 export function Sidebar() {
+    const navigate = useNavigate();
+    const { signOut, user } = useAuth();
+    const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Student";
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate("/login");
+    };
+
     return (
         <div className="hidden h-screen w-64 flex-col bg-card border-r border-border md:flex fixed left-0 top-0">
             <div className="p-6">
@@ -98,7 +108,12 @@ export function Sidebar() {
             </nav>
 
             <div className="p-4 border-t border-border">
-                <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
+                <div className="mb-3 text-xs text-muted-foreground">Signed in as {displayName}</div>
+                <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                >
                     <LogOut className="h-5 w-5" />
                     Sign Out
                 </button>

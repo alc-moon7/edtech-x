@@ -50,7 +50,7 @@ export function MarketingNav() {
           <Link to="/login">
             <Button variant="ghost">Sign in</Button>
           </Link>
-          <Link to="/pricing">
+          <Link to="/signup">
             <Button>Get started</Button>
           </Link>
         </div>
@@ -94,7 +94,7 @@ export function MarketingNav() {
                 Sign in
               </Button>
             </Link>
-            <Link to="/pricing" onClick={() => setOpen(false)}>
+            <Link to="/signup" onClick={() => setOpen(false)}>
               <Button className="w-full">Get started</Button>
             </Link>
           </div>

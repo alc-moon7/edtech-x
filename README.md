@@ -30,3 +30,18 @@ npm run preview
 - Build command: `npm run build`
 - Publish directory: `dist`
 - SPA routing is handled via `public/_redirects`.
+
+## Supabase Auth
+
+1. Create a `.env` file (see `.env.example`) with:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+2. In Supabase SQL editor, run `supabase/schema.sql` to create the `profiles` table and RLS policies.
+3. In Supabase Auth settings:
+   - Enable email/password.
+   - Require email confirmations.
+   - Add redirect URLs:
+     - `http://localhost:5173/login`
+     - `http://localhost:5173/reset_pass`
+     - `https://homeschool.moonx.dev/login`
+     - `https://homeschool.moonx.dev/reset_pass`

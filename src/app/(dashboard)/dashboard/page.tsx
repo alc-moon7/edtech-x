@@ -1,12 +1,16 @@
 import { BookOpen, Clock, Trophy, Target } from "lucide-react";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { Leaderboard } from "@/components/dashboard/Leaderboard";
+import { useAuth } from "@/lib/auth";
 
 export default function DashboardPage() {
+    const { user } = useAuth();
+    const displayName = user?.user_metadata?.full_name || "Student";
+
     return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold font-heading text-foreground">Welcome back, Student!</h1>
+                <h1 className="text-3xl font-bold font-heading text-foreground">Welcome back, {displayName}!</h1>
                 <p className="text-muted-foreground">Here's an overview of your learning progress today.</p>
             </div>
 

@@ -9,6 +9,9 @@ import ContactPage from "@/app/contact/page";
 import PrivacyPage from "@/app/privacy/page";
 import TermsPage from "@/app/terms/page";
 import LoginPage from "@/app/login/page";
+import SignupPage from "@/app/signup/page";
+import ForgotPasswordPage from "@/app/forgot-password/page";
+import ResetPasswordPage from "@/app/reset_pass/page";
 import HelpCenterPage from "@/app/help/page";
 import DashboardPage from "@/app/(dashboard)/dashboard/page";
 import CoursesPage from "@/app/(dashboard)/courses/page";
@@ -20,6 +23,7 @@ import AdminDashboard from "@/app/(dashboard)/admin/page";
 import LessonPlayerPage from "@/app/(dashboard)/learn/[courseId]/[chapterId]/[lessonId]/page";
 import ParentDashboard from "@/app/(dashboard)/parent/page";
 import NotFoundPage from "@/pages/NotFound";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -33,17 +37,22 @@ export default function App() {
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="terms" element={<TermsPage />} />
         <Route path="login" element={<LoginPage />} />
+        <Route path="signup" element={<SignupPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset_pass" element={<ResetPasswordPage />} />
         <Route path="help" element={<HelpCenterPage />} />
-        <Route element={<DashboardLayout />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="courses" element={<CoursesPage />} />
-          <Route path="courses/:courseId" element={<CourseDetailPage />} />
-          <Route path="progress" element={<ProgressPage />} />
-          <Route path="live-classes" element={<LiveClassesPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="learn/:courseId/:chapterId/:lessonId" element={<LessonPlayerPage />} />
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="parent" element={<ParentDashboard />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="courses" element={<CoursesPage />} />
+            <Route path="courses/:courseId" element={<CourseDetailPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="live-classes" element={<LiveClassesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="learn/:courseId/:chapterId/:lessonId" element={<LessonPlayerPage />} />
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="parent" element={<ParentDashboard />} />
+          </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

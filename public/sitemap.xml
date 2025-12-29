@@ -1,51 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://homeschool.edu.bd/</loc>
+    <loc>https://homeschool.moonx.dev/</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/about</loc>
+    <loc>https://homeschool.moonx.dev/about</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/features</loc>
+    <loc>https://homeschool.moonx.dev/features</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/pricing</loc>
+    <loc>https://homeschool.moonx.dev/pricing</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/contact</loc>
+    <loc>https://homeschool.moonx.dev/contact</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/help</loc>
+    <loc>https://homeschool.moonx.dev/help</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/login</loc>
+    <loc>https://homeschool.moonx.dev/login</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/privacy</loc>
+    <loc>https://homeschool.moonx.dev/signup</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/terms</loc>
+    <loc>https://homeschool.moonx.dev/privacy</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/dashboard</loc>
+    <loc>https://homeschool.moonx.dev/terms</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/courses</loc>
+    <loc>https://homeschool.moonx.dev/dashboard</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/progress</loc>
+    <loc>https://homeschool.moonx.dev/courses</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/live-classes</loc>
+    <loc>https://homeschool.moonx.dev/progress</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/settings</loc>
+    <loc>https://homeschool.moonx.dev/live-classes</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/parent</loc>
+    <loc>https://homeschool.moonx.dev/settings</loc>
   </url>
   <url>
-    <loc>https://homeschool.edu.bd/admin</loc>
+    <loc>https://homeschool.moonx.dev/parent</loc>
+  </url>
+  <url>
+    <loc>https://homeschool.moonx.dev/admin</loc>
   </url>
 </urlset>

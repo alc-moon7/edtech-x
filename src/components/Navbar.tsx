@@ -1,8 +1,13 @@
 "use client";
 
 import { Bell, Search, Menu, User } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export function Navbar() {
+    const { user } = useAuth();
+    const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Student";
+    const displayClass = user?.user_metadata?.class || "Class";
+
     return (
         <div className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 px-4 md:px-6 backdrop-blur-xl">
             <div className="flex items-center gap-4">
@@ -28,8 +33,8 @@ export function Navbar() {
 
                 <div className="flex items-center gap-3 pl-4 border-l border-border">
                     <div className="flex flex-col items-end hidden sm:flex">
-                        <span className="text-sm font-medium text-foreground">Student Name</span>
-                        <span className="text-xs text-muted-foreground">Class 10</span>
+                        <span className="text-sm font-medium text-foreground">{displayName}</span>
+                        <span className="text-xs text-muted-foreground">{displayClass}</span>
                     </div>
                     <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all border border-primary/20" aria-label="User menu">
                         <User className="h-5 w-5" />

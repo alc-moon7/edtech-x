@@ -105,7 +105,7 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/login" className="mt-6 inline-block w-full">
+                <Link to="/signup" className="mt-6 inline-block w-full">
                   <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
                     Choose {plan.name}
                   </Button>

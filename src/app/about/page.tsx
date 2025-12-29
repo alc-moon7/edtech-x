@@ -132,7 +132,7 @@ export default function AboutPage() {
             Start free today or explore the full platform features.
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/login">
+            <Link to="/signup">
               <Button size="lg" className="rounded-full px-8">
                 Start free
               </Button>
