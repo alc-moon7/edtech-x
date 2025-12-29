@@ -60,8 +60,9 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md space-y-4">
-        <div className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl font-bold tracking-tighter text-primary">HomeSchool</h1>
+        <div className="text-center space-y-3 mb-8">
+          <img src="/logo.png" alt="HomeSchool" className="mx-auto h-12 w-auto" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Sign in</h1>
           <p className="text-muted-foreground">Interactive Learning Platform for Class 6-12</p>
         </div>
 

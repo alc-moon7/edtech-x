@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Home", href: "/", end: true },
   { label: "About", href: "/about" },
-  { label: "Features", href: "/features" },
   { label: "Pricing", href: "/pricing" },
   { label: "Contact", href: "/contact" },
   { label: "Help", href: "/help" },
@@ -20,12 +19,12 @@ export function MarketingNav() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:py-4">
         <Link to="/" className="flex items-center gap-2" aria-label="HomeSchool home">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
-            <GraduationCap className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            HomeSchool
-          </span>
+          <img
+            src="/logo.png"
+            alt="HomeSchool"
+            className="h-10 w-auto"
+            loading="eager"
+          />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">

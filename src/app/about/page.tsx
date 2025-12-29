@@ -48,9 +48,9 @@ export default function AboutPage() {
             clarity, practice, and feedback so learners always know what to study next.
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/features">
+            <Link to="/pricing">
               <Button size="lg" className="rounded-full px-8">
-                Explore features
+                View pricing
               </Button>
             </Link>
             <Link to="/contact">
@@ -129,7 +129,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl px-4 text-center">
           <h2 className="text-3xl font-bold font-heading sm:text-4xl">Ready to see HomeSchool in action?</h2>
           <p className="mt-3 text-muted-foreground">
-            Start free today or explore the full platform features.
+            Start free today or explore the full platform.
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/signup">

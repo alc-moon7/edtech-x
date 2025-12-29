@@ -3,7 +3,6 @@ import RootLayout from "@/app/layout";
 import DashboardLayout from "@/app/(dashboard)/layout";
 import HomePage from "@/app/page";
 import AboutPage from "@/app/about/page";
-import FeaturesPage from "@/app/features/page";
 import PricingPage from "@/app/pricing/page";
 import ContactPage from "@/app/contact/page";
 import PrivacyPage from "@/app/privacy/page";
@@ -19,7 +18,6 @@ import CourseDetailPage from "@/app/(dashboard)/courses/[courseId]/page";
 import ProgressPage from "@/app/(dashboard)/progress/page";
 import LiveClassesPage from "@/app/(dashboard)/live-classes/page";
 import SettingsPage from "@/app/(dashboard)/settings/page";
-import AdminDashboard from "@/app/(dashboard)/admin/page";
 import LessonPlayerPage from "@/app/(dashboard)/learn/[courseId]/[chapterId]/[lessonId]/page";
 import ParentDashboard from "@/app/(dashboard)/parent/page";
 import NotFoundPage from "@/pages/NotFound";
@@ -31,7 +29,6 @@ export default function App() {
       <Route element={<RootLayout />}>
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
-        <Route path="features" element={<FeaturesPage />} />
         <Route path="pricing" element={<PricingPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
@@ -50,7 +47,6 @@ export default function App() {
             <Route path="live-classes" element={<LiveClassesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="learn/:courseId/:chapterId/:lessonId" element={<LessonPlayerPage />} />
-            <Route path="admin" element={<AdminDashboard />} />
             <Route path="parent" element={<ParentDashboard />} />
           </Route>
         </Route>

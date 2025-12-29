@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Mail, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 
 export function Footer() {
     return (
@@ -8,12 +8,7 @@ export function Footer() {
                 <div className="grid gap-10 md:grid-cols-4">
                     <div className="space-y-4">
                         <Link to="/" className="flex items-center gap-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
-                                <GraduationCap className="h-6 w-6" aria-hidden="true" />
-                            </div>
-                            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                HomeSchool
-                            </span>
+                            <img src="/logo.png" alt="HomeSchool" className="h-10 w-auto" loading="lazy" />
                         </Link>
                         <p className="text-sm text-muted-foreground">
                             Interactive learning built for the NCTB syllabus with clear progress tracking for students and parents.
@@ -46,7 +41,6 @@ export function Footer() {
                         <h3 className="font-semibold text-foreground">Company</h3>
                         <div className="flex flex-col gap-2 text-muted-foreground">
                             <Link to="/about" className="hover:text-primary">About</Link>
-                            <Link to="/features" className="hover:text-primary">Features</Link>
                             <Link to="/pricing" className="hover:text-primary">Pricing</Link>
                             <Link to="/contact" className="hover:text-primary">Contact</Link>
                         </div>

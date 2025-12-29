@@ -9,9 +9,7 @@ import {
     Video,
     Settings,
     LogOut,
-    GraduationCap,
     Users,
-    Shield,
     HelpCircle
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -48,11 +46,6 @@ const sidebarItems = [
         icon: HelpCircle,
     },
     {
-        title: "Admin Panel",
-        href: "/admin",
-        icon: Shield,
-    },
-    {
         title: "Settings",
         href: "/settings",
         icon: Settings,
@@ -73,12 +66,7 @@ export function Sidebar() {
         <div className="hidden h-screen w-64 flex-col bg-card border-r border-border md:flex fixed left-0 top-0">
             <div className="p-6">
                 <Link to="/" className="flex items-center gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
-                        <GraduationCap className="h-6 w-6" />
-                    </div>
-                    <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                        HomeSchool
-                    </span>
+                    <img src="/logo.png" alt="HomeSchool" className="h-10 w-auto" loading="lazy" />
                 </Link>
             </div>
 

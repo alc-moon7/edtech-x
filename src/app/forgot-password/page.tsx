@@ -42,8 +42,9 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md space-y-4">
-        <div className="text-center space-y-2 mb-8">
-          <h1 className="text-3xl font-bold tracking-tighter text-primary">Reset your password</h1>
+        <div className="text-center space-y-3 mb-8">
+          <img src="/logo.png" alt="HomeSchool" className="mx-auto h-12 w-auto" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Reset your password</h1>
           <p className="text-muted-foreground">We will send a reset link to your email.</p>
         </div>
 

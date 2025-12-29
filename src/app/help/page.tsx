@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { KB_DATA } from '@/lib/kbData';
-import { Search, BookOpen, ChevronRight, HelpCircle } from 'lucide-react';
+import { Search, ChevronRight, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePageMeta } from '@/lib/usePageMeta';
 import { MarketingShell } from '@/components/MarketingShell';
@@ -19,10 +19,14 @@ export default function HelpCenterPage() {
     const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
     // Extract unique categories
-    const categories = Array.from(new Set(KB_DATA.map(item => item.category)));
+    const hiddenCategories = new Set(["Features", "Platform"]);
+    const categories = Array.from(new Set(KB_DATA.map(item => item.category))).filter(
+        (category) => !hiddenCategories.has(category)
+    );
 
     // Filter items based on search and category
     const filteredItems = KB_DATA.filter(item => {
+        if (hiddenCategories.has(item.category)) return false;
         const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.content.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
@@ -53,18 +57,6 @@ export default function HelpCenterPage() {
 
                 {!searchQuery && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <button
-                            onClick={() => setSelectedCategory(null)}
-                            className={cn(
-                                "p-4 rounded-xl border text-center transition-all hover:shadow-md",
-                                selectedCategory === null
-                                    ? "bg-primary text-primary-foreground border-primary"
-                                    : "bg-card hover:border-primary/50"
-                            )}
-                        >
-                            <BookOpen className="h-6 w-6 mx-auto mb-2" />
-                            <span className="font-medium">All Topics</span>
-                        </button>
                         {categories.map((category) => (
                             <button
                                 key={category}
@@ -89,6 +81,14 @@ export default function HelpCenterPage() {
                             {searchQuery ? `Search Results (${filteredItems.length})` :
                                 selectedCategory ? selectedCategory : 'All Articles'}
                         </h2>
+                        {selectedCategory && (
+                            <button
+                                onClick={() => setSelectedCategory(null)}
+                                className="text-xs font-medium text-primary hover:underline"
+                            >
+                                Clear filter
+                            </button>
+                        )}
                     </div>
 
                     {filteredItems.length === 0 ? (

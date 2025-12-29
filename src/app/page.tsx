@@ -1,17 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  BadgeCheck,
-  BookOpen,
-  CheckCircle2,
-  ClipboardCheck,
-  LineChart,
-  MessageSquare,
-  PlayCircle,
-  ShieldCheck,
-  Star,
-  Target,
-  Users,
-} from "lucide-react";
+import { CheckCircle2, ClipboardCheck, LineChart, PlayCircle, Star, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
 import { usePageMeta } from "@/lib/usePageMeta";
@@ -40,38 +28,6 @@ const steps = [
   },
 ];
 
-const features = [
-  {
-    title: "Syllabus aligned",
-    description: "Every chapter is mapped to the NCTB structure for Class 6-12.",
-    icon: BookOpen,
-  },
-  {
-    title: "Active learning",
-    description: "Quizzes and quick checks keep students engaged, not passive.",
-    icon: BadgeCheck,
-  },
-  {
-    title: "Parent visibility",
-    description: "Parents can monitor progress, scores, and study time.",
-    icon: Users,
-  },
-  {
-    title: "Smart analytics",
-    description: "Weekly trends show improvements and weak topics fast.",
-    icon: LineChart,
-  },
-  {
-    title: "Safe learning space",
-    description: "No ads, no distractions, and privacy-first data handling.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Teacher support",
-    description: "Dedicated help resources for course guidance and platform use.",
-    icon: MessageSquare,
-  },
-];
 
 const subjects = [
   { title: "Mathematics", tag: "Core" },
@@ -243,33 +199,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-muted/40 py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="flex flex-col gap-3 text-center">
-            <div className="text-sm font-semibold uppercase tracking-wider text-primary">Features</div>
-            <h2 className="text-3xl font-bold font-heading sm:text-4xl">
-              Everything students need to stay on track
-            </h2>
-            <p className="mx-auto max-w-2xl text-muted-foreground">
-              Clear structure, focused content, and analytics that guide daily learning decisions.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <div key={feature.title} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold">{feature.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{feature.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
