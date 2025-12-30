@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Home", href: "/", end: true },
-  { label: "About", href: "/about" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Contact", href: "/contact" },
-  { label: "Help", href: "/help" },
+  { key: "nav.home", href: "/", end: true },
+  { key: "nav.about", href: "/about" },
+  { key: "nav.pricing", href: "/pricing" },
+  { key: "nav.contact", href: "/contact" },
+  { key: "nav.help", href: "/help" },
 ];
 
 export function MarketingNav() {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
@@ -40,18 +42,24 @@ export function MarketingNav() {
                 )
               }
             >
-              {item.label}
+              {t(item.key)}
             </NavLink>
           ))}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
           <Link to="/login">
-            <Button variant="ghost">Sign in</Button>
+            <Button variant="ghost">{t("nav.sign_in")}</Button>
           </Link>
           <Link to="/signup">
-            <Button>Get started</Button>
+            <Button>{t("nav.get_started")}</Button>
           </Link>
+          <div className="pl-2">
+            {/* language switcher lazy-loaded to avoid heavy renders */}
+            <div>
+              {/* We'll import the language switcher client-side in the next commit if desired. */}
+            </div>
+          </div>
         </div>
 
         <button
@@ -84,7 +92,7 @@ export function MarketingNav() {
                 )
               }
             >
-              {item.label}
+              {t(item.key)}
             </NavLink>
           ))}
           <div className="mt-3 flex flex-col gap-2">

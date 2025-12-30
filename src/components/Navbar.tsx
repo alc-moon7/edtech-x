@@ -2,11 +2,14 @@
 
 import { Bell, Search, Menu, User } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function Navbar() {
     const { user } = useAuth();
     const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Student";
     const displayClass = user?.user_metadata?.class || "Class";
+    const { t } = useTranslation();
 
     return (
         <div className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 px-4 md:px-6 backdrop-blur-xl">
@@ -18,8 +21,8 @@ export function Navbar() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <input
                         type="search"
-                        placeholder="Search courses..."
-                        aria-label="Search courses"
+                        placeholder={t("search.placeholder")}
+                        aria-label={t("search.placeholder")}
                         className="h-9 w-64 rounded-xl border border-border bg-accent/50 py-2 pl-9 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                 </div>
@@ -32,6 +35,9 @@ export function Navbar() {
                 </button>
 
                 <div className="flex items-center gap-3 pl-4 border-l border-border">
+                    <div className="hidden sm:flex sm:items-center sm:pr-3">
+                        <LanguageSwitcher />
+                    </div>
                     <div className="flex flex-col items-end hidden sm:flex">
                         <span className="text-sm font-medium text-foreground">{displayName}</span>
                         <span className="text-xs text-muted-foreground">{displayClass}</span>

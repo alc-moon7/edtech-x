@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "home": "হোম",
+    "about": "আমাদের সম্পর্কে",
+    "pricing": "মূল্য",
+    "contact": "যোগাযোগ",
+    "help": "সহায়িকা",
+    "sign_in": "সাইন ইন",
+    "get_started": "শুরু করুন"
+  },
+  "search": {
+    "placeholder": "কোর্স খুঁজুন..."
+  },
+  "footer": {
+    "description": "NCTB সিলেবাসের জন্য তৈরি ইন্টারেক্টিভ লার্নিং, ছাত্র ও অভিভাবকদের জন্য স্পষ্ট প্রগ্রেস ট্র্যাকিং।",
+    "email": "support@homeschool.bd",
+    "location": "ঢাকা, বাংলাদেশ",
+    "platform": "প্ল্যাটফর্ম",
+    "courses": "কোর্সসমূহ",
+    "student_dashboard": "স্টুডেন্ট ড্যাশবোর্ড",
+    "parent_view": "অভিভাবক ভিউ",
+    "help_center": "সহায়িকা কেন্দ্র",
+    "company": "কোম্পানি",
+    "about": "আমাদের সম্পর্কে",
+    "pricing": "মূল্য",
+    "contact": "যোগাযোগ",
+    "legal": "আইনি",
+    "privacy_policy": "গোপনীয়তা নীতি",
+    "terms": "শর্তাবলী",
+    "copyright": "© 2025 HomeSchool। সর্বস্বত্ব সংরক্ষিত।"
+  },
+  "aria": {
+    "open_menu": "মেনু খুলুন",
+    "close_menu": "মেনু বন্ধ করুন"
+  }
+}
