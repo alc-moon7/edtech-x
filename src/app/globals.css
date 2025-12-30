@@ -109,6 +109,10 @@
     @apply border-border;
   }
 
+  html[lang="bn"] {
+    font-size: clamp(14px, 0.6vw + 12px, 15.5px);
+  }
+
   body {
     @apply bg-background text-foreground;
   }
