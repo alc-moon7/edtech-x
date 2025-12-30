@@ -16,11 +16,20 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent } from "@/components/learning/QuizComponent";
 import { getNextLesson } from "@/lib/dataHelpers";
+import { useLanguage, useTranslate } from "@/lib/i18n";
+
+const typeLabels: Record<string, { en: string; bn: string }> = {
+    video: { en: "Video", bn: "ভিডিও" },
+    article: { en: "Article", bn: "আর্টিকেল" },
+    quiz: { en: "Quiz", bn: "কুইজ" },
+};
 
 export default function LessonPlayerPage() {
     const params = useParams();
     const navigate = useNavigate();
     const { courses, progress, markLessonComplete } = useStudent();
+    const { language } = useLanguage();
+    const t = useTranslate();
     const [quizCompleted, setQuizCompleted] = useState(false);
 
     const courseId = params.courseId as string;
@@ -32,7 +41,7 @@ export default function LessonPlayerPage() {
     const lesson = chapter?.lessons.find((l) => l.id === lessonId);
 
     if (!course || !chapter || !lesson) {
-        return <div className="p-8 text-center">Lesson not found.</div>;
+        return <div className="p-8 text-center">{t({ en: "Lesson not found.", bn: "পাঠ খুঁজে পাওয়া যায়নি।" })}</div>;
     }
 
     const userProgress = progress[courseId as keyof typeof progress] || { completedLessons: [] };
@@ -41,7 +50,10 @@ export default function LessonPlayerPage() {
     const quizCount =
         lesson.type === "quiz" && "questions" in lesson ? lesson.questions : undefined;
 
-    const lessonMeta = lesson.type === "quiz" ? `${quizCount ?? 5} Questions` : lesson.duration ?? "10 min";
+    const questionLabel = t({ en: "Questions", bn: "প্রশ্ন" });
+    const lessonMeta = lesson.type === "quiz"
+        ? `${quizCount ?? 5} ${questionLabel}`
+        : lesson.duration ?? t({ en: "10 min", bn: "10 মিনিট" });
 
     useEffect(() => {
         setQuizCompleted(isCompleted);
@@ -55,6 +67,29 @@ export default function LessonPlayerPage() {
     };
 
     const nextLesson = getNextLesson(courseId, chapterId, lessonId);
+    const typeLabel = t(typeLabels[lesson.type] ?? { en: lesson.type, bn: lesson.type });
+    const readingCopy = language === "bn"
+        ? `এই পাঠে ${lesson.title} বিষয়ের মূল ধারণাগুলো উদাহরণ ও দ্রুত চেকসহ ব্যাখ্যা করা হয়েছে। নিচের মূল পয়েন্টগুলো রিভিশনের জন্য ব্যবহার করুন।`
+        : `This reading explains the core ideas of ${lesson.title} with examples and quick checks. Use the key takeaways below to guide your revision.`;
+
+    const lessonGoals = [
+        language === "bn"
+            ? `${lesson.title} এর মূল ধারণাগুলো বুঝুন`
+            : `Understand the key ideas behind ${lesson.title}`,
+        language === "bn"
+            ? "সাধারণ পরীক্ষার প্রশ্নে ধারণাটি প্রয়োগ করুন"
+            : "Apply the concept to common exam questions",
+        language === "bn"
+            ? "সাধারণ ভুলগুলো চিহ্নিত করে এড়িয়ে চলুন"
+            : "Identify common mistakes and avoid them",
+    ];
+
+    const keyTakeaways = [
+        { en: "Definitions and core formulas", bn: "সংজ্ঞা ও মূল সূত্র" },
+        { en: "Worked examples you can revisit", bn: "ফিরে দেখার মতো উদাহরণ" },
+        { en: "Quick checks to confirm understanding", bn: "বোঝা নিশ্চিত করতে দ্রুত চেক" },
+        { en: "Revision notes for exam prep", bn: "পরীক্ষার প্রস্তুতির জন্য রিভিশন নোট" },
+    ];
 
     return (
         <div className="flex h-[calc(100vh-theme(spacing.16))] overflow-hidden">
@@ -64,7 +99,7 @@ export default function LessonPlayerPage() {
                         to={`/courses/${courseId}`}
                         className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2 mb-2"
                     >
-                        <ArrowLeft className="h-4 w-4" /> Back to Course
+                        <ArrowLeft className="h-4 w-4" /> {t({ en: "Back to Course", bn: "কোর্সে ফিরে যান" })}
                     </Link>
                     <h2 className="font-bold line-clamp-1">{course.title}</h2>
                     <p className="text-xs text-muted-foreground">{chapter.title}</p>
@@ -111,7 +146,7 @@ export default function LessonPlayerPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Link>
                     <span className="font-semibold truncate mx-4">{lesson.title}</span>
-                    <Button variant="ghost" size="sm" aria-label="Open lesson list">
+                    <Button variant="ghost" size="sm" aria-label={t({ en: "Open lesson list", bn: "লেসন তালিকা খুলুন" })}>
                         <LayoutList className="h-5 w-5" />
                     </Button>
                 </div>
@@ -122,15 +157,14 @@ export default function LessonPlayerPage() {
                             {lesson.type === "video" ? (
                                 <div className="text-center">
                                     <PlayCircle className="h-20 w-20 text-white/50 group-hover:text-white transition-colors mx-auto mb-4" />
-                                    <p className="text-white/70">Video lesson preview</p>
+                                    <p className="text-white/70">{t({ en: "Video lesson preview", bn: "ভিডিও লেসন প্রিভিউ" })}</p>
                                     <p className="text-xs text-white/50">{lesson.id}</p>
                                 </div>
                             ) : (
                                 <div className="bg-white text-black w-full h-full p-8 overflow-y-auto text-left">
                                     <h2 className="text-2xl font-bold mb-4">{lesson.title}</h2>
                                     <p className="text-base leading-relaxed text-gray-700">
-                                        This reading explains the core ideas of {lesson.title} with examples and
-                                        quick checks. Use the key takeaways below to guide your revision.
+                                        {readingCopy}
                                     </p>
                                 </div>
                             )}
@@ -142,7 +176,7 @@ export default function LessonPlayerPage() {
                             <h1 className="text-2xl font-bold mb-2">{lesson.title}</h1>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <span className="px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-medium uppercase text-[10px] tracking-wider">
-                                    {lesson.type}
+                                    {typeLabel}
                                 </span>
                                 <span>{lessonMeta}</span>
                             </div>
@@ -160,10 +194,10 @@ export default function LessonPlayerPage() {
                             >
                                 {isCompleted ? (
                                     <>
-                                        <CheckCircle className="h-4 w-4" /> Completed
+                                        <CheckCircle className="h-4 w-4" /> {t({ en: "Completed", bn: "সম্পন্ন" })}
                                     </>
                                 ) : (
-                                    "Mark Complete"
+                                    t({ en: "Mark Complete", bn: "সম্পন্ন হিসেবে চিহ্নিত করুন" })
                                 )}
                             </Button>
 
@@ -173,7 +207,7 @@ export default function LessonPlayerPage() {
                                     className="gap-2"
                                     onClick={() => navigate(`/learn/${courseId}/${nextLesson.chapterId}/${nextLesson.id}`)}
                                 >
-                                    Next <ChevronRight className="h-4 w-4" />
+                                    {t({ en: "Next", bn: "পরবর্তী" })} <ChevronRight className="h-4 w-4" />
                                 </Button>
                             )}
                         </div>
@@ -182,10 +216,9 @@ export default function LessonPlayerPage() {
                     {isQuiz ? (
                         <div className="space-y-6">
                             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                                <h2 className="text-lg font-semibold">Quiz instructions</h2>
+                                <h2 className="text-lg font-semibold">{t({ en: "Quiz instructions", bn: "কুইজ নির্দেশনা" })}</h2>
                                 <p className="mt-2 text-sm text-muted-foreground">
-                                    Answer each question to test your understanding. Your score is saved
-                                    automatically for progress tracking.
+                                    {t({ en: "Answer each question to test your understanding. Your score is saved automatically for progress tracking.", bn: "বোঝা যাচাই করতে প্রতিটি প্রশ্নের উত্তর দিন। আপনার স্কোর স্বয়ংক্রিয়ভাবে অগ্রগতি ট্র্যাকিংয়ের জন্য সংরক্ষিত হবে।" })}
                                 </p>
                             </div>
                             <QuizComponent
@@ -197,34 +230,23 @@ export default function LessonPlayerPage() {
                     ) : (
                         <div className="space-y-6">
                             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                                <h3 className="text-lg font-semibold">Lesson goals</h3>
+                                <h3 className="text-lg font-semibold">{t({ en: "Lesson goals", bn: "লেসনের লক্ষ্য" })}</h3>
                                 <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                                    <li className="flex items-center gap-2">
-                                        <CheckCircle className="h-4 w-4 text-primary" />
-                                        Understand the key ideas behind {lesson.title}
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                        <CheckCircle className="h-4 w-4 text-primary" />
-                                        Apply the concept to common exam questions
-                                    </li>
-                                    <li className="flex items-center gap-2">
-                                        <CheckCircle className="h-4 w-4 text-primary" />
-                                        Identify common mistakes and avoid them
-                                    </li>
+                                    {lessonGoals.map((item) => (
+                                        <li key={item} className="flex items-center gap-2">
+                                            <CheckCircle className="h-4 w-4 text-primary" />
+                                            {item}
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
 
                             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                                <h3 className="text-lg font-semibold">Key takeaways</h3>
+                                <h3 className="text-lg font-semibold">{t({ en: "Key takeaways", bn: "মূল পয়েন্ট" })}</h3>
                                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                                    {[
-                                        "Definitions and core formulas",
-                                        "Worked examples you can revisit",
-                                        "Quick checks to confirm understanding",
-                                        "Revision notes for exam prep",
-                                    ].map((item) => (
-                                        <div key={item} className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-                                            {item}
+                                    {keyTakeaways.map((item) => (
+                                        <div key={item.en} className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                                            {t(item)}
                                         </div>
                                     ))}
                                 </div>

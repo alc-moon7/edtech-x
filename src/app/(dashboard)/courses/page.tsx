@@ -3,9 +3,11 @@
 import { useStudent } from "@/lib/store";
 import { BookOpen, Clock, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTranslate } from "@/lib/i18n";
 
 export default function CoursesPage() {
     const { courses, progress } = useStudent();
+    const t = useTranslate();
 
     const getCourseProgress = (courseId: string) => {
         const courseData = courses.find(c => c.id === courseId);
@@ -23,9 +25,9 @@ export default function CoursesPage() {
     return (
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold font-heading">My Courses</h1>
+                <h1 className="text-3xl font-bold font-heading">{t({ en: "My Courses", bn: "আমার কোর্স" })}</h1>
                 <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                    Browse All
+                    {t({ en: "Browse All", bn: "সব দেখুন" })}
                 </button>
             </div>
 
@@ -54,7 +56,9 @@ export default function CoursesPage() {
                                         <Star className="h-3 w-3 fill-accent text-accent" />
                                         4.8
                                     </span>
-                                    <span className="text-xs text-muted-foreground">{totalLessons} Lessons</span>
+                                    <span className="text-xs text-muted-foreground">
+                                        {totalLessons} {t({ en: "Lessons", bn: "লেসন" })}
+                                    </span>
                                 </div>
 
                                 <h3 className="mb-2 text-lg font-bold line-clamp-1 group-hover:text-primary transition-colors">
@@ -63,12 +67,12 @@ export default function CoursesPage() {
 
                                 <div className="mb-4 flex items-center gap-1 text-xs text-muted-foreground">
                                     <Clock className="h-3 w-3" />
-                                    12h 30m
+                                    {t({ en: "12h 30m", bn: "12ঘ 30মি" })}
                                 </div>
 
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between text-xs font-medium">
-                                        <span>{courseProgress}% Complete</span>
+                                        <span>{courseProgress}% {t({ en: "Complete", bn: "সম্পন্ন" })}</span>
                                     </div>
                                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                                         <div
@@ -83,7 +87,9 @@ export default function CoursesPage() {
                                         to={`/courses/${course.id}`}
                                         className="inline-block w-full text-center rounded-lg border border-primary/20 bg-primary/5 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-all"
                                     >
-                                        {courseProgress > 0 ? "Continue Learning" : "Start Course"}
+                                        {courseProgress > 0
+                                            ? t({ en: "Continue Learning", bn: "শেখা চালিয়ে যান" })
+                                            : t({ en: "Start Course", bn: "কোর্স শুরু করুন" })}
                                     </Link>
                                 </div>
                             </div>

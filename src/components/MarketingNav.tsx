@@ -3,17 +3,20 @@ import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useTranslate } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 const navItems = [
-  { label: "Home", href: "/", end: true },
-  { label: "About", href: "/about" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Contact", href: "/contact" },
-  { label: "Help", href: "/help" },
+  { label: { en: "Home", bn: "হোম" }, href: "/", end: true },
+  { label: { en: "About", bn: "আমাদের সম্পর্কে" }, href: "/about" },
+  { label: { en: "Pricing", bn: "মূল্য" }, href: "/pricing" },
+  { label: { en: "Contact", bn: "যোগাযোগ" }, href: "/contact" },
+  { label: { en: "Help", bn: "সহায়তা" }, href: "/help" },
 ];
 
 export function MarketingNav() {
   const [open, setOpen] = useState(false);
+  const t = useTranslate();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
@@ -40,17 +43,18 @@ export function MarketingNav() {
                 )
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <LanguageToggle />
           <Link to="/login">
-            <Button variant="ghost">Sign in</Button>
+            <Button variant="ghost">{t({ en: "Sign in", bn: "সাইন ইন" })}</Button>
           </Link>
           <Link to="/signup">
-            <Button>Get started</Button>
+            <Button>{t({ en: "Get started", bn: "শুরু করুন" })}</Button>
           </Link>
         </div>
 
@@ -84,17 +88,18 @@ export function MarketingNav() {
                 )
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
           <div className="mt-3 flex flex-col gap-2">
+            <LanguageToggle className="w-full" />
             <Link to="/login" onClick={() => setOpen(false)}>
               <Button variant="outline" className="w-full">
-                Sign in
+                {t({ en: "Sign in", bn: "সাইন ইন" })}
               </Button>
             </Link>
             <Link to="/signup" onClick={() => setOpen(false)}>
-              <Button className="w-full">Get started</Button>
+              <Button className="w-full">{t({ en: "Get started", bn: "শুরু করুন" })}</Button>
             </Link>
           </div>
         </nav>

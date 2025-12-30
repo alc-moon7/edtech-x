@@ -5,10 +5,12 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Book, CheckCircle, Circle, PlayCircle, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
+import { useTranslate } from "@/lib/i18n";
 
 export default function CourseDetailPage() {
     const params = useParams();
     const { courses, progress } = useStudent();
+    const t = useTranslate();
 
     // In a real app, you might validate params.courseId
     const courseId = params.courseId as string;
@@ -18,9 +20,9 @@ export default function CourseDetailPage() {
     if (!course) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                <h2 className="text-2xl font-bold mb-4">Course not found</h2>
+                <h2 className="text-2xl font-bold mb-4">{t({ en: "Course not found", bn: "কোর্স খুঁজে পাওয়া যায়নি" })}</h2>
                 <Link to="/courses" className="text-primary hover:underline flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" /> Back to Courses
+                    <ArrowLeft className="h-4 w-4" /> {t({ en: "Back to Courses", bn: "কোর্সে ফিরে যান" })}
                 </Link>
             </div>
         );
@@ -33,7 +35,7 @@ export default function CourseDetailPage() {
             {/* Header */}
             <div>
                 <Link to="/courses" className="text-muted-foreground hover:text-primary flex items-center gap-2 text-sm mb-4">
-                    <ArrowLeft className="h-4 w-4" /> Back to Courses
+                    <ArrowLeft className="h-4 w-4" /> {t({ en: "Back to Courses", bn: "কোর্সে ফিরে যান" })}
                 </Link>
                 <div className={`rounded-3xl p-8 text-slate-800 ${course.image} bg-opacity-30`}>
                     <div className="flex items-start justify-between">
@@ -52,7 +54,7 @@ export default function CourseDetailPage() {
             <div className="space-y-6">
                 <h2 className="text-xl font-bold flex items-center gap-2">
                     <Book className="h-5 w-5 text-primary" />
-                    Course Content
+                    {t({ en: "Course Content", bn: "কোর্স কন্টেন্ট" })}
                 </h2>
 
                 <div className="space-y-4">
@@ -61,7 +63,7 @@ export default function CourseDetailPage() {
                             <div className="bg-muted/30 p-4 border-b">
                                 <h3 className="font-semibold text-lg">{chapter.title}</h3>
                                 <div className="text-xs text-muted-foreground mt-1">
-                                    {chapter.lessons.length} Lessons
+                                    {chapter.lessons.length} {t({ en: "Lessons", bn: "লেসন" })}
                                 </div>
                             </div>
                             <div className="divide-y">
@@ -90,9 +92,9 @@ export default function CourseDetailPage() {
                                                     <div className="font-medium group-hover:text-primary transition-colors">
                                                         {lesson.title}
                                                     </div>
-                                            <div className="text-xs text-muted-foreground">
+                                                    <div className="text-xs text-muted-foreground">
                                                         {lesson.type === 'quiz'
-                                                            ? `${"questions" in lesson ? lesson.questions : 5} Questions`
+                                                            ? `${"questions" in lesson ? lesson.questions : 5} ${t({ en: "Questions", bn: "প্রশ্ন" })}`
                                                             : lesson.duration}
                                                     </div>
                                                 </div>

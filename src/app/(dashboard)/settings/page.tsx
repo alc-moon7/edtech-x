@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
 import { syncProfile } from "@/lib/profile";
+import { useTranslate } from "@/lib/i18n";
 
 type SettingsState = {
     name: string;
@@ -43,6 +44,7 @@ const initialState: SettingsState = {
 
 export default function SettingsPage() {
     const { user } = useAuth();
+    const t = useTranslate();
     const [settings, setSettings] = useState<SettingsState>(initialState);
     const [status, setStatus] = useState<"idle" | "saved">("idle");
     const [error, setError] = useState<string | null>(null);
@@ -108,18 +110,18 @@ export default function SettingsPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold font-heading">Settings</h1>
-                <p className="text-muted-foreground">Update your profile and notification preferences.</p>
+                <h1 className="text-3xl font-bold font-heading">{t({ en: "Settings", bn: "সেটিংস" })}</h1>
+                <p className="text-muted-foreground">{t({ en: "Update your profile and notification preferences.", bn: "আপনার প্রোফাইল ও নোটিফিকেশন পছন্দ আপডেট করুন।" })}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                 <div className="space-y-6">
                     <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
-                        <h2 className="text-lg font-semibold">Profile</h2>
+                        <h2 className="text-lg font-semibold">{t({ en: "Profile", bn: "প্রোফাইল" })}</h2>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                                 <label htmlFor="name" className="text-sm font-medium">
-                                    Full name
+                                    {t({ en: "Full name", bn: "পূর্ণ নাম" })}
                                 </label>
                                 <Input
                                     id="name"
@@ -129,7 +131,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="email" className="text-sm font-medium">
-                                    Email address
+                                    {t({ en: "Email address", bn: "ইমেইল ঠিকানা" })}
                                 </label>
                                 <Input
                                     id="email"
@@ -137,13 +139,13 @@ export default function SettingsPage() {
                                     value={settings.email}
                                     disabled
                                 />
-                                <p className="text-xs text-muted-foreground">Contact support to change your email.</p>
+                                <p className="text-xs text-muted-foreground">{t({ en: "Contact support to change your email.", bn: "ইমেইল পরিবর্তনের জন্য সাপোর্টে যোগাযোগ করুন।" })}</p>
                             </div>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                                 <label htmlFor="studentClass" className="text-sm font-medium">
-                                    Class
+                                    {t({ en: "Class", bn: "ক্লাস" })}
                                 </label>
                                 <select
                                     id="studentClass"
@@ -153,18 +155,18 @@ export default function SettingsPage() {
                                     }
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 >
-                                    <option>Class 6</option>
-                                    <option>Class 7</option>
-                                    <option>Class 8</option>
-                                    <option>Class 9</option>
-                                    <option>Class 10</option>
-                                    <option>Class 11</option>
-                                    <option>Class 12</option>
+                                    <option value="Class 6">{t({ en: "Class 6", bn: "ক্লাস ৬" })}</option>
+                                    <option value="Class 7">{t({ en: "Class 7", bn: "ক্লাস ৭" })}</option>
+                                    <option value="Class 8">{t({ en: "Class 8", bn: "ক্লাস ৮" })}</option>
+                                    <option value="Class 9">{t({ en: "Class 9", bn: "ক্লাস ৯" })}</option>
+                                    <option value="Class 10">{t({ en: "Class 10", bn: "ক্লাস ১০" })}</option>
+                                    <option value="Class 11">{t({ en: "Class 11", bn: "ক্লাস ১১" })}</option>
+                                    <option value="Class 12">{t({ en: "Class 12", bn: "ক্লাস ১২" })}</option>
                                 </select>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="language" className="text-sm font-medium">
-                                    Language
+                                    {t({ en: "Language", bn: "ভাষা" })}
                                 </label>
                                 <select
                                     id="language"
@@ -172,16 +174,16 @@ export default function SettingsPage() {
                                     onChange={(event) => setSettings((prev) => ({ ...prev, language: event.target.value }))}
                                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 >
-                                    <option>English</option>
-                                    <option>Bangla</option>
-                                    <option>Bilingual</option>
+                                    <option value="English">{t({ en: "English", bn: "ইংরেজি" })}</option>
+                                    <option value="Bangla">{t({ en: "Bangla", bn: "বাংলা" })}</option>
+                                    <option value="Bilingual">{t({ en: "Bilingual", bn: "দ্বিভাষিক" })}</option>
                                 </select>
                             </div>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                                 <label htmlFor="school" className="text-sm font-medium">
-                                    School
+                                    {t({ en: "School", bn: "স্কুল" })}
                                 </label>
                                 <Input
                                     id="school"
@@ -191,7 +193,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="section" className="text-sm font-medium">
-                                    Section
+                                    {t({ en: "Section", bn: "সেকশন" })}
                                 </label>
                                 <Input
                                     id="section"
@@ -203,7 +205,7 @@ export default function SettingsPage() {
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-2">
                                 <label htmlFor="studentId" className="text-sm font-medium">
-                                    Student ID / Roll
+                                    {t({ en: "Student ID / Roll", bn: "শিক্ষার্থী আইডি / রোল" })}
                                 </label>
                                 <Input
                                     id="studentId"
@@ -213,7 +215,7 @@ export default function SettingsPage() {
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="guardianName" className="text-sm font-medium">
-                                    Guardian name
+                                    {t({ en: "Guardian name", bn: "অভিভাবকের নাম" })}
                                 </label>
                                 <Input
                                     id="guardianName"
@@ -224,7 +226,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="phone" className="text-sm font-medium">
-                                Phone
+                                {t({ en: "Phone", bn: "ফোন" })}
                             </label>
                             <Input
                                 id="phone"
@@ -236,23 +238,23 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
-                        <h2 className="text-lg font-semibold">Notification preferences</h2>
+                        <h2 className="text-lg font-semibold">{t({ en: "Notification preferences", bn: "নোটিফিকেশন পছন্দ" })}</h2>
                         <div className="space-y-3">
                             <ToggleRow
-                                label="Weekly progress summary"
-                                description="Receive a weekly report of lessons and quiz scores."
+                                label={t({ en: "Weekly progress summary", bn: "সাপ্তাহিক অগ্রগতি সারাংশ" })}
+                                description={t({ en: "Receive a weekly report of lessons and quiz scores.", bn: "লেসন ও কুইজ স্কোরের সাপ্তাহিক রিপোর্ট পান।" })}
                                 checked={settings.notifications.weeklySummary}
                                 onChange={() => handleToggle("weeklySummary")}
                             />
                             <ToggleRow
-                                label="Quiz performance alerts"
-                                description="Get alerts when scores drop below target."
+                                label={t({ en: "Quiz performance alerts", bn: "কুইজ পারফরম্যান্স অ্যালার্ট" })}
+                                description={t({ en: "Get alerts when scores drop below target.", bn: "স্কোর লক্ষ্যমানের নিচে গেলে অ্যালার্ট পান।" })}
                                 checked={settings.notifications.quizAlerts}
                                 onChange={() => handleToggle("quizAlerts")}
                             />
                             <ToggleRow
-                                label="Parent updates"
-                                description="Share weekly highlights with linked parents."
+                                label={t({ en: "Parent updates", bn: "অভিভাবক আপডেট" })}
+                                description={t({ en: "Share weekly highlights with linked parents.", bn: "যুক্ত অভিভাবকদের সাথে সাপ্তাহিক হাইলাইট শেয়ার করুন।" })}
                                 checked={settings.notifications.parentUpdates}
                                 onChange={() => handleToggle("parentUpdates")}
                             />
@@ -261,22 +263,22 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-6">
-                <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                    <h2 className="text-lg font-semibold">Account actions</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        Update your preferences anytime. Changes apply immediately.
-                    </p>
-                    {error && (
-                        <p className="mt-3 text-xs text-red-600" role="alert">
-                            {error}
+                    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                        <h2 className="text-lg font-semibold">{t({ en: "Account actions", bn: "অ্যাকাউন্ট অ্যাকশন" })}</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            {t({ en: "Update your preferences anytime. Changes apply immediately.", bn: "যেকোনো সময় পছন্দ আপডেট করুন। পরিবর্তন সঙ্গে সঙ্গে কার্যকর হবে।" })}
                         </p>
-                    )}
-                    <Button type="submit" className="mt-6 w-full">
-                        Save changes
-                    </Button>
+                        {error && (
+                            <p className="mt-3 text-xs text-red-600" role="alert">
+                                {error}
+                            </p>
+                        )}
+                        <Button type="submit" className="mt-6 w-full">
+                            {t({ en: "Save changes", bn: "পরিবর্তন সংরক্ষণ করুন" })}
+                        </Button>
                         {status === "saved" && (
                             <p className="mt-3 text-xs text-green-600" role="status">
-                                Settings saved successfully.
+                                {t({ en: "Settings saved successfully.", bn: "সেটিংস সফলভাবে সংরক্ষিত হয়েছে।" })}
                             </p>
                         )}
                     </div>

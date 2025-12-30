@@ -2,95 +2,97 @@ import { BookOpen, Clock, Trophy, Target } from "lucide-react";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { Leaderboard } from "@/components/dashboard/Leaderboard";
 import { useAuth } from "@/lib/auth";
+import { useTranslate } from "@/lib/i18n";
 
 export default function DashboardPage() {
     const { user } = useAuth();
-    const displayName = user?.user_metadata?.full_name || "Student";
+    const t = useTranslate();
+    const displayName = user?.user_metadata?.full_name || t({ en: "Student", bn: "শিক্ষার্থী" });
 
     return (
         <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold font-heading text-foreground">Welcome back, {displayName}!</h1>
-                <p className="text-muted-foreground">Here's an overview of your learning progress today.</p>
+                <h1 className="text-3xl font-bold font-heading text-foreground">
+                    {t({ en: "Welcome back,", bn: "আবার স্বাগতম," })} {displayName}!
+                </h1>
+                <p className="text-muted-foreground">
+                    {t({ en: "Here's an overview of your learning progress today.", bn: "আজকের শেখার অগ্রগতির সংক্ষিপ্তসার এখানে।" })}
+                </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <StatsCard
-                    title="Courses in Progress"
+                    title={t({ en: "Courses in Progress", bn: "চলমান কোর্স" })}
                     value="4"
                     icon={BookOpen}
-                    description="2 due this week"
-                    trend="+1 from last month"
+                    description={t({ en: "2 due this week", bn: "এই সপ্তাহে ২টি বাকি" })}
+                    trend={t({ en: "+1 from last month", bn: "গত মাসের তুলনায় +১" })}
                     color="primary"
                 />
                 <StatsCard
-                    title="Hours Learned"
+                    title={t({ en: "Hours Learned", bn: "শেখার ঘন্টা" })}
                     value="12.5"
                     icon={Clock}
-                    description="Total this week"
-                    trend="+2.4 hours"
+                    description={t({ en: "Total this week", bn: "এই সপ্তাহের মোট" })}
+                    trend={t({ en: "+2.4 hours", bn: "+২.৪ ঘন্টা" })}
                     color="secondary"
                 />
                 <StatsCard
-                    title="Quiz Score"
+                    title={t({ en: "Quiz Score", bn: "কুইজ স্কোর" })}
                     value="85%"
                     icon={Trophy}
-                    description="Average score"
-                    trend="+5% improvement"
+                    description={t({ en: "Average score", bn: "গড় স্কোর" })}
+                    trend={t({ en: "+5% improvement", bn: "+৫% উন্নতি" })}
                     color="accent"
                 />
                 <StatsCard
-                    title="Daily Goals"
+                    title={t({ en: "Daily Goals", bn: "দৈনিক লক্ষ্য" })}
                     value="2/3"
                     icon={Target}
-                    description="Tasks completed"
-                    trend="Keep it up!"
+                    description={t({ en: "Tasks completed", bn: "কাজ সম্পন্ন" })}
+                    trend={t({ en: "Keep it up!", bn: "চালিয়ে যান!" })}
                     color="primary"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Content Area - 2 Cols */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                        <h3 className="mb-4 text-lg font-semibold">Recent Activity</h3>
+                        <h3 className="mb-4 text-lg font-semibold">{t({ en: "Recent Activity", bn: "সাম্প্রতিক কার্যক্রম" })}</h3>
                         <div className="space-y-4">
-                            {/* Placeholder for activity feed */}
                             <div className="flex items-center gap-4">
                                 <div className="h-2 w-2 rounded-full bg-primary" />
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium">Completed Chapter 3: Geometry</p>
-                                    <p className="text-xs text-muted-foreground">2 hours ago</p>
+                                    <p className="text-sm font-medium">{t({ en: "Completed Chapter 3: Geometry", bn: "অধ্যায় ৩ সম্পন্ন: জ্যামিতি" })}</p>
+                                    <p className="text-xs text-muted-foreground">{t({ en: "2 hours ago", bn: "২ ঘন্টা আগে" })}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="h-2 w-2 rounded-full bg-secondary" />
                                 <div className="flex-1">
-                                    <p className="text-sm font-medium">Started New Course: Physics</p>
-                                    <p className="text-xs text-muted-foreground">Yesterday</p>
+                                    <p className="text-sm font-medium">{t({ en: "Started New Course: Physics", bn: "নতুন কোর্স শুরু: পদার্থবিজ্ঞান" })}</p>
+                                    <p className="text-xs text-muted-foreground">{t({ en: "Yesterday", bn: "গতকাল" })}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                        <h3 className="mb-4 text-lg font-semibold">Recommended for You</h3>
+                        <h3 className="mb-4 text-lg font-semibold">{t({ en: "Recommended for You", bn: "আপনার জন্য প্রস্তাবিত" })}</h3>
                         <div className="space-y-4">
-                            {/* Placeholder for recommendations */}
                             <div className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-muted/50">
                                 <div>
-                                    <p className="font-medium">Advanced Algebra</p>
-                                    <p className="text-xs text-muted-foreground">Mathematics - Class 10</p>
+                                    <p className="font-medium">{t({ en: "Advanced Algebra", bn: "উন্নত বীজগণিত" })}</p>
+                                    <p className="text-xs text-muted-foreground">{t({ en: "Mathematics - Class 10", bn: "গণিত - ক্লাস ১০" })}</p>
                                 </div>
                                 <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90">
-                                    View
+                                    {t({ en: "View", bn: "দেখুন" })}
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Sidebar Area - 1 Col */}
                 <div className="space-y-6">
                     <StreakCard />
                     <Leaderboard />
@@ -115,14 +117,11 @@ function StatsCard({
     trend: string;
     color: "primary" | "secondary" | "accent";
 }) {
-    // Map color prop to generic classes if needed, or just use primary for now. 
-    // I am using simple styles for now.
-
     const colorStyles = {
         primary: "text-primary bg-primary/10",
         secondary: "text-secondary bg-secondary/10",
         accent: "text-accent bg-accent/10"
-    }
+    };
 
     return (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">

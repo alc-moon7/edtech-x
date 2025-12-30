@@ -3,15 +3,17 @@
 import { Crown } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useTranslate } from "@/lib/i18n";
 
 export function Leaderboard() {
     const { leaderboard } = useStudent();
+    const t = useTranslate();
 
     return (
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
                 <Crown className="h-5 w-5 text-yellow-500" />
-                <h3 className="text-lg font-semibold">Leaderboard</h3>
+                <h3 className="text-lg font-semibold">{t({ en: "Leaderboard", bn: "লিডারবোর্ড" })}</h3>
             </div>
 
             <div className="space-y-4">
@@ -34,18 +36,18 @@ export function Leaderboard() {
                             </div>
                             <div>
                                 <p className={cn("text-sm font-medium", user.name === "You" && "text-primary")}>
-                                    {user.name}
+                                    {user.name === "You" ? t({ en: "You", bn: "আপনি" }) : user.name}
                                 </p>
                             </div>
                         </div>
-                        <div className="font-bold text-sm">{user.points} pts</div>
+                        <div className="font-bold text-sm">{user.points} {t({ en: "pts", bn: "পয়েন্ট" })}</div>
                     </div>
                 ))}
             </div>
 
             <div className="mt-4 pt-4 border-t border-border text-center">
                 <button className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                    View All Rankings
+                    {t({ en: "View All Rankings", bn: "সব র‍্যাঙ্কিং দেখুন" })}
                 </button>
             </div>
         </div>
