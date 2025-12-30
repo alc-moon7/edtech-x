@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "help": "Help",
+    "sign_in": "Sign in",
+    "get_started": "Get started"
+  },
+  "search": {
+    "placeholder": "Search courses..."
+  },
+  "footer": {
+    "description": "Interactive learning built for the NCTB syllabus with clear progress tracking for students and parents.",
+    "email": "support@homeschool.bd",
+    "location": "Dhaka, Bangladesh",
+    "platform": "Platform",
+    "courses": "Courses",
+    "student_dashboard": "Student Dashboard",
+    "parent_view": "Parent View",
+    "help_center": "Help Center",
+    "company": "Company",
+    "about": "About",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "legal": "Legal",
+    "privacy_policy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "copyright": "© 2025 HomeSchool. All rights reserved."
+  },
+  "aria": {
+    "open_menu": "Open menu",
+    "close_menu": "Close menu"
+  }
+}

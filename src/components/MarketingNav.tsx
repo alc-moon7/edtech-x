@@ -21,7 +21,7 @@ export function MarketingNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:py-4">
-        <Link to="/" className="flex items-center gap-2" aria-label="HomeSchool home">
+        <Link to="/" className="flex items-center gap-2" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool হোম" })}>
           <img
             src="/logo.png"
             alt="HomeSchool"
@@ -61,7 +61,7 @@ export function MarketingNav() {
         <button
           type="button"
           className="md:hidden inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 text-muted-foreground hover:text-foreground"
-          aria-label={open ? "Close menu" : "Open menu"}
+          aria-label={open ? t({ en: "Close menu", bn: "মেনু বন্ধ করুন" }) : t({ en: "Open menu", bn: "মেনু খুলুন" })}
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((prev) => !prev)}
