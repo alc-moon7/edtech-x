@@ -29,30 +29,6 @@ type SearchItem = {
   link?: string;
 };
 
-async function verifyUser(req: Request) {
-  const authorization = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
-  if (!authorization.startsWith("Bearer ")) {
-    return false;
-  }
-
-  const token = authorization.replace("Bearer ", "").trim();
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-
-  if (!supabaseUrl || !anonKey) {
-    throw new Error("Missing Supabase environment variables.");
-  }
-
-  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      apikey: anonKey,
-    },
-  });
-
-  return response.ok;
-}
-
 function buildSearchQuery(payload: GenerateQuizPayload, language: "en" | "bn") {
   const parts = [payload.classLevel, payload.subject, payload.chapter];
   if (language === "bn") {
@@ -231,14 +207,6 @@ serve(async (req) => {
   }
 
   try {
-    const isAuthorized = await verifyUser(req);
-    if (!isAuthorized) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const payload = (await req.json()) as GenerateQuizPayload;
     const language = payload.language === "bn" ? "bn" : "en";
     const count = payload.count ?? 10;

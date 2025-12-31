@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { CheckCircle2, ClipboardCheck, LineChart, PlayCircle, Star, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
+import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate } from "@/lib/i18n";
 
@@ -258,6 +259,30 @@ export default function Home() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-start">
+            <div className="space-y-4">
+              <div className="text-sm font-semibold uppercase tracking-wider text-primary">
+                {t({ en: "AI quiz", bn: "এআই কুইজ" })}
+              </div>
+              <h2 className="text-3xl font-bold font-heading sm:text-4xl">
+                {t({ en: "Instant NCTB-aligned MCQs", bn: "তাৎক্ষণিক NCTB-ভিত্তিক MCQ" })}
+              </h2>
+              <p className="text-muted-foreground">
+                {t({
+                  en: "Right on the home screen, choose your class, subject, and chapter to generate on-demand quizzes - no sign-in required. No static question bank; every quiz is created live.",
+                  bn: "হোম স্ক্রিন থেকেই ক্লাস, বিষয় ও অধ্যায় বেছে নিলেই সাথে সাথে অন-ডিমান্ড কুইজ তৈরি হবে - লগইন লাগবে না। কোনো স্থির প্রশ্নভান্ডার নেই - প্রতিবার নতুন প্রশ্ন তৈরি হয়।",
+                })}
+              </p>
+            </div>
+            <div className="w-full lg:justify-self-end">
+              <AiQuizCard context="home" />
+            </div>
           </div>
         </div>
       </section>
