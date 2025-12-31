@@ -1,27 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle, RefreshCw } from "lucide-react";
 import { useStudent } from "@/lib/store";
+import { useTranslate } from "@/lib/i18n";
 import { MOCK_QUIZ_Questions } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
+
+export type QuizQuestion = {
+    id: string | number;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation?: string;
+};
 
 export function QuizComponent({
     courseId,
     quizId,
+    questions,
     onComplete
 }: {
-    courseId: string,
-    quizId: string,
+    courseId: string;
+    quizId?: string;
+    questions?: QuizQuestion[];
     onComplete: () => void
 }) {
     const { saveQuizScore } = useStudent();
-    const questions = MOCK_QUIZ_Questions[quizId as keyof typeof MOCK_QUIZ_Questions];
+    const t = useTranslate();
+    const storedQuestions = quizId ? MOCK_QUIZ_Questions[quizId as keyof typeof MOCK_QUIZ_Questions] : undefined;
 
     // Support generic fallback if no mock questions found
-    const activeQuestions = questions || [
-        { id: 1, question: "Sample Question 1?", options: ["A", "B", "C", "D"], correctAnswer: 0 }
-    ];
+    const activeQuestions = useMemo<QuizQuestion[]>(() => {
+        if (questions && questions.length) {
+            return questions;
+        }
+        if (storedQuestions && storedQuestions.length) {
+            return storedQuestions as QuizQuestion[];
+        }
+        return [{ id: 1, question: "Sample Question 1?", options: ["A", "B", "C", "D"], correctAnswer: 0 }];
+    }, [questions, storedQuestions]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -29,6 +47,17 @@ export function QuizComponent({
     const [showResult, setShowResult] = useState(false);
     const [finalScore, setFinalScore] = useState<number | null>(null);
     const [answerState, setAnswerState] = useState<'idle' | 'correct' | 'incorrect'>('idle');
+    const [answers, setAnswers] = useState<(number | null)[]>([]);
+
+    useEffect(() => {
+        setCurrentIndex(0);
+        setSelectedOption(null);
+        setScore(0);
+        setShowResult(false);
+        setFinalScore(null);
+        setAnswerState('idle');
+        setAnswers(Array(activeQuestions.length).fill(null));
+    }, [activeQuestions]);
 
     const handleOptionSelect = (index: number) => {
         if (answerState !== 'idle') return;
@@ -41,6 +70,11 @@ export function QuizComponent({
         const updatedScore = score + (isCorrect ? 1 : 0);
         setScore(updatedScore);
         setAnswerState(isCorrect ? 'correct' : 'incorrect');
+        setAnswers(prev => {
+            const next = [...prev];
+            next[currentIndex] = selectedOption;
+            return next;
+        });
 
         setTimeout(() => {
             if (currentIndex < activeQuestions.length - 1) {
@@ -58,7 +92,9 @@ export function QuizComponent({
         // Calculate percentage
         const percentScore = Math.round((correctCount / activeQuestions.length) * 100);
         setFinalScore(percentScore);
-        saveQuizScore(courseId, quizId, percentScore);
+        if (quizId) {
+            saveQuizScore(courseId, quizId, percentScore);
+        }
     };
 
     const handleRetry = () => {
@@ -68,6 +104,7 @@ export function QuizComponent({
         setShowResult(false);
         setFinalScore(null);
         setAnswerState('idle');
+        setAnswers(Array(activeQuestions.length).fill(null));
     };
 
     if (showResult) {
@@ -76,21 +113,48 @@ export function QuizComponent({
                 <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                     <CheckCircle className="h-8 w-8" />
                 </div>
-                <h3 className="text-2xl font-bold">Quiz Completed!</h3>
-                <p className="text-muted-foreground">You scored {finalScore ?? 0}%</p>
+                <h3 className="text-2xl font-bold">{t({ en: "Quiz Completed!", bn: "কুইজ সম্পন্ন হয়েছে!" })}</h3>
+                <p className="text-muted-foreground">{t({ en: "You scored", bn: "আপনার স্কোর" })} {finalScore ?? 0}%</p>
                 <div className="flex gap-4">
                     <button
                         onClick={handleRetry}
                         className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
                     >
-                        <RefreshCw className="h-4 w-4" /> Try Again
+                        <RefreshCw className="h-4 w-4" /> {t({ en: "Try Again", bn: "আবার চেষ্টা করুন" })}
                     </button>
                     <button
                         onClick={onComplete}
                         className="bg-primary text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-primary/90"
                     >
-                        Continue Learning
+                        {t({ en: "Continue Learning", bn: "শেখা চালিয়ে যান" })}
                     </button>
+                </div>
+                <div className="w-full pt-4 border-t border-border text-left space-y-4">
+                    {activeQuestions.map((question, idx) => {
+                        const selected = answers[idx];
+                        const isCorrect = selected === question.correctAnswer;
+                        return (
+                            <div key={question.id} className="rounded-lg border border-border bg-muted/20 p-4">
+                                <p className="text-sm font-semibold text-foreground">
+                                    {t({ en: "Question", bn: "প্রশ্ন" })} {idx + 1}
+                                </p>
+                                <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{question.question}</p>
+                                <div className="mt-3 text-sm">
+                                    <p className={cn("font-medium", isCorrect ? "text-green-600" : "text-red-600")}>
+                                        {t({ en: "Your answer", bn: "আপনার উত্তর" })}: {selected === null ? t({ en: "Not answered", bn: "উত্তর দেওয়া হয়নি" }) : question.options[selected]}
+                                    </p>
+                                    {!isCorrect && (
+                                        <p className="mt-1 font-medium text-green-600">
+                                            {t({ en: "Correct answer", bn: "সঠিক উত্তর" })}: {question.options[question.correctAnswer]}
+                                        </p>
+                                    )}
+                                    {question.explanation && (
+                                        <p className="mt-2 text-xs text-muted-foreground">{question.explanation}</p>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         );
@@ -101,8 +165,8 @@ export function QuizComponent({
     return (
         <div className="max-w-2xl mx-auto bg-card border border-border rounded-xl p-6 shadow-sm">
             <div className="mb-6 flex justify-between items-center text-sm text-muted-foreground">
-                <span>Question {currentIndex + 1} of {activeQuestions.length}</span>
-                <span>Score: {score}</span>
+                <span>{t({ en: "Question", bn: "প্রশ্ন" })} {currentIndex + 1} {t({ en: "of", bn: "এর" })} {activeQuestions.length}</span>
+                <span>{t({ en: "Score", bn: "স্কোর" })}: {score}</span>
             </div>
 
             <h3 className="text-xl font-bold mb-6">{currentQ.question}</h3>
@@ -131,7 +195,9 @@ export function QuizComponent({
                     disabled={selectedOption === null || answerState !== 'idle'}
                     className="bg-primary text-white rounded-lg px-6 py-3 font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {currentIndex === activeQuestions.length - 1 ? "Finish Quiz" : "Next Question"}
+                    {currentIndex === activeQuestions.length - 1
+                        ? t({ en: "Finish Quiz", bn: "কুইজ শেষ করুন" })
+                        : t({ en: "Next Question", bn: "পরবর্তী প্রশ্ন" })}
                 </button>
             </div>
         </div>

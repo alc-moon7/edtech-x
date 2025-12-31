@@ -1,6 +1,7 @@
 import { BookOpen, Clock, Trophy, Target } from "lucide-react";
 import { StreakCard } from "@/components/dashboard/StreakCard";
 import { Leaderboard } from "@/components/dashboard/Leaderboard";
+import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
 
@@ -91,6 +92,8 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     </div>
+
+                    <AiQuizCard />
                 </div>
 
                 <div className="space-y-6">

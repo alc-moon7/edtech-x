@@ -42,6 +42,28 @@ npm run preview
    - Require email confirmations.
    - Add redirect URLs:
      - `http://localhost:5173/login`
-     - `http://localhost:5173/reset_pass`
-     - `https://homeschool.moonx.dev/login`
-     - `https://homeschool.moonx.dev/reset_pass`
+   - `http://localhost:5173/reset_pass`
+   - `https://homeschool.moonx.dev/login`
+   - `https://homeschool.moonx.dev/reset_pass`
+
+## AI Quiz (Serper)
+
+This project includes a Supabase Edge Function that uses Serper.dev search data to generate MCQ-style questions.
+
+1. Set the Serper API key as a Supabase secret:
+
+```bash
+supabase secrets set SERPER_API_KEY=your-serper-key
+```
+
+2. Deploy the Edge Function:
+
+```bash
+supabase functions deploy generate-quiz
+```
+
+3. For local dev, run:
+
+```bash
+supabase functions serve
+```
