@@ -23,6 +23,12 @@ type GenerateQuizPayload = {
   difficulty?: "easy" | "medium" | "hard";
 };
 
+type SearchItem = {
+  title: string;
+  snippet: string;
+  link?: string;
+};
+
 async function verifyUser(req: Request) {
   const authorization = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
   if (!authorization.startsWith("Bearer ")) {
@@ -45,6 +51,62 @@ async function verifyUser(req: Request) {
   });
 
   return response.ok;
+}
+
+function buildSearchQuery(payload: GenerateQuizPayload, language: "en" | "bn") {
+  const parts = [payload.classLevel, payload.subject, payload.chapter];
+  if (language === "bn") {
+    parts.push("বাংলাদেশ", "এনসিটিবি", "পাঠ্যবই", "বহুনির্বাচনী");
+  } else {
+    parts.push("Bangladesh", "NCTB", "textbook", "MCQ");
+  }
+  return parts.filter(Boolean).join(" ");
+}
+
+function buildKeywords(payload: GenerateQuizPayload, language: "en" | "bn") {
+  const keywords = [payload.subject, payload.chapter, payload.classLevel];
+  if (language === "bn") {
+    keywords.push("এনসিটিবি", "পাঠ্যবই", "বহুনির্বাচনী");
+  } else {
+    keywords.push("NCTB", "textbook", "syllabus");
+  }
+  return keywords
+    .filter(Boolean)
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function scoreItem(item: SearchItem, keywords: string[]) {
+  const text = `${item.title} ${item.snippet}`.toLowerCase();
+  let score = 0;
+  for (const keyword of keywords) {
+    const needle = keyword.toLowerCase();
+    if (!needle) continue;
+    if (text.includes(needle)) {
+      score += 2;
+    }
+  }
+
+  if (item.link) {
+    try {
+      const hostname = new URL(item.link).hostname;
+      if (hostname.includes("nctb")) score += 5;
+      if (hostname.endsWith(".gov.bd") || hostname.endsWith(".edu.bd")) score += 2;
+      if (hostname.endsWith(".bd")) score += 1;
+    } catch {
+      // ignore bad URLs
+    }
+  }
+
+  return score;
+}
+
+function filterRelevantItems(items: SearchItem[], keywords: string[], count: number) {
+  const scored = items.map((item) => ({ item, score: scoreItem(item, keywords) }));
+  const sorted = scored.sort((a, b) => b.score - a.score);
+  const filtered = sorted.filter((entry) => entry.score > 0).map((entry) => entry.item);
+  const minRelevant = Math.min(count, 6);
+  return filtered.length >= minRelevant ? filtered : sorted.map((entry) => entry.item);
 }
 
 const fallbackOptions = {
@@ -177,65 +239,72 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get("SERPER_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Missing SERPER_API_KEY" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const payload = (await req.json()) as GenerateQuizPayload;
     const language = payload.language === "bn" ? "bn" : "en";
     const count = payload.count ?? 10;
     const difficulty = payload.difficulty ?? "medium";
+    const apiKey = Deno.env.get("SERPER_API_KEY");
+    if (!apiKey) {
+      const fallbackQuestions = buildQuestions([], language, count);
+      return new Response(
+        JSON.stringify({
+          questions: fallbackQuestions,
+          source: "fallback",
+          warning: "Missing SERPER_API_KEY",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
-    const queryParts = [
-      payload.classLevel,
-      "Bangladesh NCTB",
-      payload.subject,
-      payload.chapter,
-      "MCQ",
-      difficulty,
-    ].filter(Boolean);
-    const query = queryParts.join(" ");
+    const query = `${buildSearchQuery(payload, language)} ${difficulty}`.trim();
+    const keywords = buildKeywords(payload, language);
 
     const searchPayload = {
       q: query,
-      num: Math.max(count, 10),
+      num: Math.max(count * 2, 10),
       gl: "bd",
       hl: language,
     };
 
-    const response = await fetch("https://google.serper.dev/search", {
-      method: "POST",
-      headers: {
-        "X-API-KEY": apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(searchPayload),
-    });
+    let items: SearchItem[] = [];
+    let source: "serper" | "fallback" = "serper";
+    let warning: string | undefined;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return new Response(JSON.stringify({ error: errorText }), {
-        status: response.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    try {
+      const response = await fetch("https://google.serper.dev/search", {
+        method: "POST",
+        headers: {
+          "X-API-KEY": apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchPayload),
       });
-    }
 
-    const data = await response.json();
-    const organic = Array.isArray(data?.organic) ? data.organic : [];
-    const items = organic
-      .filter((item: { title?: string; snippet?: string }) => item.title && item.snippet)
-      .map((item: { title: string; snippet: string }) => ({
-        title: normalizeText(item.title),
-        snippet: normalizeText(item.snippet),
-      }));
+      if (!response.ok) {
+        warning = await response.text();
+        source = "fallback";
+      } else {
+        const data = await response.json();
+        const organic = Array.isArray(data?.organic) ? data.organic : [];
+        const rawItems = organic
+          .filter((item: { title?: string; snippet?: string }) => item.title && item.snippet)
+          .map((item: { title: string; snippet: string; link?: string; url?: string }) => ({
+            title: normalizeText(item.title),
+            snippet: normalizeText(item.snippet),
+            link: item.link ?? item.url ?? "",
+          }));
+        items = filterRelevantItems(rawItems, keywords, count);
+      }
+    } catch (error) {
+      warning = String(error);
+      source = "fallback";
+    }
 
     const questions = buildQuestions(items, language, count);
 
-    return new Response(JSON.stringify({ questions, source: "serper" }), {
+    return new Response(JSON.stringify({ questions, source, warning }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
