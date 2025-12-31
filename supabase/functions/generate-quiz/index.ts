@@ -31,16 +31,16 @@ async function verifyUser(req: Request) {
 
   const token = authorization.replace("Bearer ", "").trim();
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !anonKey) {
     throw new Error("Missing Supabase environment variables.");
   }
 
   const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      apikey: serviceRoleKey,
+      apikey: anonKey,
     },
   });
 
