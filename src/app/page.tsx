@@ -187,7 +187,7 @@ export default function Home() {
     <MarketingShell>
       <section className="relative overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background py-20 sm:py-28">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-70" />
-        <div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-4">
+        <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-4">
           <div className="max-w-3xl space-y-6">
             <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
               {t({ en: "NCTB aligned learning for Class 6-12", bn: "ক্লাস ৬-১২ এর জন্য NCTB-সমন্বিত শেখা" })}
@@ -234,6 +234,9 @@ export default function Home() {
               );
             })}
           </div>
+          <div className="mx-auto w-full max-w-4xl">
+            <AiQuizCard context="home" />
+          </div>
         </div>
       </section>
 
@@ -263,29 +266,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] items-start">
-            <div className="space-y-4">
-              <div className="text-sm font-semibold uppercase tracking-wider text-primary">
-                {t({ en: "AI quiz", bn: "এআই কুইজ" })}
-              </div>
-              <h2 className="text-3xl font-bold font-heading sm:text-4xl">
-                {t({ en: "Instant NCTB-aligned MCQs", bn: "তাৎক্ষণিক NCTB-ভিত্তিক MCQ" })}
-              </h2>
-              <p className="text-muted-foreground">
-                {t({
-                  en: "Right on the home screen, choose your class, subject, and chapter to generate on-demand quizzes - no sign-in required. No static question bank; every quiz is created live.",
-                  bn: "হোম স্ক্রিন থেকেই ক্লাস, বিষয় ও অধ্যায় বেছে নিলেই সাথে সাথে অন-ডিমান্ড কুইজ তৈরি হবে - লগইন লাগবে না। কোনো স্থির প্রশ্নভান্ডার নেই - প্রতিবার নতুন প্রশ্ন তৈরি হয়।",
-                })}
-              </p>
-            </div>
-            <div className="w-full lg:justify-self-end">
-              <AiQuizCard context="home" />
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">

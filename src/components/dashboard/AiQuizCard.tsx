@@ -8,6 +8,17 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
 
+const HOME_CLASS_OPTIONS = [
+    "Class 6",
+    "Class 7",
+    "Class 8",
+    "Class 9",
+    "Class 10",
+    "Class 11",
+    "Class 12",
+];
+const DEFAULT_HOME_CLASS = "Class 10";
+
 type AiQuizCardProps = {
     context?: "dashboard" | "home";
 };
@@ -18,7 +29,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     const t = useTranslate();
     const isHome = context === "home";
 
-    const classes = useMemo(() => {
+    const derivedClasses = useMemo(() => {
         const unique = new Set<string>();
         courses.forEach((course) => {
             if (course.class) {
@@ -28,7 +39,14 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
         return Array.from(unique);
     }, [courses]);
 
-    const [classLevel, setClassLevel] = useState(() => classes[0] ?? "");
+    const classOptions = useMemo(
+        () => (isHome ? HOME_CLASS_OPTIONS : derivedClasses),
+        [isHome, derivedClasses]
+    );
+
+    const [classLevel, setClassLevel] = useState(() =>
+        isHome ? DEFAULT_HOME_CLASS : derivedClasses[0] ?? ""
+    );
     const [courseId, setCourseId] = useState(() => courses[0]?.id ?? "");
     const [chapterId, setChapterId] = useState("");
     const [loading, setLoading] = useState(false);
@@ -36,26 +54,30 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (classes.length && (!classLevel || !classes.includes(classLevel))) {
-            setClassLevel(classes[0]);
+        if (classOptions.length && (!classLevel || !classOptions.includes(classLevel))) {
+            const fallback = classOptions.includes(DEFAULT_HOME_CLASS)
+                ? DEFAULT_HOME_CLASS
+                : classOptions[0];
+            setClassLevel(fallback);
         }
-    }, [classLevel, classes]);
+    }, [classLevel, classOptions]);
 
     const filteredCourses = useMemo(() => {
         if (!classLevel) return courses;
-        return courses.filter((course) => course.class === classLevel);
+        const matches = courses.filter((course) => course.class === classLevel);
+        return matches.length ? matches : courses;
     }, [courses, classLevel]);
 
+    const courseOptions = isHome ? filteredCourses : courses;
+
     useEffect(() => {
-        if (!filteredCourses.length) return;
-        if (!courseId || !filteredCourses.some((course) => course.id === courseId)) {
-            setCourseId(filteredCourses[0].id);
+        if (!courseOptions.length) return;
+        if (!courseId || !courseOptions.some((course) => course.id === courseId)) {
+            setCourseId(courseOptions[0].id);
             setChapterId("");
             setQuestions(null);
         }
-    }, [filteredCourses, courseId]);
-
-    const courseOptions = isHome ? filteredCourses : courses;
+    }, [courseOptions, courseId]);
     const selectedCourse = useMemo(
         () => courseOptions.find((course) => course.id === courseId) ?? courseOptions[0],
         [courseOptions, courseId]
@@ -81,11 +103,12 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
         setLoading(true);
         setError(null);
 
+        const resolvedClassLevel = isHome ? classLevel : selectedCourse.class ?? classLevel;
         const { data, error: fnError } = await supabase.functions.invoke("generate-quiz", {
             body: {
                 subject: selectedCourse.title,
                 chapter: selectedChapter.title,
-                classLevel: selectedCourse.class ?? classLevel,
+                classLevel: resolvedClassLevel,
                 language,
                 count: 10,
                 difficulty: "medium",
@@ -116,8 +139,20 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
         ? "mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         : "mt-5 grid gap-4 sm:grid-cols-2";
 
+    const cardClass = isHome
+        ? "relative overflow-hidden rounded-2xl border border-primary/20 bg-card/95 p-6 shadow-lg ring-1 ring-primary/10 backdrop-blur transition-shadow hover:shadow-xl"
+        : "relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm";
+
     return (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className={cardClass}>
+            {isHome && (
+                <>
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/40" />
+                    <div className="pointer-events-none absolute -right-20 -top-16 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+                    <div className="pointer-events-none absolute -bottom-20 left-10 h-32 w-32 rounded-full bg-secondary/20 blur-3xl" />
+                </>
+            )}
+            <div className="relative z-10">
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -153,7 +188,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
                             }}
                             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         >
-                            {classes.map((value) => (
+                            {classOptions.map((value) => (
                                 <option key={value} value={value}>
                                     {value}
                                 </option>
@@ -227,6 +262,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
                     />
                 </div>
             )}
+            </div>
         </div>
     );
 }
