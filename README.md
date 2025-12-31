@@ -67,3 +67,22 @@ supabase functions deploy generate-quiz
 ```bash
 supabase functions serve
 ```
+
+## Contact Form (Email + DB)
+
+The contact page uses a public Edge Function to store messages and email the support inbox.
+
+1. Run `supabase/schema.sql` to create the `contact_messages` table (included in the schema).
+2. Set the required secrets:
+
+```bash
+supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key RESEND_API_KEY=your-resend-key RESEND_FROM="HomeSchool <onboarding@resend.dev>" CONTACT_RECEIVER_EMAIL="alc.moon@hotmail.com"
+```
+
+3. Deploy the Edge Function:
+
+```bash
+supabase functions deploy contact-message
+```
+
+Note: For production email delivery, set `RESEND_FROM` to a verified domain in Resend.

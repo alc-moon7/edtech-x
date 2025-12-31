@@ -38,3 +38,16 @@ drop trigger if exists set_profiles_updated_at on public.profiles;
 create trigger set_profiles_updated_at
 before update on public.profiles
 for each row execute function public.set_updated_at();
+
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null,
+  phone text,
+  role text,
+  message text not null,
+  user_agent text,
+  created_at timestamp with time zone default now()
+);
+
+alter table public.contact_messages enable row level security;

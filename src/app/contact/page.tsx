@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { MarketingShell } from "@/components/MarketingShell";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate } from "@/lib/i18n";
+import { supabase } from "@/lib/supabaseClient";
 
 type FormState = {
   name: string;
@@ -16,12 +17,28 @@ type FormState = {
   message: string;
 };
 
+type AlertType = "success" | "error" | "warning";
+
+type ContactResponse = {
+  ok: boolean;
+  saved?: boolean;
+  emailSent?: boolean;
+  warning?: string;
+  error?: string;
+};
+
 const initialState: FormState = {
   name: "",
   email: "",
   phone: "",
   role: "student",
   message: "",
+};
+
+const alertStyles: Record<AlertType, string> = {
+  success: "border-green-200 bg-green-50 text-green-700",
+  error: "border-red-200 bg-red-50 text-red-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-700",
 };
 
 export default function ContactPage() {
@@ -34,7 +51,8 @@ export default function ContactPage() {
 
   const [formData, setFormData] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [alert, setAlert] = useState<{ type: AlertType; message: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: keyof FormState, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -54,17 +72,82 @@ export default function ContactPage() {
     return nextErrors;
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const nextErrors = validate();
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
-      setStatus("error");
+      setAlert({
+        type: "error",
+        message: t({ en: "Please fix the highlighted fields.", bn: "হাইলাইট করা ঘরগুলো ঠিক করুন।" }),
+      });
       return;
     }
+
     setErrors({});
-    setStatus("success");
-    setFormData(initialState);
+    setAlert(null);
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        role: formData.role,
+        message: formData.message.trim(),
+      };
+
+      const { data, error } = await supabase.functions.invoke("contact-message", { body: payload });
+      if (error) {
+        throw error;
+      }
+
+      const response = data as ContactResponse | null;
+      if (!response?.ok) {
+        throw new Error(response?.error || "Unknown error");
+      }
+
+      const emailSent = Boolean(response.emailSent);
+      const saved = Boolean(response.saved);
+
+      if (emailSent && saved) {
+        setAlert({
+          type: "success",
+          message: t({
+            en: "Thanks for reaching out. We will reply within 1 business day.",
+            bn: "যোগাযোগের জন্য ধন্যবাদ। আমরা ১ কার্যদিবসের মধ্যে উত্তর দেব।",
+          }),
+        });
+      } else if (!emailSent) {
+        setAlert({
+          type: "warning",
+          message: t({
+            en: "Message saved, but email delivery is not configured yet.",
+            bn: "বার্তাটি সংরক্ষিত হয়েছে, তবে ইমেইল ডেলিভারি এখনো কনফিগার করা হয়নি।",
+          }),
+        });
+      } else {
+        setAlert({
+          type: "warning",
+          message: t({
+            en: "Message sent, but we could not save it. Please try again later.",
+            bn: "বার্তাটি পাঠানো হয়েছে, তবে সংরক্ষণ করা যায়নি। অনুগ্রহ করে পরে আবার চেষ্টা করুন।",
+          }),
+        });
+      }
+
+      setFormData(initialState);
+    } catch (submitError) {
+      setAlert({
+        type: "error",
+        message: t({
+          en: "We could not send your message. Please try again.",
+          bn: "আপনার বার্তা পাঠানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+        }),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -125,14 +208,12 @@ export default function ContactPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-              {status === "success" && (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700" role="status">
-                  {t({ en: "Thanks for reaching out. We will reply within 1 business day.", bn: "যোগাযোগের জন্য ধন্যবাদ। আমরা ১ কার্যদিবসের মধ্যে উত্তর দেব।" })}
-                </div>
-              )}
-              {status === "error" && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-                  {t({ en: "Please fix the highlighted fields.", bn: "হাইলাইট করা ঘরগুলো ঠিক করুন।" })}
+              {alert && (
+                <div
+                  className={`rounded-lg border px-4 py-3 text-sm ${alertStyles[alert.type]}`}
+                  role={alert.type === "error" ? "alert" : "status"}
+                >
+                  {alert.message}
                 </div>
               )}
 
@@ -226,8 +307,10 @@ export default function ContactPage() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full">
-                {t({ en: "Send message", bn: "বার্তা পাঠান" })}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting
+                  ? t({ en: "Sending...", bn: "পাঠানো হচ্ছে..." })
+                  : t({ en: "Send message", bn: "বার্তা পাঠান" })}
               </Button>
             </form>
           </div>
@@ -236,3 +319,5 @@ export default function ContactPage() {
     </MarketingShell>
   );
 }
+
+
