@@ -224,7 +224,7 @@ The engine adapts based on user performance:
 
 ### Payment Failures
 *   **Problem:** "Money deducted but Premium not active".
-*   **Fix:** Send Transaction ID to support@homeschool.bd. We reconcile manually within 24 hours.
+*   **Fix:** Send Transaction ID to alc.moon@hotmail.com. We reconcile manually within 24 hours.
         `
     },
     {

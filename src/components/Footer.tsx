@@ -22,13 +22,13 @@ export function Footer() {
                         <div className="space-y-2 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                                 <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
-                                <a href="mailto:support@homeschool.bd" className="hover:text-primary">
-                                    support@homeschool.bd
+                                <a href="mailto:alc.moon@hotmail.com" className="hover:text-primary">
+                                    alc.moon@hotmail.com
                                 </a>
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-                                <span>{t({ en: "Dhaka, Bangladesh", bn: "ঢাকা, বাংলাদেশ" })}</span>
+                                <span>{t({ en: "Rajshahi, Bangladesh", bn: "রাজশাহী, বাংলাদেশ" })}</span>
                             </div>
                         </div>
                     </div>

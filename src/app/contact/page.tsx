@@ -90,17 +90,17 @@ export default function ContactPage() {
               <div className="mt-6 space-y-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-primary" />
-                  <a href="mailto:support@homeschool.bd" className="hover:text-primary">
-                    support@homeschool.bd
+                  <a href="mailto:alc.moon@hotmail.com" className="hover:text-primary">
+                    alc.moon@hotmail.com
                   </a>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-primary" />
-                  <span>{t({ en: "Support hours: Sun-Thu, 9:00 AM to 6:00 PM", bn: "সাপোর্ট সময়: রবি-বৃহস্পতি, সকাল ৯টা থেকে সন্ধ্যা ৬টা" })}</span>
+                  <span>{t({ en: "Support hours: 24/7", bn: "সাপোর্ট সময়: ২৪/৭" })}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span>{t({ en: "Dhaka, Bangladesh", bn: "ঢাকা, বাংলাদেশ" })}</span>
+                  <span>{t({ en: "Rajshahi, Bangladesh", bn: "রাজশাহী, বাংলাদেশ" })}</span>
                 </div>
               </div>
             </div>

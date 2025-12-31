@@ -39,8 +39,8 @@ const sections = [
     id: "privacy-5",
     title: { en: "Contact and updates", bn: "যোগাযোগ ও আপডেট" },
     content: {
-      en: "If you have questions about privacy, contact support@homeschool.bd. We may update this policy and will post changes here.",
-      bn: "গোপনীয়তা সম্পর্কে প্রশ্ন থাকলে support@homeschool.bd এ যোগাযোগ করুন। আমরা এই নীতি আপডেট করতে পারি এবং পরিবর্তন এখানে জানাব।",
+      en: "If you have questions about privacy, contact alc.moon@hotmail.com. We may update this policy and will post changes here.",
+      bn: "গোপনীয়তা সম্পর্কে প্রশ্ন থাকলে alc.moon@hotmail.com এ যোগাযোগ করুন। আমরা এই নীতি আপডেট করতে পারি এবং পরিবর্তন এখানে জানাব।",
     },
   },
 ];
