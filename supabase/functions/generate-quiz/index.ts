@@ -23,6 +23,30 @@ type GenerateQuizPayload = {
   difficulty?: "easy" | "medium" | "hard";
 };
 
+async function verifyUser(req: Request) {
+  const authorization = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
+  if (!authorization.startsWith("Bearer ")) {
+    return false;
+  }
+
+  const token = authorization.replace("Bearer ", "").trim();
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase environment variables.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: serviceRoleKey,
+    },
+  });
+
+  return response.ok;
+}
+
 const fallbackOptions = {
   en: [
     "Definition and overview",
@@ -145,6 +169,14 @@ serve(async (req) => {
   }
 
   try {
+    const isAuthorized = await verifyUser(req);
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const apiKey = Deno.env.get("SERPER_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Missing SERPER_API_KEY" }), {
