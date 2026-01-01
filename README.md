@@ -1,88 +1,36 @@
-This is a React + Vite project configured as a single-page app for Netlify.
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-Install dependencies and start the dev server:
+First, run the development server:
 
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to view the app.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Build
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Create a production build:
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```bash
-npm run build
-```
+## Learn More
 
-Preview the production build locally:
+To learn more about Next.js, take a look at the following resources:
 
-```bash
-npm run preview
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Netlify
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- Build command: `npm run build`
-- Publish directory: `dist`
-- SPA routing is handled via `public/_redirects`.
+## Deploy on Vercel
 
-## Supabase Auth
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-1. Create a `.env` file (see `.env.example`) with:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-2. In Supabase SQL editor, run `supabase/schema.sql` to create the `profiles` table and RLS policies.
-3. In Supabase Auth settings:
-   - Enable email/password.
-   - Require email confirmations.
-   - Add redirect URLs:
-     - `http://localhost:5173/login`
-   - `http://localhost:5173/reset_pass`
-   - `https://homeschool.moonx.dev/login`
-   - `https://homeschool.moonx.dev/reset_pass`
-
-## AI Quiz (Serper)
-
-This project includes a Supabase Edge Function that uses Serper.dev search data to generate MCQ-style questions.
-
-1. Set the Serper API key as a Supabase secret:
-
-```bash
-supabase secrets set SERPER_API_KEY=your-serper-key
-```
-
-2. Deploy the Edge Function:
-
-```bash
-supabase functions deploy generate-quiz
-```
-
-3. For local dev, run:
-
-```bash
-supabase functions serve
-```
-
-## Contact Form (Email + DB)
-
-The contact page uses a public Edge Function to store messages and email the support inbox.
-
-1. Run `supabase/schema.sql` to create the `contact_messages` table (included in the schema).
-2. Set the required secrets:
-
-```bash
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key RESEND_API_KEY=your-resend-key RESEND_FROM="HomeSchool <onboarding@resend.dev>" CONTACT_RECEIVER_EMAIL="alc.moon@hotmail.com"
-```
-
-3. Deploy the Edge Function:
-
-```bash
-supabase functions deploy contact-message
-```
-
-Note: For production email delivery, set `RESEND_FROM` to a verified domain in Resend.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
