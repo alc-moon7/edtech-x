@@ -5,7 +5,7 @@ HomeSchool is an interactive learning platform for classes 6-12 aligned with the
 ## Features
 - NCTB aligned courses with chapters, lessons, and quizzes
 - Student dashboard with streaks, leaderboard, and progress insights
-- AI quiz generator powered by a Supabase Edge Function
+- AI quiz generator powered by Gemini via a Supabase Edge Function
 - Parent dashboard to monitor study time and performance
 - Auth flows (signup, login, password reset) with Supabase
 - Bilingual UI (English and Bangla)
@@ -51,12 +51,13 @@ HomeSchool is an interactive learning platform for classes 6-12 aligned with the
 Database tables and policies live in `supabase/schema.sql` (profiles and contact_messages).
 
 ### Edge Functions
-- `supabase/functions/generate-quiz` - builds MCQ quizzes from search data (fallback when `SERPER_API_KEY` is missing).
+- `supabase/functions/generate-quiz` - builds MCQ quizzes with Gemini (fallback when `GEMINI_API_KEY` is missing).
 - `supabase/functions/contact-message` - saves contact messages and sends email via Resend.
 
 ### Function Environment Variables
 ```bash
-SERPER_API_KEY=...
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-1.5-flash
 RESEND_API_KEY=...
 RESEND_FROM=...
 CONTACT_RECEIVER_EMAIL=...

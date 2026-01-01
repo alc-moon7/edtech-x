@@ -23,6 +23,17 @@ type GenerateQuizPayload = {
   difficulty?: "easy" | "medium" | "hard";
 };
 
+type GeminiQuestion = {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+};
+
+type GeminiParsed = {
+  questions?: GeminiQuestion[];
+};
+
 type SearchItem = {
   title: string;
   snippet: string;
@@ -194,6 +205,197 @@ function buildQuestions(
   return results.slice(0, targetCount);
 }
 
+function buildGeminiPrompt(
+  payload: GenerateQuizPayload,
+  language: "en" | "bn",
+  count: number,
+  difficulty: string
+) {
+  const languageLabel = language === "bn" ? "Bangla (bn)" : "English (en)";
+  const classLevel = payload.classLevel ?? "Unknown class level";
+  const subject = payload.subject ?? "General subject";
+  const chapter = payload.chapter ?? "General chapter";
+
+  return [
+    "You generate multiple-choice questions for NCTB-aligned study.",
+    "Return only valid JSON with no extra text.",
+    "Use the schema: {\"questions\":[{\"question\":\"...\",\"options\":[\"...\"],\"correctAnswer\":0,\"explanation\":\"...\"}]}",
+    "correctAnswer must be a 0-based index into options.",
+    "Each question must have exactly 4 options and exactly one correct answer.",
+    "Keep questions concise and avoid ambiguous wording.",
+    `Language: ${languageLabel}.`,
+    `Class level: ${classLevel}.`,
+    `Subject: ${subject}.`,
+    `Chapter: ${chapter}.`,
+    `Difficulty: ${difficulty}.`,
+    `Count: ${count}.`,
+    "Do not include numbering or markdown.",
+  ].join(" ");
+}
+
+function stripCodeFences(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("```")) return trimmed;
+  const withoutStart = trimmed.replace(/^```[a-zA-Z]*\s*/i, "");
+  const endFence = withoutStart.lastIndexOf("```");
+  if (endFence === -1) return withoutStart.trim();
+  return withoutStart.slice(0, endFence).trim();
+}
+
+function sliceBetween(value: string, startChar: string, endChar: string) {
+  const startIndex = value.indexOf(startChar);
+  const endIndex = value.lastIndexOf(endChar);
+  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) return "";
+  return value.slice(startIndex, endIndex + 1);
+}
+
+function parseJsonFromText(value: string): unknown | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // fall through
+  }
+
+  const unfenced = stripCodeFences(trimmed);
+  if (unfenced !== trimmed) {
+    try {
+      return JSON.parse(unfenced);
+    } catch {
+      // fall through
+    }
+  }
+
+  const objectSlice = sliceBetween(trimmed, "{", "}");
+  if (objectSlice) {
+    try {
+      return JSON.parse(objectSlice);
+    } catch {
+      // fall through
+    }
+  }
+
+  const arraySlice = sliceBetween(trimmed, "[", "]");
+  if (arraySlice) {
+    try {
+      return JSON.parse(arraySlice);
+    } catch {
+      // fall through
+    }
+  }
+
+  return null;
+}
+
+function normalizeOptions(
+  rawOptions: unknown,
+  rawCorrectAnswer: unknown,
+  language: "en" | "bn"
+) {
+  const optionsArray = Array.isArray(rawOptions) ? rawOptions : [];
+  const cleaned = optionsArray
+    .map((option) => {
+      if (typeof option === "string") return option;
+      if (option === null || option === undefined) return "";
+      return String(option);
+    })
+    .map(normalizeText)
+    .filter(Boolean);
+  const unique = uniqueStrings(cleaned);
+
+  let correctIndex =
+    typeof rawCorrectAnswer === "number" && Number.isFinite(rawCorrectAnswer)
+      ? Math.trunc(rawCorrectAnswer)
+      : 0;
+  if (correctIndex === 4 && cleaned.length >= 4) {
+    correctIndex = 3;
+  }
+
+  let correctOption = cleaned[correctIndex];
+  if (!correctOption && unique.length) {
+    correctOption = unique[0];
+  }
+
+  let finalOptions = unique;
+  if (correctOption && !finalOptions.includes(correctOption)) {
+    finalOptions = [correctOption, ...finalOptions];
+  }
+
+  for (const fallback of fallbackOptions[language]) {
+    if (finalOptions.length >= 4) break;
+    if (!finalOptions.includes(fallback)) {
+      finalOptions.push(fallback);
+    }
+  }
+
+  finalOptions = finalOptions.slice(0, 4);
+  let correctAnswer = correctOption ? finalOptions.indexOf(correctOption) : 0;
+  if (!Number.isFinite(correctAnswer) || correctAnswer < 0) {
+    correctAnswer = 0;
+  }
+
+  return { options: finalOptions, correctAnswer };
+}
+
+function normalizeQuestion(raw: unknown, language: "en" | "bn"): QuizQuestion | null {
+  if (!raw || typeof raw !== "object") return null;
+  const record = raw as Record<string, unknown>;
+  const question =
+    typeof record.question === "string" ? normalizeText(record.question) : "";
+  if (!question) return null;
+
+  const { options, correctAnswer } = normalizeOptions(
+    record.options,
+    record.correctAnswer,
+    language
+  );
+  if (!options.length) return null;
+
+  const explanation =
+    typeof record.explanation === "string"
+      ? normalizeText(record.explanation)
+      : undefined;
+
+  return {
+    id: crypto.randomUUID(),
+    question,
+    options,
+    correctAnswer,
+    ...(explanation ? { explanation } : {}),
+  };
+}
+
+function extractQuestions(parsed: unknown) {
+  if (Array.isArray(parsed)) return parsed;
+  if (!parsed || typeof parsed !== "object") return [];
+  const questions = (parsed as GeminiParsed).questions;
+  return Array.isArray(questions) ? questions : [];
+}
+
+function normalizeGeminiQuestions(
+  parsed: unknown,
+  language: "en" | "bn"
+): QuizQuestion[] {
+  const rawQuestions = extractQuestions(parsed);
+  const normalized = rawQuestions
+    .map((entry) => normalizeQuestion(entry, language))
+    .filter((entry): entry is QuizQuestion => Boolean(entry));
+  return normalized;
+}
+
+function ensureQuestionCount(
+  questions: QuizQuestion[],
+  language: "en" | "bn",
+  count: number
+) {
+  if (questions.length >= count) return questions.slice(0, count);
+  const needed = count - questions.length;
+  if (needed <= 0) return questions.slice(0, count);
+  const fallbackQuestions = buildQuestions([], language, needed);
+  return [...questions, ...fallbackQuestions].slice(0, count);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -211,14 +413,15 @@ serve(async (req) => {
     const language = payload.language === "bn" ? "bn" : "en";
     const count = payload.count ?? 10;
     const difficulty = payload.difficulty ?? "medium";
-    const apiKey = Deno.env.get("SERPER_API_KEY");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-1.5-flash";
     if (!apiKey) {
       const fallbackQuestions = buildQuestions([], language, count);
       return new Response(
         JSON.stringify({
           questions: fallbackQuestions,
           source: "fallback",
-          warning: "Missing SERPER_API_KEY",
+          warning: "Missing GEMINI_API_KEY",
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -226,51 +429,70 @@ serve(async (req) => {
       );
     }
 
-    const query = `${buildSearchQuery(payload, language)} ${difficulty}`.trim();
-    const keywords = buildKeywords(payload, language);
-
-    const searchPayload = {
-      q: query,
-      num: Math.max(count * 2, 10),
-      gl: "bd",
-      hl: language,
-    };
-
-    let items: SearchItem[] = [];
-    let source: "serper" | "fallback" = "serper";
+    const prompt = buildGeminiPrompt(payload, language, count, difficulty);
+    let source: "gemini" | "fallback" = "gemini";
     let warning: string | undefined;
+    let geminiQuestions: QuizQuestion[] = [];
 
     try {
-      const response = await fetch("https://google.serper.dev/search", {
-        method: "POST",
-        headers: {
-          "X-API-KEY": apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(searchPayload),
-      });
+      const modelPath = model.startsWith("models/") ? model : `models/${model}`;
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.6,
+            },
+          }),
+        }
+      );
 
       if (!response.ok) {
         warning = await response.text();
         source = "fallback";
       } else {
         const data = await response.json();
-        const organic = Array.isArray(data?.organic) ? data.organic : [];
-        const rawItems = organic
-          .filter((item: { title?: string; snippet?: string }) => item.title && item.snippet)
-          .map((item: { title: string; snippet: string; link?: string; url?: string }) => ({
-            title: normalizeText(item.title),
-            snippet: normalizeText(item.snippet),
-            link: item.link ?? item.url ?? "",
-          }));
-        items = filterRelevantItems(rawItems, keywords, count);
+        const parts = Array.isArray(data?.candidates?.[0]?.content?.parts)
+          ? data.candidates[0].content.parts
+          : [];
+        const content = parts
+          .map((part: { text?: string }) =>
+            typeof part?.text === "string" ? part.text : ""
+          )
+          .join("");
+        const parsed = parseJsonFromText(content);
+        geminiQuestions = normalizeGeminiQuestions(parsed, language);
+        if (!geminiQuestions.length) {
+          source = "fallback";
+          warning = warning ?? "Gemini returned no valid questions.";
+        }
       }
     } catch (error) {
       warning = String(error);
       source = "fallback";
     }
 
-    const questions = buildQuestions(items, language, count);
+    let questions: QuizQuestion[] = [];
+    if (source === "gemini") {
+      const finalQuestions = ensureQuestionCount(geminiQuestions, language, count);
+      if (finalQuestions.length > geminiQuestions.length) {
+        const fillWarning = "Filled missing questions with fallback prompts.";
+        warning = warning ? `${warning} ${fillWarning}` : fillWarning;
+      }
+      questions = finalQuestions;
+    } else {
+      questions = buildQuestions([], language, count);
+    }
 
     return new Response(JSON.stringify({ questions, source, warning }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
