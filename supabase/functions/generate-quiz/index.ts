@@ -413,7 +413,7 @@ serve(async (req) => {
     const language = payload.language === "bn" ? "bn" : "en";
     const count = payload.count ?? 10;
     const difficulty = payload.difficulty ?? "medium";
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const apiKey = Deno.env.get("AIzaSyDO3pb_VeKw12hwirsTw7PQQBKlYlsqFTg");
     const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-1.5-flash";
     if (!apiKey) {
       const fallbackQuestions = buildQuestions([], language, count);
