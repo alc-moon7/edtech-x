@@ -54,18 +54,75 @@ function shuffle<T>(items: T[]) {
   return copy;
 }
 
-function buildSearchQuery(payload: GenerateQuizPayload, language: "en" | "bn", difficulty: string) {
+const bnClassWords: Record<string, string> = {
+  "6": "ষষ্ঠ",
+  "7": "সপ্তম",
+  "8": "অষ্টম",
+  "9": "নবম",
+  "10": "দশম",
+  "11": "একাদশ",
+  "12": "দ্বাদশ",
+};
+
+function toBengaliDigits(value: string) {
+  const map: Record<string, string> = {
+    "0": "০",
+    "1": "১",
+    "2": "২",
+    "3": "৩",
+    "4": "৪",
+    "5": "৫",
+    "6": "৬",
+    "7": "৭",
+    "8": "৮",
+    "9": "৯",
+  };
+  return value
+    .split("")
+    .map((ch) => map[ch] ?? ch)
+    .join("");
+}
+
+function buildClassTokens(classLevel?: string) {
+  if (!classLevel) return [];
+  const tokens = [classLevel, classLevel.toLowerCase()];
+  const numMatch = classLevel.match(/\d+/);
+  if (numMatch) {
+    const num = numMatch[0];
+    const bnNum = toBengaliDigits(num);
+    tokens.push(`class ${num}`, `grade ${num}`, `${num}th`, `শ্রেণি ${bnNum}`, `${bnNum}ম`);
+    if (bnClassWords[num]) {
+      tokens.push(`${bnClassWords[num]}`, `${bnClassWords[num]} শ্রেণি`);
+    }
+    if (num === "10") {
+      tokens.push("ssc");
+    }
+  }
+  return uniqueStrings(tokens);
+}
+
+function buildSearchQuery(
+  payload: GenerateQuizPayload,
+  language: "en" | "bn",
+  difficulty: string
+) {
   const parts = [payload.classLevel, payload.subject, payload.chapter, difficulty];
   if (language === "bn") {
     parts.push("বাংলাদেশ", "এনসিটিবি", "পাঠ্যবই", "বহুনির্বাচনী");
   } else {
     parts.push("Bangladesh", "NCTB", "textbook", "MCQ");
   }
+  parts.push("site:nctb.gov.bd", "filetype:pdf");
   return parts.filter(Boolean).join(" ");
 }
 
 function buildKeywords(payload: GenerateQuizPayload, language: "en" | "bn") {
-  const keywords = [payload.subject, payload.chapter, payload.classLevel];
+  const keywords = [
+    payload.subject,
+    payload.chapter,
+    payload.classLevel,
+    ...buildClassTokens(payload.classLevel),
+  ];
   if (language === "bn") {
     keywords.push("এনসিটিবি", "পাঠ্যবই", "বহুনির্বাচনী");
   } else {
@@ -102,12 +159,25 @@ function scoreItem(item: SearchItem, keywords: string[]) {
   return score;
 }
 
-function filterRelevantItems(items: SearchItem[], keywords: string[], count: number) {
+function matchesRequiredTokens(item: SearchItem, tokenGroups: string[][]) {
+  if (!tokenGroups.length) return true;
+  const text = `${item.title} ${item.snippet}`.toLowerCase();
+  return tokenGroups.every((group) =>
+    group.some((token) => token && text.includes(token.toLowerCase()))
+  );
+}
+
+function filterRelevantItems(
+  items: SearchItem[],
+  keywords: string[],
+  requiredGroups: string[][]
+) {
   const scored = items.map((item) => ({ item, score: scoreItem(item, keywords) }));
   const sorted = scored.sort((a, b) => b.score - a.score);
-  const filtered = sorted.filter((entry) => entry.score > 0).map((entry) => entry.item);
-  const minRelevant = Math.min(count, 6);
-  return filtered.length >= minRelevant ? filtered : sorted.map((entry) => entry.item);
+  return sorted
+    .filter((entry) => entry.score > 0)
+    .map((entry) => entry.item)
+    .filter((item) => matchesRequiredTokens(item, requiredGroups));
 }
 
 function buildQuestions(items: SearchItem[], language: "en" | "bn", count: number) {
@@ -169,6 +239,11 @@ serve(async (req) => {
 
     const query = buildSearchQuery(payload, language, difficulty);
     const keywords = buildKeywords(payload, language);
+    const requiredGroups: string[][] = [];
+    const classTokens = buildClassTokens(payload.classLevel);
+    if (classTokens.length) requiredGroups.push(classTokens);
+    if (payload.subject) requiredGroups.push([payload.subject]);
+    if (payload.chapter) requiredGroups.push([payload.chapter]);
     const searchPayload = {
       q: query,
       num: Math.max(count * 2, 10),
@@ -206,7 +281,7 @@ serve(async (req) => {
         link: item.link ?? item.url ?? "",
       }));
 
-    const items = filterRelevantItems(rawItems, keywords, count);
+    const items = filterRelevantItems(rawItems, keywords, requiredGroups);
     const questions = buildQuestions(items, language, count);
 
     if (!questions.length) {
