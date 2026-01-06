@@ -136,10 +136,7 @@ function HeroVisual({ t }: { t: Translate }) {
           <HeroBadgeItem key={badge.id} badge={badge} t={t} />
         ))}
 
-        <div className="absolute hidden items-center justify-center rounded-full bg-white shadow-md lg:flex lg:-right-6 lg:bottom-8 lg:h-16 lg:w-16">
-          <img src="/figma/hero-chat.png" alt={t({ en: "AI helper", bn: "AI helper" })} className="h-10 w-12" />
-          <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#66FF00]" />
-        </div>
+        
       </div>
 
       <HeroBadgeStack t={t} />
@@ -277,6 +274,19 @@ function SubjectsSection({ t }: { t: Translate }) {
   );
 }
 
+function FloatingChatButton({ t }: { t: Translate }) {
+  return (
+    <button
+      type="button"
+      aria-label={t({ en: "Open AI chat", bn: "Open AI chat" })}
+      className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-slate-100 transition hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B94DE] sm:bottom-6 sm:right-6 sm:h-16 sm:w-16"
+    >
+      <img src="/figma/hero-chat.png" alt="" className="h-8 w-10" aria-hidden="true" />
+      <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#66FF00]" />
+    </button>
+  );
+}
+
 export default function Home() {
   const t = useTranslate();
 
@@ -295,6 +305,7 @@ export default function Home() {
         <FeatureSection />
         <CallToAction t={t} />
         <SubjectsSection t={t} />
+        <FloatingChatButton t={t} />
       </div>
     </MarketingShell>
   );
