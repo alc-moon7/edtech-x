@@ -262,7 +262,7 @@ function AssistSection({ t }: { t: Translate }) {
   return (
     <section className="bg-[linear-gradient(180deg,#E7F0FF_0%,#F7F9FF_100%)] py-16 sm:py-20">
       <Section className="max-w-5xl">
-        <div className="mb-10 space-y-2 text-center">
+        <div className="mb-4 space-y-2 text-center">
           <h2 className="text-2xl font-bold text-black sm:text-3xl lg:text-4xl">
             {t({ en: "How can I help you today?", bn: "How can I help you today?" })}
           </h2>
@@ -271,11 +271,11 @@ function AssistSection({ t }: { t: Translate }) {
           </p>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
           {assistCards.map((card) => (
             <div
               key={card.id}
-              className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100 sm:px-5 sm:py-4"
+              className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_6px_18px_rgba(15,23,42,0.06)] ring-1 ring-slate-100 sm:px-5 sm:py-4"
             >
               <span className="mt-0.5 text-lg sm:text-xl" aria-hidden="true">
                 {card.icon}
@@ -379,7 +379,6 @@ export default function Home() {
     <MarketingShell>
       <div className="bg-[linear-gradient(180deg,#F8FAFF_0%,#E9F1FF_45%,#85B2F5_100%)]">
         <HeroSection t={t} />
-        <FeatureSection />
         <AssistSection t={t} />
         <SubjectsSection t={t} />
         <FloatingChatButton t={t} />
