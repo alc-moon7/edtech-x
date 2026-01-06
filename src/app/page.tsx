@@ -1,29 +1,33 @@
 import { Link } from "react-router-dom";
-import { CheckCircle2, ClipboardCheck, LineChart, PlayCircle, Star, Target, Users } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, LineChart, MessageCircle, PlayCircle, Star, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
-import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate } from "@/lib/i18n";
 
-const stats = [
+const heroBadges = [
+  {
+    id: "ai-tutor",
+    title: { en: "AI Tutor", bn: "AI Tutor" },
+    position: "left-6 top-6",
+  },
   {
     id: "coverage",
-    label: { en: "Syllabus coverage", bn: "সিলেবাস কভারেজ" },
-    value: { en: "Class 6-12", bn: "ক্লাস ৬-১২" },
-    icon: Target,
+    title: { en: "Class 6-8", bn: "Class 6-8" },
+    subtitle: { en: "Syllabus Coverage", bn: "Syllabus Coverage" },
+    position: "right-2 top-10",
   },
   {
     id: "roles",
-    label: { en: "Learning roles", bn: "শিক্ষার ভূমিকা" },
-    value: { en: "Student, Parent, Admin", bn: "শিক্ষার্থী, অভিভাবক, প্রশাসক" },
-    icon: Users,
+    title: { en: "Student and Parent", bn: "Student and Parent" },
+    subtitle: { en: "Learning Roles", bn: "Learning Roles" },
+    position: "left-0 bottom-24",
   },
   {
-    id: "insights",
-    label: { en: "Progress insights", bn: "অগ্রগতি বিশ্লেষণ" },
-    value: { en: "Weekly tracking", bn: "সাপ্তাহিক ট্র্যাকিং" },
-    icon: LineChart,
+    id: "tracking",
+    title: { en: "Weekly Tracking", bn: "Weekly Tracking" },
+    subtitle: { en: "Progress insights", bn: "Progress insights" },
+    position: "right-4 bottom-20",
   },
 ];
 
@@ -174,73 +178,124 @@ const parentSubjects = [
 
 export default function Home() {
   const t = useTranslate();
-
   usePageMeta({
-    title: t({ en: "HomeSchool - Interactive Learning", bn: "HomeSchool - ইন্টারঅ্যাকটিভ লার্নিং" }),
+    title: t({ en: "HomeSchool - Learn Smarter", bn: "HomeSchool - Learn Smarter" }),
     description: t({
-      en: "Interactive learning for Class 6-12 students aligned to the NCTB syllabus with quizzes, analytics, and parent visibility.",
-      bn: "ক্লাস ৬-১২ শিক্ষার্থীদের জন্য কুইজ, অ্যানালিটিক্স ও অভিভাবক ভিজিবিলিটিসহ NCTB-সমন্বিত ইন্টারঅ্যাকটিভ শেখা।",
+      en: "Learn smarter with HomeSchool: lessons, quizzes, and progress insights for students and parents.",
+      bn: "Learn smarter with HomeSchool: lessons, quizzes, and progress insights for students and parents.",
     }),
   });
 
   return (
     <MarketingShell>
-      <section className="relative overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background py-20 sm:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-70" />
-        <div className="relative mx-auto flex max-w-6xl flex-col gap-10 px-4">
-          <div className="max-w-3xl space-y-6">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
-              {t({ en: "NCTB aligned learning for Class 6-12", bn: "ক্লাস ৬-১২ এর জন্য NCTB-সমন্বিত শেখা" })}
-            </div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl font-heading">
-              {t({ en: "Master the syllabus with structured, interactive learning", bn: "গঠিত ও ইন্টারঅ্যাকটিভ শেখার মাধ্যমে সিলেবাস আয়ত্ত করুন" })}
+      <section
+        id="home"
+        className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-gradient-to-b from-[#fdfefe] via-[#eef4ff] to-[#dbe8ff] pb-28 pt-16 sm:pt-20 lg:pt-24"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,_rgba(60,110,255,0.18),_transparent_55%),radial-gradient(circle_at_70%_35%,_rgba(96,196,255,0.22),_transparent_60%)]" />
+        <div className="absolute -left-16 top-24 h-48 w-48 rounded-full bg-blue-200/40 blur-3xl sm:h-64 sm:w-64" />
+        <div className="absolute -right-20 top-10 h-56 w-56 rounded-full bg-indigo-200/50 blur-3xl sm:h-72 sm:w-72" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-6">
+            <h1 className="text-4xl font-heading font-extrabold leading-tight text-[#0b1b62] sm:text-5xl lg:text-[56px] animate-hero-up">
+              {t({ en: "Learn Smarter,", bn: "Learn Smarter," })}
+              <br />
+              {t({ en: "Not Harder", bn: "Not Harder" })}
             </h1>
-            <p className="text-lg text-muted-foreground sm:text-xl">
+            <p className="max-w-xl text-base text-[#2b3b73]/90 sm:text-lg animate-hero-up-delay-1">
               {t({
                 en: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
-                bn: "HomeSchool পড়াশোনাকে স্পষ্ট এক যাত্রায় বদলে দেয়—লেসন, কুইজ ও অগ্রগতি বিশ্লেষণের মাধ্যমে শিক্ষার্থী, অভিভাবক ও স্কুলের জন্য।",
+                bn: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
               })}
             </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-wrap gap-3 animate-hero-up-delay-2">
               <Link to="/signup">
-                <Button size="lg" className="rounded-full px-8 text-base">
-                  {t({ en: "Get started free", bn: "ফ্রি শুরু করুন" })}
+                <Button
+                  size="lg"
+                  className="rounded-full bg-gradient-to-r from-[#1f2efb] to-[#2c4bff] px-7 text-sm font-semibold text-white shadow-[0_18px_30px_-16px_rgba(31,46,251,0.8)] hover:opacity-95"
+                >
+                  {t({ en: "Start Learning Free", bn: "Start Learning Free" })}
                 </Button>
               </Link>
               <Link to="/pricing">
-                <Button variant="outline" size="lg" className="rounded-full px-8 text-base">
-                  {t({ en: "View pricing", bn: "মূল্য দেখুন" })}
+                <Button
+                  size="lg"
+                  className="rounded-full bg-gradient-to-r from-[#f9c76d] to-[#f29b38] px-7 text-sm font-semibold text-[#1f2937] shadow-[0_18px_30px_-16px_rgba(241,155,56,0.8)] hover:opacity-95"
+                >
+                  {t({ en: "Try Homeschool AI Tutor", bn: "Try Homeschool AI Tutor" })}
                 </Button>
               </Link>
             </div>
+            <div className="flex flex-col gap-1 pt-2 text-[#0b1b62] animate-hero-up-delay-2">
+              <span className="text-2xl font-bold">2.5K +</span>
+              <span className="text-sm font-semibold">Active Students</span>
+            </div>
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
+          <div className="relative mx-auto w-full max-w-[520px]">
+            <div className="relative flex items-center justify-center">
+              <img
+                src="/hero-illustration.svg"
+                alt={t({ en: "Student learning illustration", bn: "Student learning illustration" })}
+                className="w-full max-w-[420px] drop-shadow-[0_24px_40px_rgba(30,64,175,0.25)] animate-hero-float"
+                loading="eager"
+              />
+              <div className="hidden sm:block">
+                {heroBadges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className={`absolute ${badge.position} rounded-2xl bg-white/95 px-4 py-2 text-center text-[11px] font-semibold text-[#1f2d63] shadow-[0_12px_26px_-18px_rgba(15,23,42,0.6)] backdrop-blur`}
+                  >
+                    <div>{t(badge.title)}</div>
+                    {badge.subtitle && (
+                      <div className="text-[10px] font-medium text-slate-500">{t(badge.subtitle)}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="absolute -bottom-2 right-8 hidden h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_12px_24px_-16px_rgba(15,23,42,0.5)] sm:flex">
+                <MessageCircle className="h-5 w-5 text-[#1f2efb]" />
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-3 sm:hidden">
+              {heroBadges.map((badge) => (
                 <div
-                  key={stat.id}
-                  className="flex items-center gap-4 rounded-2xl border border-border bg-card/80 p-5 shadow-sm"
+                  key={badge.id}
+                  className="rounded-2xl bg-white/95 px-4 py-2 text-center text-[11px] font-semibold text-[#1f2d63] shadow-[0_12px_26px_-18px_rgba(15,23,42,0.6)]"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <div className="text-base font-semibold text-foreground">{t(stat.value)}</div>
-                    <div className="text-xs text-muted-foreground">{t(stat.label)}</div>
-                  </div>
+                  <div>{t(badge.title)}</div>
+                  {badge.subtitle && (
+                    <div className="text-[10px] font-medium text-slate-500">{t(badge.subtitle)}</div>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-          <div className="mx-auto w-full max-w-4xl">
-            <AiQuizCard context="home" />
+              ))}
+            </div>
           </div>
         </div>
+        <svg
+          className="absolute bottom-0 left-0 w-full"
+          viewBox="0 0 1440 160"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            fill="#3b8fdd"
+            fillOpacity="0.35"
+            d="M0,96L80,85.3C160,75,320,53,480,42.7C640,32,800,32,960,53.3C1120,75,1280,117,1360,138.7L1440,160L1440,160L0,160Z"
+          />
+          <path
+            fill="#2a7ed1"
+            fillOpacity="0.55"
+            d="M0,128L60,112C120,96,240,64,360,53.3C480,43,600,53,720,74.7C840,96,960,128,1080,138.7C1200,149,1320,139,1380,133.3L1440,128L1440,160L0,160Z"
+          />
+          <path
+            fill="#1f6cc3"
+            fillOpacity="0.8"
+            d="M0,144L120,133.3C240,123,480,101,720,101.3C960,101,1200,123,1320,133.3L1440,144L1440,160L0,160Z"
+          />
+        </svg>
       </section>
 
-      <section className="py-16 sm:py-20">
+      <section id="features" className="py-16 sm:py-20">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4">
           <div className="space-y-3">
             <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "How it works", bn: "কিভাবে কাজ করে" })}</div>
@@ -401,7 +456,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-muted/40 py-16 sm:py-20">
+      <section id="reviews" className="bg-muted/40 py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
           <div className="flex flex-col gap-3 text-center">
             <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "Testimonials", bn: "প্রশংসাপত্র" })}</div>
@@ -467,3 +522,9 @@ export default function Home() {
     </MarketingShell>
   );
 }
+
+
+
+
+
+

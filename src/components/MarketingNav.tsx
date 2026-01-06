@@ -7,11 +7,10 @@ import { useTranslate } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 
 const navItems = [
-  { label: { en: "Home", bn: "হোম" }, href: "/", end: true },
-  { label: { en: "About", bn: "আমাদের সম্পর্কে" }, href: "/about" },
-  { label: { en: "Pricing", bn: "মূল্য" }, href: "/pricing" },
-  { label: { en: "Contact", bn: "যোগাযোগ" }, href: "/contact" },
-  { label: { en: "Help", bn: "সহায়তা" }, href: "/help" },
+  { label: { en: "Home", bn: "Home" }, href: "/", end: true },
+  { label: { en: "About", bn: "About" }, href: "/about" },
+  { label: { en: "Reviews", bn: "Reviews" }, href: "/#reviews" },
+  { label: { en: "Features", bn: "Features" }, href: "/#features" },
 ];
 
 export function MarketingNav() {
@@ -19,18 +18,13 @@ export function MarketingNav() {
   const t = useTranslate();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:py-4">
-        <Link to="/" className="flex items-center gap-2" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool হোম" })}>
-          <img
-            src="/logo.png"
-            alt="HomeSchool"
-            className="h-10 w-auto"
-            loading="eager"
-          />
+    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 md:py-4">
+        <Link to="/" className="flex items-center gap-2" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool home" })}>
+          <img src="/logo.png" alt="HomeSchool" className="h-10 w-auto" loading="eager" />
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
+        <nav className="hidden flex-1 items-center justify-center gap-8 md:flex" aria-label="Primary">
           {navItems.map((item) => (
             <NavLink
               key={item.href}
@@ -38,8 +32,8 @@ export function MarketingNav() {
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  "text-sm font-semibold transition-colors",
+                  isActive ? "text-[#1f2efb]" : "text-slate-600 hover:text-slate-900"
                 )
               }
             >
@@ -49,19 +43,32 @@ export function MarketingNav() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <LanguageToggle />
+          <LanguageToggle
+            variant="ghost"
+            className="rounded-full px-3 text-xs font-semibold text-slate-600 hover:bg-transparent hover:text-slate-900"
+          />
           <Link to="/login">
-            <Button variant="ghost">{t({ en: "Sign in", bn: "সাইন ইন" })}</Button>
+            <Button
+              size="sm"
+              className="rounded-full bg-gradient-to-r from-[#1f2efb] to-[#2c4bff] px-5 text-xs font-semibold text-white shadow-[0_12px_20px_-12px_rgba(31,46,251,0.7)] hover:opacity-95"
+            >
+              {t({ en: "Sign in", bn: "Sign in" })}
+            </Button>
           </Link>
-          <Link to="/signup">
-            <Button>{t({ en: "Get started", bn: "শুরু করুন" })}</Button>
+          <Link to="/pricing">
+            <Button
+              size="sm"
+              className="rounded-full bg-gradient-to-r from-[#f9c76d] to-[#f29b38] px-5 text-xs font-semibold text-[#1f2937] shadow-[0_12px_20px_-12px_rgba(241,155,56,0.7)] hover:opacity-95"
+            >
+              {t({ en: "Get Premium", bn: "Get Premium" })}
+            </Button>
           </Link>
         </div>
 
         <button
           type="button"
-          className="md:hidden inline-flex items-center justify-center rounded-lg border border-border bg-background p-2 text-muted-foreground hover:text-foreground"
-          aria-label={open ? t({ en: "Close menu", bn: "মেনু বন্ধ করুন" }) : t({ en: "Open menu", bn: "মেনু খুলুন" })}
+          className="inline-flex items-center justify-center rounded-full border border-white/60 bg-white/80 p-2 text-slate-600 shadow-sm transition hover:text-slate-900 md:hidden"
+          aria-label={open ? t({ en: "Close menu", bn: "Close menu" }) : t({ en: "Open menu", bn: "Open menu" })}
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((prev) => !prev)}
@@ -70,10 +77,7 @@ export function MarketingNav() {
         </button>
       </div>
 
-      <div
-        id="mobile-menu"
-        className={cn("border-t border-border bg-background md:hidden", open ? "block" : "hidden")}
-      >
+      <div id="mobile-menu" className={cn("border-t border-white/70 bg-white/95 md:hidden", open ? "block" : "hidden")}>
         <nav className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4" aria-label="Mobile">
           {navItems.map((item) => (
             <NavLink
@@ -83,8 +87,8 @@ export function MarketingNav() {
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                  "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                  isActive ? "bg-blue-50 text-[#1f2efb]" : "text-slate-600 hover:text-slate-900"
                 )
               }
             >
@@ -92,14 +96,20 @@ export function MarketingNav() {
             </NavLink>
           ))}
           <div className="mt-3 flex flex-col gap-2">
-            <LanguageToggle className="w-full" />
+            <LanguageToggle variant="outline" className="w-full rounded-full text-xs font-semibold text-slate-700" />
             <Link to="/login" onClick={() => setOpen(false)}>
-              <Button variant="outline" className="w-full">
-                {t({ en: "Sign in", bn: "সাইন ইন" })}
+              <Button
+                className="w-full rounded-full bg-gradient-to-r from-[#1f2efb] to-[#2c4bff] text-xs font-semibold text-white shadow-[0_12px_20px_-12px_rgba(31,46,251,0.7)]"
+              >
+                {t({ en: "Sign in", bn: "Sign in" })}
               </Button>
             </Link>
-            <Link to="/signup" onClick={() => setOpen(false)}>
-              <Button className="w-full">{t({ en: "Get started", bn: "শুরু করুন" })}</Button>
+            <Link to="/pricing" onClick={() => setOpen(false)}>
+              <Button
+                className="w-full rounded-full bg-gradient-to-r from-[#f9c76d] to-[#f29b38] text-xs font-semibold text-[#1f2937] shadow-[0_12px_20px_-12px_rgba(241,155,56,0.7)]"
+              >
+                {t({ en: "Get Premium", bn: "Get Premium" })}
+              </Button>
             </Link>
           </div>
         </nav>

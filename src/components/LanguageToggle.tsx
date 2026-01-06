@@ -18,7 +18,9 @@ export function LanguageToggle({ className, variant = "outline" }: { className?:
     >
       <span className={cn("text-xs font-semibold", isEnglish ? "text-foreground" : "text-muted-foreground")}>EN</span>
       <span className="text-xs text-muted-foreground">/</span>
-      <span className={cn("text-xs font-semibold", !isEnglish ? "text-foreground" : "text-muted-foreground")}>বাংলা</span>
+      <span className={cn("text-xs font-semibold", !isEnglish ? "text-foreground" : "text-muted-foreground")}>
+        {"\u09AC\u09BE\u0982\u09B2\u09BE"}
+      </span>
     </Button>
   );
 }

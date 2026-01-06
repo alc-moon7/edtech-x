@@ -1,0 +1,41 @@
+<svg width="520" height="420" viewBox="0 0 520 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sofaBack" x1="120" y1="190" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7CC4FF" />
+      <stop offset="100%" stop-color="#4B96F3" />
+    </linearGradient>
+    <linearGradient id="sofaSeat" x1="100" y1="230" x2="420" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5FB4FF" />
+      <stop offset="100%" stop-color="#2F79D6" />
+    </linearGradient>
+    <linearGradient id="pot" x1="410" y1="230" x2="460" y2="310" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFC96B" />
+      <stop offset="100%" stop-color="#F08B2C" />
+    </linearGradient>
+  </defs>
+  <ellipse cx="260" cy="356" rx="170" ry="18" fill="#1A2B6B" opacity="0.08" />
+  <rect x="100" y="230" width="320" height="120" rx="48" fill="url(#sofaSeat)" />
+  <rect x="120" y="190" width="280" height="90" rx="40" fill="url(#sofaBack)" />
+  <rect x="132" y="245" width="256" height="90" rx="36" fill="#6BB8FF" opacity="0.85" />
+  <rect x="122" y="312" width="32" height="56" rx="12" fill="#E2A04C" />
+  <rect x="366" y="312" width="32" height="56" rx="12" fill="#E2A04C" />
+
+  <circle cx="270" cy="164" r="28" fill="#FFD3BA" />
+  <path
+    d="M248 162C248 148 258 136 272 136C287 136 298 148 298 162V170C298 176 294 180 288 180H258C252 180 248 176 248 170V162Z"
+    fill="#2E3A59"
+  />
+  <rect x="234" y="186" width="84" height="88" rx="36" fill="#5ED19A" />
+  <rect x="214" y="218" width="120" height="26" rx="13" fill="#5ED19A" />
+  <rect x="238" y="246" width="76" height="30" rx="8" fill="#F2F5FB" />
+  <rect x="230" y="270" width="92" height="12" rx="6" fill="#DDE5F7" />
+  <rect x="244" y="280" width="36" height="38" rx="10" fill="#2E3A59" />
+  <rect x="284" y="280" width="36" height="38" rx="10" fill="#2E3A59" />
+  <rect x="240" y="316" width="40" height="14" rx="7" fill="#F7C24B" />
+  <rect x="280" y="316" width="40" height="14" rx="7" fill="#F7C24B" />
+
+  <rect x="410" y="230" width="52" height="76" rx="18" fill="url(#pot)" />
+  <circle cx="426" cy="220" r="18" fill="#5ED19A" />
+  <circle cx="448" cy="214" r="20" fill="#4BBE86" />
+  <circle cx="464" cy="226" r="16" fill="#5ED19A" />
+</svg>
