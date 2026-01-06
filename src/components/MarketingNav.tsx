@@ -18,10 +18,10 @@ export function MarketingNav() {
   const t = useTranslate();
 
   return (
-    <header className="sticky top-0 z-40 bg-white">
-      <div className="mx-auto flex h-[80px] w-full max-w-[1728px] items-center justify-between px-4 sm:h-[96px] sm:px-8 lg:h-[106px] lg:px-12 xl:px-[125px]">
+    <header className="sticky top-0 z-40 border-b border-white/40 bg-white/80 backdrop-blur-lg">
+      <div className="mx-auto flex h-[72px] w-full max-w-[1728px] items-center justify-between px-4 sm:h-[88px] sm:px-8 lg:h-[100px] lg:px-12 xl:px-[125px]">
         <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool home" })}>
-          <img src="/figma/logo.png" alt="HomeSchool" className="h-10 w-auto sm:h-12 lg:h-[59px]" loading="eager" />
+          <img src="/figma/logo.png" alt="HomeSchool" className="h-9 w-auto sm:h-11 lg:h-[56px]" loading="eager" />
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-8 text-[16px] font-bold text-black lg:flex xl:gap-12" aria-label="Primary">
@@ -39,14 +39,14 @@ export function MarketingNav() {
           />
           <Link to="/login">
             <Button
-              className="h-[40px] rounded-[12px] bg-[#060BF7] px-5 text-[16px] font-bold text-white shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#060BF7]/90 lg:h-[46px] lg:px-6 lg:text-[20px]"
+              className="h-[38px] rounded-[12px] bg-[#060BF7] px-4 text-[15px] font-bold text-white shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#060BF7]/90 lg:h-[44px] lg:px-6 lg:text-[18px]"
             >
               {t({ en: "Sign in", bn: "Sign in" })}
             </Button>
           </Link>
           <Link to="/pricing">
             <Button
-              className="h-[40px] rounded-[12px] bg-[#F3AB36] px-5 text-[16px] font-bold text-black shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#f0a529] lg:h-[46px] lg:px-6 lg:text-[20px]"
+              className="h-[38px] rounded-[12px] bg-[#F3AB36] px-4 text-[15px] font-bold text-black shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#f0a529] lg:h-[44px] lg:px-6 lg:text-[18px]"
             >
               {t({ en: "Get Premium", bn: "Get Premium" })}
             </Button>

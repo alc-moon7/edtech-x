@@ -71,24 +71,24 @@ export default function Home() {
     <MarketingShell>
       <div className="bg-[linear-gradient(180deg,#FFFFFF_0%,#85B2F5_100%)]">
         <section id="home" className="relative overflow-hidden">
-          <div className="mx-auto flex w-full max-w-[1728px] flex-col gap-12 px-4 pb-[220px] pt-[120px] sm:gap-14 sm:px-8 sm:pb-[260px] sm:pt-[140px] lg:flex-row lg:items-start lg:gap-16 lg:px-12 lg:pb-[360px] lg:pt-[180px] xl:px-[125px]">
-            <div className="max-w-[820px] animate-hero-up">
-              <h1 className="text-[40px] font-bold leading-[1.1] text-transparent sm:text-[48px] md:text-[64px] lg:text-[96px] lg:leading-[116px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
+          <div className="mx-auto flex w-full max-w-[1728px] flex-col gap-10 px-4 pb-[200px] pt-[96px] sm:gap-12 sm:px-8 sm:pb-[240px] sm:pt-[120px] lg:flex-row lg:items-start lg:gap-14 lg:px-12 lg:pb-[320px] lg:pt-[160px] xl:px-[125px]">
+            <div className="max-w-[820px] text-center lg:text-left animate-hero-up">
+              <h1 className="text-[32px] font-bold leading-[1.08] text-transparent sm:text-[40px] md:text-[56px] lg:text-[76px] lg:leading-[92px] xl:text-[88px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
                 {t({ en: "Learn Smarter,", bn: "Learn Smarter," })}
                 <br />
                 {t({ en: "Not Harder", bn: "Not Harder" })}
               </h1>
-              <p className="mt-6 text-[16px] leading-[24px] text-black sm:text-[18px] sm:leading-[26px] lg:text-[24px] lg:leading-[29px] animate-hero-up-delay-1">
+              <p className="mt-5 text-[15px] leading-[22px] text-black sm:mt-6 sm:text-[17px] sm:leading-[25px] lg:text-[20px] lg:leading-[28px] animate-hero-up-delay-1">
                 {t({
                   en: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
                   bn: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
                 })}
               </p>
-              <div className="mt-8 flex flex-wrap gap-4 sm:mt-10 sm:gap-6 animate-hero-up-delay-2">
+              <div className="mt-7 flex flex-wrap justify-center gap-3 sm:mt-9 sm:gap-4 lg:justify-start lg:gap-6 animate-hero-up-delay-2">
                 <Link to="/signup">
                   <Button
                     size="lg"
-                    className="h-[46px] rounded-[28px] bg-[#060BF7] px-6 text-[14px] font-bold text-white shadow-none hover:bg-[#060BF7]/90 sm:h-[50px] sm:px-7 sm:text-[16px] lg:h-[58px] lg:px-8"
+                    className="h-[44px] rounded-[24px] bg-[#060BF7] px-5 text-[14px] font-bold text-white shadow-none hover:bg-[#060BF7]/90 sm:h-[48px] sm:px-6 sm:text-[15px] lg:h-[54px] lg:px-7 lg:text-[16px]"
                   >
                     {t({ en: "Start Learning Free", bn: "Start Learning Free" })}
                   </Button>
@@ -96,20 +96,20 @@ export default function Home() {
                 <Link to="/pricing">
                   <Button
                     size="lg"
-                    className="h-[46px] rounded-[28px] bg-[#F3AB36] px-6 text-[14px] font-bold text-black shadow-none hover:bg-[#f0a529] sm:h-[50px] sm:px-7 sm:text-[16px] lg:h-[58px] lg:px-8"
+                    className="h-[44px] rounded-[24px] bg-[#F3AB36] px-5 text-[14px] font-bold text-black shadow-none hover:bg-[#f0a529] sm:h-[48px] sm:px-6 sm:text-[15px] lg:h-[54px] lg:px-7 lg:text-[16px]"
                   >
                     {t({ en: "Try Homeschool AI Tutor", bn: "Try Homeschool AI Tutor" })}
                   </Button>
                 </Link>
               </div>
-              <div className="mt-8 text-[20px] font-bold leading-[26px] text-black sm:mt-10 sm:text-[24px] sm:leading-[30px] lg:text-[32px] lg:leading-[39px] animate-hero-up-delay-2">
+              <div className="mt-7 text-[18px] font-bold leading-[24px] text-black sm:mt-9 sm:text-[22px] sm:leading-[28px] lg:text-[28px] lg:leading-[34px] animate-hero-up-delay-2">
                 <div>2.5K +</div>
                 <div>Active Students</div>
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[520px] lg:mx-0 lg:pt-6">
-              <div className="relative w-full max-w-[495px]">
+            <div className="relative mx-auto w-full max-w-[480px] lg:mx-0 lg:max-w-[520px] lg:pt-4 xl:pt-6">
+              <div className="relative w-full max-w-[460px] lg:max-w-[495px]">
                 <img
                   src="/figma/hero-illustration.png"
                   alt={t({ en: "Student learning illustration", bn: "Student learning illustration" })}
@@ -144,7 +144,7 @@ export default function Home() {
                 {heroBadges.map((badge) => (
                   <div
                     key={`${badge.id}-stack`}
-                    className="rounded-[24px] bg-[#9FB7DD] px-4 py-3 text-center text-[14px] font-bold text-black shadow-[0_12px_30px_rgba(15,23,42,0.2)]"
+                    className="rounded-[20px] bg-[#9FB7DD] px-3 py-2 text-center text-[12px] font-bold text-black shadow-[0_12px_30px_rgba(15,23,42,0.2)] sm:px-4 sm:py-3 sm:text-[14px]"
                   >
                     <div>{t(badge.title)}</div>
                     {badge.subtitle && <div className="font-normal">{t(badge.subtitle)}</div>}
@@ -162,36 +162,36 @@ export default function Home() {
           />
         </section>
 
-        <section id="features" className="mx-auto w-full max-w-[1728px] px-4 pb-[60px] pt-[90px] sm:px-8 sm:pb-[80px] sm:pt-[120px] lg:pt-[140px] xl:px-[125px]">
-          <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-y-6 sm:gap-y-8 lg:grid-cols-2 lg:gap-x-[96px] xl:gap-x-[148px]">
+        <section id="features" className="mx-auto w-full max-w-[1728px] px-4 pb-[60px] pt-[80px] sm:px-8 sm:pb-[80px] sm:pt-[110px] lg:pt-[130px] xl:px-[125px]">
+          <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-y-5 sm:gap-y-7 lg:grid-cols-2 lg:gap-x-[72px] xl:max-w-[1200px] xl:gap-x-[120px]">
             {featureCards.map((card) => (
-              <div key={card.id} className="flex h-[110px] items-center rounded-[16px] bg-white px-5 sm:h-[124px] sm:px-6">
+              <div key={card.id} className="flex h-[96px] items-center rounded-[16px] bg-white px-4 sm:h-[112px] sm:px-5 lg:h-[124px] lg:px-6">
                 <img src={card.icon} alt="" className="h-14 w-14" aria-hidden="true" />
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-[1728px] px-4 pb-[100px] sm:px-8 sm:pb-[120px] xl:px-[125px]">
+        <section className="mx-auto w-full max-w-[1728px] px-4 pb-[90px] sm:px-8 sm:pb-[120px] xl:px-[125px]">
           <div
-            className="relative mx-auto flex h-[180px] max-w-[1096px] flex-col justify-center bg-white px-6 sm:h-[228px] sm:px-10"
+            className="relative mx-auto flex h-[170px] max-w-[1096px] flex-col justify-center bg-white px-5 sm:h-[210px] sm:px-8 lg:h-[228px] lg:px-10"
             style={{ borderRadius: "45px 16px 55px 16px" }}
           >
-            <p className="text-[20px] font-bold leading-[26px] text-black/50 sm:text-[24px] sm:leading-[29px]">
+            <p className="text-[18px] font-bold leading-[24px] text-black/50 sm:text-[22px] sm:leading-[28px] lg:text-[24px] lg:leading-[29px]">
               {t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
             </p>
-            <div className="absolute right-4 top-1/2 flex h-[68px] w-[70px] -translate-y-1/2 items-center justify-center rounded-[16px] bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] sm:-right-[12px] sm:h-[78px] sm:w-[81px]">
+            <div className="absolute right-4 top-1/2 flex h-[62px] w-[64px] -translate-y-1/2 items-center justify-center rounded-[14px] bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] sm:-right-[12px] sm:h-[72px] sm:w-[76px] lg:h-[78px] lg:w-[81px] lg:rounded-[16px]">
               <img src="/figma/icon-arrow.svg" alt="" className="h-9 w-9" aria-hidden="true" />
             </div>
           </div>
         </section>
 
-        <section id="reviews" className="mx-auto w-full max-w-[1728px] px-4 pb-[140px] sm:px-8 sm:pb-[160px] xl:px-[125px]">
+        <section id="reviews" className="mx-auto w-full max-w-[1728px] px-4 pb-[120px] sm:px-8 sm:pb-[150px] xl:px-[125px]">
           <div className="text-center">
-            <h2 className="text-[28px] font-bold leading-[36px] text-black sm:text-[36px] sm:leading-[44px] lg:text-[48px] lg:leading-[58px]">
+            <h2 className="text-[26px] font-bold leading-[34px] text-black sm:text-[32px] sm:leading-[40px] lg:text-[44px] lg:leading-[54px]">
               {t({ en: "Coverage across core subjects", bn: "Coverage across core subjects" })}
             </h2>
-            <p className="mt-4 text-[14px] font-light leading-[20px] text-black sm:text-[16px] sm:leading-[22px] lg:text-[20px] lg:leading-[24px]">
+            <p className="mt-4 text-[14px] font-light leading-[20px] text-black sm:text-[15px] sm:leading-[22px] lg:text-[18px] lg:leading-[24px]">
               {t({
                 en: "Each subject includes lessons, practice, and assessments tailored to the official syllabus.",
                 bn: "Each subject includes lessons, practice, and assessments tailored to the official syllabus.",
@@ -199,11 +199,17 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 justify-center gap-y-8 md:mt-12 md:grid-cols-3 md:gap-x-16 md:gap-y-10 xl:gap-x-[160px]">
+          <div className="mt-8 grid grid-cols-1 justify-center gap-y-7 md:mt-10 md:grid-cols-3 md:gap-x-12 md:gap-y-10 xl:gap-x-[140px]">
             {subjectColumns.map((column) => (
               <div key={column.id} className="flex flex-col items-center gap-8">
                 {column.items.map((src) => (
-                  <img key={src} src={src} alt="" className="w-full max-w-[320px] sm:max-w-[342px]" loading="lazy" />
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    className="w-full max-w-[300px] rounded-[18px] shadow-[0_12px_24px_rgba(15,23,42,0.12)] sm:max-w-[320px] sm:rounded-[20px] md:shadow-none xl:max-w-[342px]"
+                    loading="lazy"
+                  />
                 ))}
               </div>
             ))}
