@@ -19,12 +19,12 @@ export function MarketingNav() {
 
   return (
     <header className="sticky top-0 z-40 bg-white">
-      <div className="mx-auto flex h-[106px] w-full max-w-[1728px] items-center justify-between px-4 sm:px-8 xl:px-[125px]">
+      <div className="mx-auto flex h-[80px] w-full max-w-[1728px] items-center justify-between px-4 sm:h-[96px] sm:px-8 lg:h-[106px] lg:px-12 xl:px-[125px]">
         <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool home" })}>
-          <img src="/figma/logo.png" alt="HomeSchool" className="h-[59px] w-auto" loading="eager" />
+          <img src="/figma/logo.png" alt="HomeSchool" className="h-10 w-auto sm:h-12 lg:h-[59px]" loading="eager" />
         </Link>
 
-        <nav className="hidden flex-1 items-center justify-center gap-12 text-[16px] font-bold text-black lg:flex" aria-label="Primary">
+        <nav className="hidden flex-1 items-center justify-center gap-8 text-[16px] font-bold text-black lg:flex xl:gap-12" aria-label="Primary">
           {navItems.map((item) => (
             <Link key={item.href} to={item.href} className="transition-colors hover:text-[#060BF7]">
               {t(item.label)}
@@ -35,18 +35,18 @@ export function MarketingNav() {
         <div className="hidden items-center gap-6 lg:flex">
           <LanguageToggle
             variant="ghost"
-            className="h-auto gap-1 rounded-none px-0 py-0 text-[16px] font-bold text-black hover:bg-transparent"
+            className="h-auto gap-1 rounded-none px-0 py-0 text-[14px] font-bold text-black hover:bg-transparent lg:text-[16px]"
           />
           <Link to="/login">
             <Button
-              className="h-[46px] rounded-[12px] bg-[#060BF7] px-6 text-[20px] font-bold text-white shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#060BF7]/90"
+              className="h-[40px] rounded-[12px] bg-[#060BF7] px-5 text-[16px] font-bold text-white shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#060BF7]/90 lg:h-[46px] lg:px-6 lg:text-[20px]"
             >
               {t({ en: "Sign in", bn: "Sign in" })}
             </Button>
           </Link>
           <Link to="/pricing">
             <Button
-              className="h-[46px] rounded-[12px] bg-[#F3AB36] px-6 text-[20px] font-bold text-black shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#f0a529]"
+              className="h-[40px] rounded-[12px] bg-[#F3AB36] px-5 text-[16px] font-bold text-black shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#f0a529] lg:h-[46px] lg:px-6 lg:text-[20px]"
             >
               {t({ en: "Get Premium", bn: "Get Premium" })}
             </Button>
