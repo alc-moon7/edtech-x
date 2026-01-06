@@ -53,6 +53,40 @@ const featureCards = [
   { id: "card-4", icon: "/figma/icon-idea.svg" },
 ];
 
+type AssistCard = {
+  id: string;
+  title: TranslationValue;
+  subtitle: TranslationValue;
+  icon: string;
+};
+
+const assistCards: AssistCard[] = [
+  {
+    id: "math",
+    title: { en: "Solve Math Problem", bn: "Solve Math Problem" },
+    subtitle: { en: "Help me understand algebraic equations", bn: "Help me understand algebraic equations" },
+    icon: "📊",
+  },
+  {
+    id: "science",
+    title: { en: "Science Concept", bn: "Science Concept" },
+    subtitle: { en: "Explain photosynthesis step by step", bn: "Explain photosynthesis step by step" },
+    icon: "🧪",
+  },
+  {
+    id: "grammar",
+    title: { en: "Grammar Help", bn: "Grammar Help" },
+    subtitle: { en: "Teach me about verb tenses", bn: "Teach me about verb tenses" },
+    icon: "✍️",
+  },
+  {
+    id: "study",
+    title: { en: "Study Tips", bn: "Study Tips" },
+    subtitle: { en: "How to prepare for exams effectively", bn: "How to prepare for exams effectively" },
+    icon: "🎓",
+  },
+];
+
 type SubjectCard = {
   id: string;
   title: TranslationValue;
@@ -150,25 +184,25 @@ function HeroSection({ t }: { t: Translate }) {
       <img
         src="/figma/hero-wave.svg"
         alt=""
-        className="pointer-events-none absolute left-0 top-0 z-0 w-full -translate-y-px rotate-180"
+        className="pointer-events-none absolute left-0 top-0 z-0 w-full -translate-y-2 sm:-translate-y-4 lg:-translate-y-6 rotate-180"
         aria-hidden="true"
       />
       <img
         src="/figma/hero-wave.svg"
         alt=""
-        className="pointer-events-none absolute bottom-0 left-0 z-0 w-full translate-y-px"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 w-full translate-y-4 sm:translate-y-8 lg:translate-y-10"
         aria-hidden="true"
       />
       <div className="relative z-10">
-        <Section className="pt-20 pb-24 sm:pt-24 sm:pb-32 lg:pt-28 lg:pb-40">
+        <Section className="pt-44 pb-40 sm:pt-48 sm:pb-44 lg:pt-52 lg:pb-48">
           <div className="flex flex-col items-center gap-10 md:flex-row md:items-start md:gap-10 lg:gap-12">
-            <div className="max-w-xl text-center md:text-left">
-              <h1 className="animate-hero-up text-3xl font-bold leading-tight text-transparent sm:text-4xl md:text-5xl xl:text-6xl bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
+            <div className="max-w-3xl text-center md:text-left">
+              <h1 className="animate-hero-up text-4xl font-bold leading-tight text-transparent sm:text-5xl md:text-[60px] xl:text-[66px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
                 {t({ en: "Learn Smarter,", bn: "Learn Smarter," })}
                 <br />
                 {t({ en: "Not Harder", bn: "Not Harder" })}
               </h1>
-              <p className="animate-hero-up-delay-1 mt-4 text-sm leading-relaxed text-black sm:text-base lg:text-lg">
+              <p className="animate-hero-up-delay-1 mt-5 max-w-2xl text-sm leading-relaxed text-black sm:text-base lg:text-lg">
                 {t({
                   en: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
                   bn: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
@@ -224,18 +258,61 @@ function FeatureSection() {
   );
 }
 
-function CallToAction({ t }: { t: Translate }) {
+function AssistSection({ t }: { t: Translate }) {
   return (
-    <Section className="pb-12 sm:pb-16">
-      <div className="relative mx-auto max-w-4xl rounded-3xl bg-white px-6 py-8 shadow-sm sm:px-8 sm:py-10">
-        <p className="text-base font-semibold text-black/60 sm:text-lg">
-          {t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
-        </p>
-        <div className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] sm:right-6 sm:h-14 sm:w-14">
-          <img src="/figma/icon-arrow.svg" alt="" className="h-6 w-6" aria-hidden="true" />
+    <section className="bg-[linear-gradient(180deg,#E7F0FF_0%,#F7F9FF_100%)] py-16 sm:py-20">
+      <Section className="max-w-5xl">
+        <div className="mb-10 space-y-2 text-center">
+          <h2 className="text-2xl font-bold text-black sm:text-3xl lg:text-4xl">
+            {t({ en: "How can I help you today?", bn: "How can I help you today?" })}
+          </h2>
+          <p className="text-sm text-black/70 sm:text-base">
+            {t({ en: "Your personal AI tutor for all subjects", bn: "Your personal AI tutor for all subjects" })}
+          </p>
         </div>
-      </div>
-    </Section>
+
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+          {assistCards.map((card) => (
+            <div
+              key={card.id}
+              className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-100 sm:px-5 sm:py-4"
+            >
+              <span className="mt-0.5 text-lg sm:text-xl" aria-hidden="true">
+                {card.icon}
+              </span>
+              <div>
+                <div className="text-sm font-semibold text-black sm:text-base">{t(card.title)}</div>
+                <div className="text-xs text-slate-600 sm:text-sm">{t(card.subtitle)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 rounded-[22px] bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-5">
+          <input
+            type="text"
+            placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
+            className="w-full border-none text-sm text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base"
+          />
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110"
+            aria-label={t({ en: "Send message", bn: "Send message" })}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
+            </svg>
+          </button>
+        </div>
+
+        <p className="mt-4 text-center text-[11px] text-slate-500 sm:text-xs">
+          {t({
+            en: "Homeschool AI can make mistakes. Always verify important information",
+            bn: "Homeschool AI can make mistakes. Always verify important information",
+          })}
+        </p>
+      </Section>
+    </section>
   );
 }
 
@@ -300,10 +377,10 @@ export default function Home() {
 
   return (
     <MarketingShell>
-      <div className="bg-[linear-gradient(180deg,#FFFFFF_0%,#85B2F5_100%)]">
+      <div className="bg-[linear-gradient(180deg,#F8FAFF_0%,#E9F1FF_45%,#85B2F5_100%)]">
         <HeroSection t={t} />
         <FeatureSection />
-        <CallToAction t={t} />
+        <AssistSection t={t} />
         <SubjectsSection t={t} />
         <FloatingChatButton t={t} />
       </div>
