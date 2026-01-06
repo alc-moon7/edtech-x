@@ -34,6 +34,11 @@ const heroBadges = [
   },
 ];
 
+const heroStats = [
+  { value: "2.5K +", label: { en: "Active Students", bn: "Active Students" } },
+  { value: "98%", label: { en: "Satisfaction", bn: "Satisfaction" } },
+];
+
 const featureCards = [
   { id: "card-1", icon: "/figma/icon-calculator.png" },
   { id: "card-2", icon: "/figma/icon-critical-thinking.png" },
@@ -71,45 +76,65 @@ export default function Home() {
     <MarketingShell>
       <div className="bg-[linear-gradient(180deg,#FFFFFF_0%,#85B2F5_100%)]">
         <section id="home" className="relative overflow-hidden">
-          <div className="mx-auto flex w-full max-w-[1728px] flex-col gap-10 px-4 pb-[200px] pt-[96px] sm:gap-12 sm:px-8 sm:pb-[240px] sm:pt-[120px] lg:flex-row lg:items-start lg:gap-14 lg:px-12 lg:pb-[320px] lg:pt-[160px] xl:px-[125px]">
-            <div className="max-w-[820px] text-center lg:text-left animate-hero-up">
-              <h1 className="text-[32px] font-bold leading-[1.08] text-transparent sm:text-[40px] md:text-[56px] lg:text-[76px] lg:leading-[92px] xl:text-[88px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
+          <img
+            src="/figma/hero-wave.svg"
+            alt=""
+            className="pointer-events-none absolute left-0 top-0 z-0 w-full -translate-y-[1px] rotate-180"
+            aria-hidden="true"
+          />
+          <img
+            src="/figma/hero-wave.svg"
+            alt=""
+            className="pointer-events-none absolute bottom-0 left-0 z-0 w-full translate-y-[1px]"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 mx-auto flex w-full max-w-[1728px] flex-col gap-10 px-4 pb-[180px] pt-[110px] sm:gap-12 sm:px-8 sm:pb-[210px] sm:pt-[140px] lg:flex-row lg:items-start lg:gap-[96px] lg:px-10 lg:pb-[240px] lg:pt-[180px] xl:gap-[120px] xl:px-[96px] xl:pb-[260px] xl:pt-[220px] 2xl:gap-[160px] 2xl:pb-[300px] 2xl:pt-[275px] 2xl:pl-[125px] 2xl:pr-[210px]">
+            <div className="max-w-[640px] text-center lg:text-left xl:max-w-[700px] 2xl:max-w-[740px] animate-hero-up">
+              <h1 className="text-[32px] font-bold leading-[1.08] text-transparent sm:text-[40px] md:text-[52px] lg:text-[64px] lg:leading-[80px] xl:text-[72px] xl:leading-[100px] 2xl:text-[80px] 2xl:leading-[116px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
                 {t({ en: "Learn Smarter,", bn: "Learn Smarter," })}
                 <br />
                 {t({ en: "Not Harder", bn: "Not Harder" })}
               </h1>
-              <p className="mt-5 text-[15px] leading-[22px] text-black sm:mt-6 sm:text-[17px] sm:leading-[25px] lg:text-[20px] lg:leading-[28px] animate-hero-up-delay-1">
+              <p className="mx-auto mt-5 max-w-[520px] text-[14px] leading-[20px] text-black sm:mt-6 sm:max-w-[560px] sm:text-[15px] sm:leading-[22px] md:text-[16px] md:leading-[24px] lg:mx-0 lg:max-w-[620px] lg:text-[17px] lg:leading-[26px] xl:max-w-[700px] xl:text-[18px] xl:leading-[28px] 2xl:max-w-[802px] 2xl:text-[18px] 2xl:leading-[29px] animate-hero-up-delay-1">
                 {t({
                   en: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
                   bn: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
                 })}
               </p>
               <div className="mt-7 flex flex-wrap justify-center gap-3 sm:mt-9 sm:gap-4 lg:justify-start lg:gap-6 animate-hero-up-delay-2">
-                <Link to="/signup">
+                <Link to="/signup" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="h-[44px] rounded-[24px] bg-[#060BF7] px-5 text-[14px] font-bold text-white shadow-none hover:bg-[#060BF7]/90 sm:h-[48px] sm:px-6 sm:text-[15px] lg:h-[54px] lg:px-7 lg:text-[16px]"
+                    className="h-[44px] w-full rounded-[24px] bg-[#060BF7] px-5 text-[14px] font-bold text-white shadow-none hover:bg-[#060BF7]/90 sm:h-[46px] sm:w-auto sm:px-6 sm:text-[14px] lg:h-[48px] lg:px-6 lg:text-[15px] xl:h-[52px] xl:px-7 xl:text-[16px] 2xl:h-[58px] 2xl:px-8 2xl:text-[16px]"
                   >
                     {t({ en: "Start Learning Free", bn: "Start Learning Free" })}
                   </Button>
                 </Link>
-                <Link to="/pricing">
+                <Link to="/pricing" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="h-[44px] rounded-[24px] bg-[#F3AB36] px-5 text-[14px] font-bold text-black shadow-none hover:bg-[#f0a529] sm:h-[48px] sm:px-6 sm:text-[15px] lg:h-[54px] lg:px-7 lg:text-[16px]"
+                    className="h-[44px] w-full rounded-[24px] bg-[#F3AB36] px-5 text-[14px] font-bold text-black shadow-none hover:bg-[#f0a529] sm:h-[46px] sm:w-auto sm:px-6 sm:text-[14px] lg:h-[48px] lg:px-6 lg:text-[15px] xl:h-[52px] xl:px-7 xl:text-[16px] 2xl:h-[58px] 2xl:px-8 2xl:text-[16px]"
                   >
                     {t({ en: "Try Homeschool AI Tutor", bn: "Try Homeschool AI Tutor" })}
                   </Button>
                 </Link>
               </div>
-              <div className="mt-7 text-[18px] font-bold leading-[24px] text-black sm:mt-9 sm:text-[22px] sm:leading-[28px] lg:text-[28px] lg:leading-[34px] animate-hero-up-delay-2">
-                <div>2.5K +</div>
-                <div>Active Students</div>
+              <div className="mt-7 flex flex-wrap justify-center gap-8 text-center sm:mt-9 sm:gap-10 lg:justify-start lg:gap-12 lg:text-left xl:gap-14 2xl:gap-16 animate-hero-up-delay-2">
+                {heroStats.map((stat) => (
+                  <div key={stat.value} className="min-w-[120px]">
+                    <div className="text-[18px] font-bold leading-[24px] text-black sm:text-[20px] sm:leading-[26px] lg:text-[22px] lg:leading-[30px] xl:text-[24px] xl:leading-[32px]">
+                      {stat.value}
+                    </div>
+                    <div className="text-[12px] font-semibold text-black sm:text-[13px] lg:text-[14px] xl:text-[15px] 2xl:text-[16px]">
+                      {t(stat.label)}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[480px] lg:mx-0 lg:max-w-[520px] lg:pt-4 xl:pt-6">
-              <div className="relative w-full max-w-[460px] lg:max-w-[495px]">
+            <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[420px] md:max-w-[460px] lg:mx-0 lg:max-w-[520px] lg:pt-2 xl:pt-4">
+              <div className="relative w-full max-w-[320px] sm:max-w-[380px] md:max-w-[430px] lg:max-w-[460px] xl:max-w-[495px]">
                 <img
                   src="/figma/hero-illustration.png"
                   alt={t({ en: "Student learning illustration", bn: "Student learning illustration" })}
@@ -120,16 +145,16 @@ export default function Home() {
                 {heroBadges.map((badge) => (
                   <div
                     key={badge.id}
-                    className="absolute hidden w-[227px] rounded-[24px] bg-[#9FB7DD] px-4 py-3 text-center text-[14px] font-bold text-black shadow-[0_12px_30px_rgba(15,23,42,0.2)] backdrop-blur-[12px] xl:block"
+                    className="absolute hidden h-[69px] w-[227px] rounded-[24px] bg-[#9FB7DD] px-4 text-center text-[14px] font-bold leading-[20px] text-black shadow-[0_12px_24px_rgba(15,23,42,0.18)] backdrop-blur-[12px] xl:flex xl:flex-col xl:items-center xl:justify-center"
                     style={{ left: badge.left, top: badge.top }}
                   >
                     <div>{t(badge.title)}</div>
-                    {badge.subtitle && <div className="font-normal">{t(badge.subtitle)}</div>}
+                    {badge.subtitle && <div className="text-[13px] font-normal leading-[18px]">{t(badge.subtitle)}</div>}
                   </div>
                 ))}
 
                 <div className="absolute hidden xl:block" style={{ left: "553px", top: "337px" }}>
-                  <div className="relative flex h-[86px] w-[84px] items-center justify-center rounded-full bg-white">
+                  <div className="relative flex h-[86px] w-[84px] items-center justify-center rounded-full bg-white shadow-[0_12px_24px_rgba(15,23,42,0.16)]">
                     <img
                       src="/figma/hero-chat.png"
                       alt={t({ en: "AI helper", bn: "AI helper" })}
@@ -154,25 +179,19 @@ export default function Home() {
             </div>
           </div>
 
-          <img
-            src="/figma/hero-wave.svg"
-            alt=""
-            className="pointer-events-none absolute bottom-0 left-0 w-full"
-            aria-hidden="true"
-          />
         </section>
 
-        <section id="features" className="mx-auto w-full max-w-[1728px] px-4 pb-[60px] pt-[80px] sm:px-8 sm:pb-[80px] sm:pt-[110px] lg:pt-[130px] xl:px-[125px]">
-          <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-y-5 sm:gap-y-7 lg:grid-cols-2 lg:gap-x-[72px] xl:max-w-[1200px] xl:gap-x-[120px]">
+        <section id="features" className="mx-auto w-full max-w-[1728px] px-4 pb-[60px] pt-[80px] sm:px-8 sm:pb-[80px] sm:pt-[110px] lg:pt-[130px] xl:px-[96px] 2xl:px-[125px]">
+          <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-y-5 sm:gap-y-7 lg:grid-cols-2 lg:gap-x-[72px] xl:max-w-[1120px] xl:gap-x-[120px] 2xl:max-w-[1172px]">
             {featureCards.map((card) => (
-              <div key={card.id} className="flex h-[96px] items-center rounded-[16px] bg-white px-4 sm:h-[112px] sm:px-5 lg:h-[124px] lg:px-6">
+              <div className="flex h-[96px] items-center rounded-[16px] bg-white px-4 shadow-[0_12px_24px_rgba(15,23,42,0.08)] sm:h-[112px] sm:px-5 sm:shadow-none lg:h-[124px] lg:px-6" key={card.id}>
                 <img src={card.icon} alt="" className="h-14 w-14" aria-hidden="true" />
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-[1728px] px-4 pb-[90px] sm:px-8 sm:pb-[120px] xl:px-[125px]">
+        <section className="mx-auto w-full max-w-[1728px] px-4 pb-[90px] sm:px-8 sm:pb-[120px] xl:px-[96px] 2xl:px-[125px]">
           <div
             className="relative mx-auto flex h-[170px] max-w-[1096px] flex-col justify-center bg-white px-5 sm:h-[210px] sm:px-8 lg:h-[228px] lg:px-10"
             style={{ borderRadius: "45px 16px 55px 16px" }}
@@ -186,7 +205,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="reviews" className="mx-auto w-full max-w-[1728px] px-4 pb-[120px] sm:px-8 sm:pb-[150px] xl:px-[125px]">
+        <section id="reviews" className="relative mx-auto w-full max-w-[1728px] px-4 pb-[120px] sm:px-8 sm:pb-[150px] xl:px-[96px] 2xl:px-[125px]">
+          <span id="subjects" className="absolute -top-24" aria-hidden="true" />
           <div className="text-center">
             <h2 className="text-[26px] font-bold leading-[34px] text-black sm:text-[32px] sm:leading-[40px] lg:text-[44px] lg:leading-[54px]">
               {t({ en: "Coverage across core subjects", bn: "Coverage across core subjects" })}
