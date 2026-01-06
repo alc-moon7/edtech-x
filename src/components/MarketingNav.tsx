@@ -20,12 +20,12 @@ export function MarketingNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/40 bg-white/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-[70px] w-full max-w-[1728px] items-center justify-between px-4 sm:h-[84px] sm:px-8 lg:h-[96px] lg:px-10 xl:h-[100px] xl:px-[72px] 2xl:h-[106px] 2xl:pl-[125px] 2xl:pr-[40px]">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-20 lg:px-8">
         <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool home" })}>
-          <img src="/figma/logo.png" alt="HomeSchool" className="h-8 w-auto sm:h-10 lg:h-12 xl:h-[52px] 2xl:h-[59px]" loading="eager" />
+          <img src="/figma/logo.png" alt="HomeSchool" className="h-8 w-auto sm:h-10 lg:h-12" loading="eager" />
         </Link>
 
-        <nav className="hidden flex-1 items-center justify-center gap-6 text-[15px] font-bold text-black lg:flex xl:gap-8 xl:text-[16px]" aria-label="Primary">
+        <nav className="hidden flex-1 items-center justify-center gap-6 text-sm font-semibold text-black lg:flex lg:text-base" aria-label="Primary">
           {navItems.map((item) => (
             <Link key={item.href} to={item.href} className="transition-colors hover:text-[#060BF7]">
               {t(item.label)}
@@ -33,21 +33,21 @@ export function MarketingNav() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-4 lg:flex xl:gap-5">
+        <div className="hidden items-center gap-3 lg:flex">
           <LanguageToggle
             variant="ghost"
-            className="h-auto gap-1 rounded-none px-0 py-0 text-[13px] font-bold text-black hover:bg-transparent lg:text-[15px] xl:text-[16px]"
+            className="h-auto gap-1 rounded-none px-0 py-0 text-xs font-semibold text-black hover:bg-transparent lg:text-sm"
           />
           <Link to="/login">
             <Button
-              className="h-[38px] rounded-[12px] bg-[#060BF7] px-4 text-[13px] font-bold text-white shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#060BF7]/90 lg:h-[44px] lg:px-5 lg:text-[15px] xl:h-[46px] xl:px-6 xl:text-[16px]"
+              className="h-10 rounded-xl bg-[#060BF7] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[#060BF7]/90 sm:h-11 sm:px-5 sm:text-sm lg:h-12 lg:text-base"
             >
               {t({ en: "Sign in", bn: "Sign in" })}
             </Button>
           </Link>
           <Link to="/pricing">
             <Button
-              className="h-[38px] rounded-[12px] bg-[#F3AB36] px-4 text-[13px] font-bold text-black shadow-[0_12px_20px_rgba(115,82,221,0.13)] hover:bg-[#f0a529] lg:h-[44px] lg:px-5 lg:text-[15px] xl:h-[46px] xl:px-6 xl:text-[16px]"
+              className="h-10 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-11 sm:px-5 sm:text-sm lg:h-12 lg:text-base"
             >
               {t({ en: "Get Premium", bn: "Get Premium" })}
             </Button>
@@ -67,7 +67,7 @@ export function MarketingNav() {
       </div>
 
       <div id="mobile-menu" className={cn("border-t border-slate-200 bg-white/90 backdrop-blur-lg lg:hidden", open ? "block" : "hidden")}>
-        <nav className="mx-auto flex max-w-[1728px] flex-col gap-2 px-4 py-4" aria-label="Mobile">
+        <nav className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4" aria-label="Mobile">
           {navItems.map((item) => (
             <Link
               key={item.href}
