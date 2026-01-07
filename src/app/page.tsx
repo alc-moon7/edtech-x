@@ -46,13 +46,6 @@ const heroStats = [
   { value: "98%", label: { en: "Satisfaction", bn: "Satisfaction" } },
 ];
 
-const featureCards = [
-  { id: "card-1", icon: "/figma/icon-calculator.png" },
-  { id: "card-2", icon: "/figma/icon-critical-thinking.png" },
-  { id: "card-3", icon: "/figma/icon-book.svg" },
-  { id: "card-4", icon: "/figma/icon-idea.svg" },
-];
-
 type AssistCard = {
   id: string;
   title: TranslationValue;
@@ -169,8 +162,6 @@ function HeroVisual({ t }: { t: Translate }) {
         {heroBadges.map((badge) => (
           <HeroBadgeItem key={badge.id} badge={badge} t={t} />
         ))}
-
-        
       </div>
 
       <HeroBadgeStack t={t} />
@@ -241,20 +232,6 @@ function HeroSection({ t }: { t: Translate }) {
         </Section>
       </div>
     </section>
-  );
-}
-
-function FeatureSection() {
-  return (
-    <Section id="features" className="py-12 sm:py-16">
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 md:gap-6 lg:gap-8">
-        {featureCards.map((card) => (
-          <div key={card.id} className="flex items-center rounded-2xl bg-white p-4 shadow-sm sm:p-5">
-            <img src={card.icon} alt="" className="h-10 w-10 sm:h-12 sm:w-12" aria-hidden="true" />
-          </div>
-        ))}
-      </div>
-    </Section>
   );
 }
 

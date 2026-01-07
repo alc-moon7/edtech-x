@@ -7,6 +7,7 @@ import PricingPage from "@/app/pricing/page";
 import ContactPage from "@/app/contact/page";
 import PrivacyPage from "@/app/privacy/page";
 import TermsPage from "@/app/terms/page";
+import TeamPage from "@/app/team/page";
 import LoginPage from "@/app/login/page";
 import SignupPage from "@/app/signup/page";
 import ForgotPasswordPage from "@/app/forgot-password/page";
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="contact" element={<ContactPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
         <Route path="terms" element={<TermsPage />} />
+        <Route path="team" element={<TeamPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="signup" element={<SignupPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
