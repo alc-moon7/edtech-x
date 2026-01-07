@@ -9,7 +9,8 @@ import { usePageMeta } from "@/lib/usePageMeta";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
-import { AuthShell } from "@/components/AuthShell";
+import { MarketingNav } from "@/components/MarketingNav";
+import { Footer } from "@/components/Footer";
 
 export default function LoginPage() {
   const t = useTranslate();
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const redirectTo = (location.state as { from?: string })?.from ?? "/dashboard";
 
@@ -62,13 +64,16 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthShell>
-      <div className="flex items-center justify-center py-10">
-        <div className="w-full max-w-md space-y-4">
-          <div className="text-center space-y-3 mb-8">
+    <div className="min-h-screen bg-gray-50">
+      <MarketingNav />
+      <div className="mx-auto mt-6 flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 md:mt-6 md:h-[calc(100vh-96px)] md:max-h-[calc(100vh-96px)] md:flex-row md:items-stretch">
+        <div className="w-full px-5 py-6 sm:px-8 md:max-w-md md:overflow-y-auto md:py-8">
+          <div className="mb-6 space-y-3 text-center">
             <img src="/logo.png" alt="HomeSchool" className="mx-auto h-12 w-auto" />
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{t({ en: "Sign in", bn: "সাইন ইন" })}</h1>
-            <p className="text-muted-foreground">{t({ en: "Interactive Learning Platform for Class 6-12", bn: "ক্লাস ৬-১২ এর ইন্টারঅ্যাকটিভ লার্নিং প্ল্যাটফর্ম" })}</p>
+            <p className="text-sm text-muted-foreground">
+              {t({ en: "Start your learning journey today", bn: "আজই আপনার শেখার যাত্রা শুরু করুন" })}
+            </p>
           </div>
 
           <Card>
@@ -88,6 +93,33 @@ export default function LoginPage() {
                     {message}
                   </div>
                 )}
+
+                <div className="grid grid-cols-1 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 justify-center gap-2 text-sm font-semibold"
+                    onClick={() => setShowComingSoon(true)}
+                  >
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="h-5 w-5" />
+                    {t({ en: "Continue with Google", bn: "গুগল দিয়ে চালিয়ে যান" })}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 justify-center gap-2 text-sm font-semibold"
+                    onClick={() => setShowComingSoon(true)}
+                  >
+                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="" className="h-5 w-5" />
+                    {t({ en: "Continue with Facebook", bn: "ফেসবুক দিয়ে চালিয়ে যান" })}
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="h-px flex-1 bg-slate-200" />
+                  <span>{t({ en: "Continue with Email", bn: "ইমেইল দিয়ে চালিয়ে যান" })}</span>
+                  <div className="h-px flex-1 bg-slate-200" />
+                </div>
 
                 <div className="space-y-2">
                   <label htmlFor="login-email" className="text-sm font-medium">
@@ -139,8 +171,40 @@ export default function LoginPage() {
               </Link>
             </CardFooter>
           </Card>
+
+          <p className="mt-4 text-center text-[12px] text-muted-foreground">
+            {t({ en: "By continuing, you agree to Homeschool's Terms of Service and Privacy Policy", bn: "অগ্রসর হয়ে আপনি Homeschool-এর Terms of Service ও Privacy Policy মেনে নিচ্ছেন" })}
+          </p>
+        </div>
+
+        <div className="hidden flex-1 md:block">
+          <div
+            className="h-full min-h-[360px] bg-cover bg-center"
+            style={{ backgroundImage: "url('/Login.jpg')" }}
+            aria-hidden="true"
+          />
         </div>
       </div>
-    </AuthShell>
+
+      {showComingSoon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-200">
+            <div className="mb-3 text-center">
+              <h2 className="text-lg font-semibold text-slate-900">Coming Soon</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {t({ en: "Google and Facebook sign-in are coming soon.", bn: "গুগল ও ফেসবুক সাইন-ইন শীঘ্রই আসছে।" })}
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Button className="w-full sm:w-auto px-6" onClick={() => setShowComingSoon(false)}>
+                {t({ en: "Close", bn: "বন্ধ করুন" })}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
   );
 }

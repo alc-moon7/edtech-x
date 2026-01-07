@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/Input";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { supabase } from "@/lib/supabaseClient";
 import { useTranslate } from "@/lib/i18n";
-import { AuthShell } from "@/components/AuthShell";
+import { MarketingNav } from "@/components/MarketingNav";
+import { Footer } from "@/components/Footer";
 
 export default function ForgotPasswordPage() {
   const t = useTranslate();
@@ -44,13 +45,18 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthShell>
-      <div className="flex items-center justify-center py-10">
-        <div className="w-full max-w-md space-y-4">
-          <div className="text-center space-y-3 mb-8">
-            <img src="/logo.png" alt="HomeSchool" className="mx-auto h-12 w-auto" />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t({ en: "Reset your password", bn: "পাসওয়ার্ড রিসেট করুন" })}</h1>
-            <p className="text-muted-foreground">{t({ en: "We will send a reset link to your email.", bn: "আমরা আপনার ইমেইলে রিসেট লিংক পাঠাব।" })}</p>
+    <div className="min-h-screen bg-gray-50">
+      <MarketingNav />
+      <div className="mx-auto mt-8 flex w-full max-w-xl justify-center px-4 pb-12 sm:mt-10">
+        <div className="w-full space-y-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+          <div className="text-center space-y-2">
+            <img src="/logo.png" alt="HomeSchool" className="mx-auto h-10 w-auto" />
+            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+              {t({ en: "Reset your password", bn: "পাসওয়ার্ড রিসেট করুন" })}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {t({ en: "We will send a reset link to your email.", bn: "আমরা আপনার ইমেইলে রিসেট লিংক পাঠাব।" })}
+            </p>
           </div>
 
           <Card>
@@ -97,6 +103,7 @@ export default function ForgotPasswordPage() {
           </Card>
         </div>
       </div>
-    </AuthShell>
+      <Footer />
+    </div>
   );
 }

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/Input";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { supabase } from "@/lib/supabaseClient";
 import { useTranslate } from "@/lib/i18n";
-import { AuthShell } from "@/components/AuthShell";
+import { MarketingNav } from "@/components/MarketingNav";
+import { Footer } from "@/components/Footer";
 
 type SignupForm = {
   full_name: string;
@@ -48,6 +49,7 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const handleChange = (field: keyof SignupForm, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -112,14 +114,15 @@ export default function SignupPage() {
   };
 
   return (
-    <AuthShell>
-      <div className="flex items-center justify-center py-10">
-        <div className="w-full max-w-2xl space-y-4">
-          <div className="text-center space-y-3 mb-8">
+    <div className="min-h-screen bg-gray-50">
+      <MarketingNav />
+      <div className="mx-auto mt-4 flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 md:mt-6">
+        <div className="w-full px-5 py-6 sm:px-8">
+          <div className="text-center space-y-2 mb-4">
             <img src="/logo.png" alt="HomeSchool" className="mx-auto h-12 w-auto" />
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{t({ en: "Create your account", bn: "আপনার অ্যাকাউন্ট তৈরি করুন" })}</h1>
-            <p className="text-muted-foreground">
-              {t({ en: "Join HomeSchool and access the full Class 6-12 learning system.", bn: "HomeSchool এ যোগ দিন এবং ক্লাস ৬-১২ এর পূর্ণ শেখার সিস্টেমে প্রবেশ করুন।" })}
+            <p className="text-sm text-muted-foreground">
+              {t({ en: "Start your learning journey today", bn: "আজই আপনার শেখার যাত্রা শুরু করুন" })}
             </p>
           </div>
 
@@ -129,7 +132,7 @@ export default function SignupPage() {
               <CardDescription>{t({ en: "All fields marked * are required.", bn: "* চিহ্নিত সব ঘর বাধ্যতামূলক।" })}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {errors.form && (
                   <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
                     {errors.form}
@@ -140,6 +143,33 @@ export default function SignupPage() {
                     {t({ en: "Account created. Please check your email to confirm and then sign in.", bn: "অ্যাকাউন্ট তৈরি হয়েছে। ইমেইল যাচাই করে তারপর সাইন ইন করুন।" })}
                   </div>
                 )}
+
+                <div className="grid grid-cols-1 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 justify-center gap-2 text-sm font-semibold"
+                    onClick={() => setShowComingSoon(true)}
+                  >
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="h-5 w-5" />
+                    {t({ en: "Continue with Google", bn: "গুগল দিয়ে চালিয়ে যান" })}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 justify-center gap-2 text-sm font-semibold"
+                    onClick={() => setShowComingSoon(true)}
+                  >
+                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="" className="h-5 w-5" />
+                    {t({ en: "Continue with Facebook", bn: "ফেসবুক দিয়ে চালিয়ে যান" })}
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="h-px flex-1 bg-slate-200" />
+                  <span>{t({ en: "Continue with Email", bn: "ইমেইল দিয়ে চালিয়ে যান" })}</span>
+                  <div className="h-px flex-1 bg-slate-200" />
+                </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -299,8 +329,33 @@ export default function SignupPage() {
               </Link>
             </CardFooter>
           </Card>
+
+          <p className="mt-4 text-center text-[12px] text-muted-foreground">
+            {t({ en: "By continuing, you agree to Homeschool's Terms of Service and Privacy Policy", bn: "অগ্রসর হয়ে আপনি Homeschool-এর Terms of Service ও Privacy Policy মেনে নিচ্ছেন" })}
+          </p>
         </div>
+
       </div>
-    </AuthShell>
+
+      {showComingSoon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-200">
+            <div className="mb-3 text-center">
+              <h2 className="text-lg font-semibold text-slate-900">Coming Soon</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {t({ en: "Google and Facebook sign-in are coming soon.", bn: "গুগল ও ফেসবুক সাইন-ইন শীঘ্রই আসছে।" })}
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <Button className="w-full sm:w-auto px-6" onClick={() => setShowComingSoon(false)}>
+                {t({ en: "Close", bn: "বন্ধ করুন" })}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
   );
 }

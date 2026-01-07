@@ -7,8 +7,8 @@ export function Footer() {
 
   return (
     <footer className="bg-[#f2f5fb] text-slate-700">
-      <div className="mx-auto max-w-6xl px-4 py-12 md:py-14">
-        <div className="grid gap-10 md:grid-cols-4">
+      <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
+        <div className="grid gap-8 md:grid-cols-4">
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
               <img src="/logo.png" alt="HomeSchool" className="h-10 w-auto" loading="lazy" />
@@ -62,7 +62,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-slate-200 pt-6">
+        <div className="mt-8 border-t border-slate-200 pt-5">
           <div className="flex flex-col gap-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <p>{t({ en: "© 2025 HomeSchool. All rights reserved.", bn: "© ২০২৫ HomeSchool. সর্বস্বত্ব সংরক্ষিত।" })}</p>
             <div className="flex items-center gap-4">

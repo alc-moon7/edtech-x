@@ -8,9 +8,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 
 const navItems = [
   { label: { en: "Home", bn: "Home" }, href: "/#home" },
-  { label: { en: "Subjects", bn: "Subjects" }, href: "/#subjects" },
   { label: { en: "About", bn: "About" }, href: "/about" },
-  { label: { en: "Our Team", bn: "Our Team" }, href: "/team" },
   { label: { en: "Reviews", bn: "Reviews" }, href: "/#reviews" },
   { label: { en: "Features", bn: "Features" }, href: "/#features" },
 ];
@@ -20,13 +18,13 @@ export function MarketingNav() {
   const t = useTranslate();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/40 bg-white/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-20 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/50 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:h-16 sm:px-6 lg:h-16 lg:px-8">
         <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool home" })}>
-          <img src="/figma/logo.png" alt="HomeSchool" className="h-8 w-auto sm:h-10 lg:h-12" loading="eager" />
+          <img src="/figma/logo.png" alt="HomeSchool" className="h-8 w-auto sm:h-9 lg:h-10" loading="eager" />
         </Link>
 
-        <nav className="hidden flex-1 items-center justify-center gap-6 text-sm font-semibold text-black lg:flex lg:text-base" aria-label="Primary">
+        <nav className="hidden flex-1 items-center justify-center gap-5 text-sm font-semibold text-black lg:flex lg:text-base" aria-label="Primary">
           {navItems.map((item) => (
             <Link key={item.href} to={item.href} className="transition-colors hover:text-[#060BF7]">
               {t(item.label)}
@@ -41,14 +39,14 @@ export function MarketingNav() {
           />
           <Link to="/login">
             <Button
-              className="h-10 rounded-xl bg-[#060BF7] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[#060BF7]/90 sm:h-11 sm:px-5 sm:text-sm lg:h-12 lg:text-base"
+              className="h-9 rounded-xl bg-[#060BF7] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[#060BF7]/90 sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
             >
               {t({ en: "Sign in", bn: "Sign in" })}
             </Button>
           </Link>
           <Link to="/pricing">
             <Button
-              className="h-10 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-11 sm:px-5 sm:text-sm lg:h-12 lg:text-base"
+              className="h-9 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
             >
               {t({ en: "Get Premium", bn: "Get Premium" })}
             </Button>
@@ -57,7 +55,7 @@ export function MarketingNav() {
 
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-700 shadow-sm transition hover:text-slate-900 lg:hidden"
+          className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/80 p-2 text-slate-700 shadow-sm transition hover:text-slate-900 lg:hidden"
           aria-label={open ? t({ en: "Close menu", bn: "Close menu" }) : t({ en: "Open menu", bn: "Open menu" })}
           aria-expanded={open}
           aria-controls="mobile-menu"
