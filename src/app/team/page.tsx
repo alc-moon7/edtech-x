@@ -18,7 +18,7 @@ const teamMembers: TeamMember[] = [
     name: "Mst. Fahmida Akter",
     role: "TEAM LEADER",
     subtitle: "AI & ANALYTICS LEAD",
-    image: "/team/fahmida.jpg",
+    image: "/team/fahmida1.jpg",
     highlight: true,
   },
   {
@@ -37,7 +37,7 @@ const teamMembers: TeamMember[] = [
     id: "nur-komol",
     name: "Nur Komol Siddika",
     role: "UI UX DESIGNER",
-    image: "/team/Nurkomol.jpg",
+    image: "/team/Nurkomol1.jpg",
   },
   {
     id: "mehedi",
