@@ -20,32 +20,32 @@ type HeroBadge = {
 const heroBadges: HeroBadge[] = [
   {
     id: "ai-tutor",
-    title: { en: "AI Tutor", bn: "AI Tutor" },
+    title: { en: "AI Tutor", bn: "এআই টিউটর" },
     className: "left-10 -top-10 sm:-top-6 md:-top-8 lg:-top-10",
   },
   {
     id: "coverage",
-    title: { en: "Class 6-8", bn: "Class 6-8" },
-    subtitle: { en: "Syllabus Coverage", bn: "Syllabus Coverage" },
+    title: { en: "Class 6-8", bn: "ক্লাস ৬-৮" },
+    subtitle: { en: "Syllabus Coverage", bn: "সিলেবাস কভারেজ" },
     className: "left-[42%] -top-14 sm:-top-10 md:-top-12 lg:-top-16",
   },
   {
     id: "roles",
-    title: { en: "Student and Parent", bn: "Student and Parent" },
-    subtitle: { en: "Learning Roles", bn: "Learning Roles" },
+    title: { en: "Student and Parent", bn: "শিক্ষার্থী ও অভিভাবক" },
+    subtitle: { en: "Learning Roles", bn: "শেখার ভূমিকা" },
     className: "-left-6 top-10 sm:top-6 md:top-8 lg:top-10",
   },
   {
     id: "tracking",
-    title: { en: "Weekly Tracking", bn: "Weekly Tracking" },
-    subtitle: { en: "Progress insights", bn: "Progress insights" },
+    title: { en: "Weekly Tracking", bn: "সাপ্তাহিক ট্র্যাকিং" },
+    subtitle: { en: "Progress insights", bn: "অগ্রগতির ইনসাইট" },
     className: "right-6 -top-8 sm:-top-6 md:-top-8 lg:-top-10",
   },
 ];
 
 const heroStats = [
-  { value: "2.5K +", label: { en: "Active Students", bn: "Active Students" } },
-  { value: "98%", label: { en: "Satisfaction", bn: "Satisfaction" } },
+  { value: "2.5K +", label: { en: "Active Students", bn: "সক্রিয় শিক্ষার্থী" } },
+  { value: "98%", label: { en: "Satisfaction", bn: "সন্তুষ্টি" } },
 ];
 
 type AssistCard = {
@@ -58,26 +58,26 @@ type AssistCard = {
 const assistCards: AssistCard[] = [
   {
     id: "math",
-    title: { en: "Solve Math Problem", bn: "Solve Math Problem" },
-    subtitle: { en: "Help me understand algebraic equations", bn: "Help me understand algebraic equations" },
+    title: { en: "Solve Math Problem", bn: "গণিত সমস্যা সমাধান" },
+    subtitle: { en: "Help me understand algebraic equations", bn: "বীজগণিতের সমীকরণ বুঝতে সাহায্য করুন" },
     icon: "📊",
   },
   {
     id: "science",
-    title: { en: "Science Concept", bn: "Science Concept" },
-    subtitle: { en: "Explain photosynthesis step by step", bn: "Explain photosynthesis step by step" },
+    title: { en: "Science Concept", bn: "বিজ্ঞান ধারণা" },
+    subtitle: { en: "Explain photosynthesis step by step", bn: "ফটোসিন্থেসিস ধাপে ধাপে ব্যাখ্যা করুন" },
     icon: "🧪",
   },
   {
     id: "grammar",
-    title: { en: "Grammar Help", bn: "Grammar Help" },
-    subtitle: { en: "Teach me about verb tenses", bn: "Teach me about verb tenses" },
+    title: { en: "Grammar Help", bn: "ব্যাকরণ সহায়তা" },
+    subtitle: { en: "Teach me about verb tenses", bn: "ক্রিয়ার কাল সম্পর্কে শেখান" },
     icon: "✍️",
   },
   {
     id: "study",
-    title: { en: "Study Tips", bn: "Study Tips" },
-    subtitle: { en: "How to prepare for exams effectively", bn: "How to prepare for exams effectively" },
+    title: { en: "Study Tips", bn: "পড়াশোনার টিপস" },
+    subtitle: { en: "How to prepare for exams effectively", bn: "পরীক্ষার জন্য কার্যকরভাবে প্রস্তুতি নিন" },
     icon: "🎓",
   },
 ];
@@ -90,18 +90,18 @@ type SubjectCard = {
 
 const subjectDescription = {
   en: "Structured chapters, lesson notes, and quick checks.",
-  bn: "Structured chapters, lesson notes, and quick checks.",
+  bn: "গোছানো অধ্যায়, লেসন নোট এবং দ্রুত যাচাই।",
 };
 
 const subjectCards: SubjectCard[] = [
-  { id: "bangla", title: { en: "Bangla", bn: "Bangla" }, tag: { en: "Language", bn: "Language" } },
-  { id: "ict", title: { en: "ICT", bn: "ICT" }, tag: { en: "Tech", bn: "Tech" } },
-  { id: "biology", title: { en: "Biology", bn: "Biology" }, tag: { en: "STEM", bn: "STEM" } },
-  { id: "english", title: { en: "English", bn: "English" }, tag: { en: "Language", bn: "Language" } },
-  { id: "business", title: { en: "Business Studies", bn: "Business Studies" }, tag: { en: "Commerce", bn: "Commerce" } },
-  { id: "chemistry", title: { en: "Chemistry", bn: "Chemistry" }, tag: { en: "STEM", bn: "STEM" } },
-  { id: "math", title: { en: "Mathematics", bn: "Mathematics" }, tag: { en: "Core", bn: "Core" } },
-  { id: "physics", title: { en: "Physics", bn: "Physics" }, tag: { en: "STEM", bn: "STEM" } },
+  { id: "bangla", title: { en: "Bangla", bn: "বাংলা" }, tag: { en: "Language", bn: "ভাষা" } },
+  { id: "ict", title: { en: "ICT", bn: "আইসিটি" }, tag: { en: "Tech", bn: "প্রযুক্তি" } },
+  { id: "biology", title: { en: "Biology", bn: "জীববিজ্ঞান" }, tag: { en: "STEM", bn: "স্টেম" } },
+  { id: "english", title: { en: "English", bn: "ইংরেজি" }, tag: { en: "Language", bn: "ভাষা" } },
+  { id: "business", title: { en: "Business Studies", bn: "ব্যবসায় শিক্ষা" }, tag: { en: "Commerce", bn: "বাণিজ্য" } },
+  { id: "chemistry", title: { en: "Chemistry", bn: "রসায়ন" }, tag: { en: "STEM", bn: "স্টেম" } },
+  { id: "math", title: { en: "Mathematics", bn: "গণিত" }, tag: { en: "Core", bn: "মূল" } },
+  { id: "physics", title: { en: "Physics", bn: "পদার্থবিজ্ঞান" }, tag: { en: "STEM", bn: "স্টেম" } },
 ];
 
 type SectionProps = {
@@ -156,7 +156,7 @@ function HeroVisual({ t }: { t: Translate }) {
       <div className="relative">
         <img
           src="/figma/hero-illustration.png"
-          alt={t({ en: "Student learning illustration", bn: "Student learning illustration" })}
+          alt={t({ en: "Student learning illustration", bn: "শিক্ষার্থী শেখার ইলাস্ট্রেশন" })}
           className="w-full"
           loading="eager"
         />
@@ -191,14 +191,14 @@ function HeroSection({ t }: { t: Translate }) {
           <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-8 lg:gap-10">
             <div className="max-w-3xl text-center md:text-left">
               <h1 className="animate-hero-up text-3xl font-bold leading-tight text-transparent sm:text-4xl md:text-5xl lg:text-[54px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
-                {t({ en: "Learn Smarter,", bn: "Learn Smarter," })}
+                {t({ en: "Learn Smarter,", bn: "আরও স্মার্টভাবে শিখুন," })}
                 <br />
-                {t({ en: "Not Harder", bn: "Not Harder" })}
+                {t({ en: "Not Harder", bn: "কঠোরভাবে নয়" })}
               </h1>
               <p className="animate-hero-up-delay-1 mt-4 max-w-2xl text-sm leading-relaxed text-black sm:text-[15px] lg:text-base">
                 {t({
                   en: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
-                  bn: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
+                  bn: "HomeSchool পড়াশোনার সময়কে স্পষ্ট একটি যাত্রায় রূপ দেয়—লেসন, কুইজ ও অগ্রগতির তথ্য দিয়ে শিক্ষার্থী, অভিভাবক ও স্কুলের জন্য।",
                 })}
               </p>
               <div className="animate-hero-up-delay-2 mt-5 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
@@ -207,7 +207,7 @@ function HeroSection({ t }: { t: Translate }) {
                     size="lg"
                     className="h-10 w-full rounded-full bg-[#060BF7] px-4 text-sm font-semibold text-white shadow-none hover:bg-[#060BF7]/90 sm:w-auto md:h-11 md:px-5 md:text-base"
                   >
-                    {t({ en: "Start Learning Free", bn: "Start Learning Free" })}
+                    {t({ en: "Start Learning Free", bn: "বিনামূল্যে শেখা শুরু করুন" })}
                   </Button>
                 </Link>
                 <Link to="/pricing" className="w-full sm:w-auto">
@@ -215,7 +215,7 @@ function HeroSection({ t }: { t: Translate }) {
                     size="lg"
                     className="h-10 w-full rounded-full bg-[#F3AB36] px-4 text-sm font-semibold text-black shadow-none hover:bg-[#f0a529] sm:w-auto md:h-11 md:px-5 md:text-base"
                   >
-                    {t({ en: "Try Homeschool AI Tutor", bn: "Try Homeschool AI Tutor" })}
+                    {t({ en: "Try Homeschool AI Tutor", bn: "হোমস্কুল এআই টিউটর চেষ্টা করুন" })}
                   </Button>
                 </Link>
               </div>
@@ -243,10 +243,10 @@ function AssistSection({ t }: { t: Translate }) {
       <Section className="max-w-5xl">
         <div className="mb-4 space-y-2 text-center">
           <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
-            {t({ en: "How can I help you today?", bn: "How can I help you today?" })}
+            {t({ en: "How can I help you today?", bn: "আজ আমি কীভাবে সাহায্য করতে পারি?" })}
           </h2>
           <p className="text-sm text-black/70 sm:text-[15px]">
-            {t({ en: "Your personal AI tutor for all subjects", bn: "Your personal AI tutor for all subjects" })}
+            {t({ en: "Your personal AI tutor for all subjects", bn: "সব বিষয়ের জন্য আপনার ব্যক্তিগত এআই টিউটর" })}
           </p>
         </div>
 
@@ -272,7 +272,7 @@ function AssistSection({ t }: { t: Translate }) {
         <p className="mt-4 text-center text-[11px] text-slate-500 sm:text-xs">
           {t({
             en: "Homeschool AI can make mistakes. Always verify important information",
-            bn: "Homeschool AI can make mistakes. Always verify important information",
+            bn: "হোমস্কুল এআই ভুল করতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করুন।",
           })}
         </p>
 
@@ -290,12 +290,12 @@ function SubjectsSection({ t }: { t: Translate }) {
       <span id="subjects" className="absolute -top-20" aria-hidden="true" />
       <div className="text-center">
         <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
-          {t({ en: "Coverage across core subjects", bn: "Coverage across core subjects" })}
+          {t({ en: "Coverage across core subjects", bn: "মূল বিষয়গুলোর কভারেজ" })}
         </h2>
         <p className="mt-2 text-sm text-black/70 sm:text-[15px] lg:text-base">
           {t({
             en: "Each subject includes lessons, practice, and assessments tailored to the official syllabus.",
-            bn: "Each subject includes lessons, practice, and assessments tailored to the official syllabus.",
+            bn: "প্রতিটি বিষয়ে সরকারি সিলেবাস অনুযায়ী লেসন, অনুশীলন ও মূল্যায়ন রয়েছে।",
           })}
         </p>
       </div>
@@ -427,7 +427,7 @@ function NctbAsk({ t }: { t: Translate }) {
             disabled={loading}
             onClick={handleAsk}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 disabled:opacity-60 sm:h-11 sm:w-11"
-            aria-label={t({ en: "Send message", bn: "Send message" })}
+            aria-label={t({ en: "Send message", bn: "বার্তা পাঠান" })}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
@@ -450,10 +450,10 @@ export default function Home() {
   const t = useTranslate();
 
   usePageMeta({
-    title: t({ en: "HomeSchool - Learn Smarter", bn: "HomeSchool - Learn Smarter" }),
+    title: t({ en: "HomeSchool - Learn Smarter", bn: "HomeSchool - স্মার্টভাবে শিখুন" }),
     description: t({
       en: "Learn smarter with HomeSchool: lessons, quizzes, and progress insights for students and parents.",
-      bn: "Learn smarter with HomeSchool: lessons, quizzes, and progress insights for students and parents.",
+      bn: "HomeSchool এর সাথে স্মার্টভাবে শিখুন: শিক্ষার্থী ও অভিভাবকদের জন্য লেসন, কুইজ ও অগ্রগতির তথ্য।",
     }),
   });
 

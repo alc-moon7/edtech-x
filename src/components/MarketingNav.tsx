@@ -8,11 +8,11 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { useAuth } from "@/lib/auth";
 
 const navItems = [
-  { label: { en: "Home", bn: "Home" }, href: "/" },
-  { label: { en: "About", bn: "About" }, href: "/about" },
-  { label: { en: "Pricing", bn: "Pricing" }, href: "/pricing" },
-  { label: { en: "Contact", bn: "Contact" }, href: "/contact" },
-  { label: { en: "Help", bn: "Help" }, href: "/help" },
+  { label: { en: "Home", bn: "হোম" }, href: "/" },
+  { label: { en: "About", bn: "আমাদের সম্পর্কে" }, href: "/about" },
+  { label: { en: "Pricing", bn: "মূল্য" }, href: "/pricing" },
+  { label: { en: "Contact", bn: "যোগাযোগ" }, href: "/contact" },
+  { label: { en: "Help", bn: "সহায়তা" }, href: "/help" },
 ];
 
 export function MarketingNav() {
@@ -34,7 +34,7 @@ export function MarketingNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/50 backdrop-blur-xl">
       <div className="relative mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:h-16 sm:px-6 lg:h-16 lg:px-8">
-        <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool home" })}>
+        <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool হোম" })}>
           <img src="/figma/logo.png" alt="HomeSchool" className="h-8 w-auto sm:h-9 lg:h-10" loading="eager" />
         </Link>
 
@@ -57,14 +57,14 @@ export function MarketingNav() {
                 <Button
                   className="h-9 rounded-xl bg-[#060BF7] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[#060BF7]/90 sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
                 >
-                  {t({ en: "Sign in", bn: "Sign in" })}
+                  {t({ en: "Sign in", bn: "সাইন ইন" })}
                 </Button>
               </Link>
               <Link to="/pricing">
                 <Button
                   className="h-9 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
                 >
-                  {t({ en: "Get Premium", bn: "Get Premium" })}
+                  {t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" })}
                 </Button>
               </Link>
             </>
@@ -116,7 +116,7 @@ export function MarketingNav() {
         <button
           type="button"
           className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white/80 p-2 text-slate-700 shadow-sm transition hover:text-slate-900 lg:hidden"
-          aria-label={open ? t({ en: "Close menu", bn: "Close menu" }) : t({ en: "Open menu", bn: "Open menu" })}
+          aria-label={open ? t({ en: "Close menu", bn: "মেনু বন্ধ করুন" }) : t({ en: "Open menu", bn: "মেনু খুলুন" })}
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((prev) => !prev)}
@@ -143,12 +143,12 @@ export function MarketingNav() {
               <>
                 <Link to="/login" onClick={() => setOpen(false)}>
                   <Button className="w-full rounded-full bg-[#060BF7] text-xs font-semibold text-white">
-                    {t({ en: "Sign in", bn: "Sign in" })}
+                    {t({ en: "Sign in", bn: "সাইন ইন" })}
                   </Button>
                 </Link>
                 <Link to="/pricing" onClick={() => setOpen(false)}>
                   <Button className="w-full rounded-full bg-[#F3AB36] text-xs font-semibold text-black">
-                    {t({ en: "Get Premium", bn: "Get Premium" })}
+                    {t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" })}
                   </Button>
                 </Link>
               </>
