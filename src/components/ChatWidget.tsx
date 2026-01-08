@@ -9,29 +9,7 @@ type ChatMessage = {
   content: string;
 };
 
-const QUICK_QUESTIONS = [
-  "How do I sign up?",
-  "What subjects are covered?",
-  "How do I reset my password?",
-  "How does the AI tutor work?",
-];
-
-const FALLBACK_ANSWERS: Record<string, string> = {
-  "how do i sign up?":
-    "Tap Sign up, fill your name, email, password, and submit. You’ll get a confirmation email; verify it and sign in.",
-  "what subjects are covered?":
-    "We cover core subjects for Class 6-12 (e.g., Bangla, English, Math, Science, ICT). Content aligns to the syllabus with lessons and quizzes.",
-  "how do i reset my password?":
-    "Go to Forgot password on the login page, enter your email, and use the reset link we send you.",
-  "how does the ai tutor work?":
-    "The AI tutor suggests lessons, quizzes, and progress tips based on your class and activity. Ask a question and it guides you to the right resources.",
-};
-
-function getFallback(text: string) {
-  const key = text.trim().toLowerCase();
-  if (FALLBACK_ANSWERS[key]) return FALLBACK_ANSWERS[key];
-  return "I’m here to help with Homeschool. Ask about signup, subjects, dashboard, or support.";
-}
+const ERROR_MESSAGE = "AI reply failed. Please try again.";
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -40,6 +18,7 @@ export function ChatWidget() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAsk = useCallback(
     async (question?: string) => {
@@ -48,6 +27,7 @@ export function ChatWidget() {
       setInput("");
       setMessages((prev) => [...prev, { role: "user", content: text }]);
       setLoading(true);
+      setError(null);
 
       try {
         const { data, error } = await supabase.functions.invoke("site-chat", {
@@ -57,10 +37,14 @@ export function ChatWidget() {
           },
         });
 
-        const reply = !error && data?.reply ? (data.reply as string) : getFallback(text);
-        setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+        if (error || !data?.reply) {
+          setError(ERROR_MESSAGE);
+          return;
+        }
+
+        setMessages((prev) => [...prev, { role: "assistant", content: data.reply as string }]);
       } catch {
-        setMessages((prev) => [...prev, { role: "assistant", content: getFallback(text) }]);
+        setError(ERROR_MESSAGE);
       } finally {
         setLoading(false);
       }
@@ -134,18 +118,7 @@ export function ChatWidget() {
             </div>
 
             <div className="space-y-2 border-t border-slate-100 px-4 py-3">
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {QUICK_QUESTIONS.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => handleAsk(q)}
-                    className="whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
+              {error && <div className="text-xs font-medium text-red-600">{error}</div>}
               <div className="flex items-center gap-2">
                 <Input
                   value={input}
