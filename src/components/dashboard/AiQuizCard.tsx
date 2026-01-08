@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
 
@@ -24,10 +26,17 @@ type AiQuizCardProps = {
 };
 
 export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const { courses } = useStudent();
     const { language } = useLanguage();
     const t = useTranslate();
     const isHome = context === "home";
+    const isPremium =
+        user?.user_metadata?.is_premium === true ||
+        user?.user_metadata?.premium === true ||
+        user?.user_metadata?.plan === "premium" ||
+        (user as any)?.app_metadata?.plan === "premium";
 
     const derivedClasses = useMemo(() => {
         const unique = new Set<string>();
@@ -96,6 +105,10 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     }, [language]);
 
     const handleGenerate = async () => {
+        if (!isPremium) {
+            navigate("/pricing");
+            return;
+        }
         if (!selectedCourse || !selectedChapter) {
             setError(t({ en: "Select a class, subject, and chapter first.", bn: "প্রথমে ক্লাস, বিষয় ও অধ্যায় নির্বাচন করুন।" }));
             return;

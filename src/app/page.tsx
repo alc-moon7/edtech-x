@@ -238,7 +238,7 @@ function HeroSection({ t }: { t: Translate }) {
 
 function AssistSection({ t }: { t: Translate }) {
   return (
-    <section className="bg-[linear-gradient(180deg,#E7F0FF_0%,#F7F9FF_100%)] py-12 sm:py-16">
+    <section className="py-12 sm:py-16">
       <Section className="max-w-5xl">
         <div className="mb-4 space-y-2 text-center">
           <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
@@ -289,6 +289,10 @@ function AssistSection({ t }: { t: Translate }) {
             bn: "Homeschool AI can make mistakes. Always verify important information",
           })}
         </p>
+
+        <div className="mt-8">
+          <AiQuizCard context="home" />
+        </div>
       </Section>
     </section>
   );
@@ -342,30 +346,13 @@ export default function Home() {
 
   return (
     <MarketingShell>
-      <div className="bg-[linear-gradient(180deg,#F8FAFF_0%,#E9F1FF_45%,#85B2F5_100%)]">
+      <div className="bg-[#F8FAFF]">
         <HeroSection t={t} />
-        <AssistSection t={t} />
-        <QuizSection t={t} />
-        <SubjectsSection t={t} />
+        <div className="bg-[linear-gradient(180deg,#E6F0FF_0%,#D6E5FF_45%,#8BB2F1_100%)]">
+          <AssistSection t={t} />
+          <SubjectsSection t={t} />
+        </div>
       </div>
     </MarketingShell>
-  );
-}
-
-function QuizSection({ t }: { t: Translate }) {
-  return (
-    <section className="bg-[linear-gradient(180deg,#E7F0FF_0%,#F7F9FF_100%)] py-14 sm:py-16">
-      <Section className="max-w-5xl">
-        <div className="text-center space-y-2 mb-4">
-          <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
-            {t({ en: "Generate Quiz", bn: "কুইজ তৈরি করুন" })}
-          </h2>
-          <p className="text-sm text-black/70 sm:text-[15px]">
-            {t({ en: "Select class, subject, and lesson to generate practice MCQs.", bn: "ক্লাস, বিষয় ও লেসন বেছে MCQ তৈরি করুন।" })}
-          </p>
-        </div>
-        <AiQuizCard context="home" />
-      </Section>
-    </section>
   );
 }
