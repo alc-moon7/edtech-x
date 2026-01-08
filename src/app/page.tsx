@@ -325,10 +325,26 @@ function NctbAsk({ t }: { t: Translate }) {
   const [answer, setAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [classLevel, setClassLevel] = useState("");
+  const [subject, setSubject] = useState("");
+
+  const classOptions = [{ value: "Class 6", label: t({ en: "Class 6", bn: "Class 6" }) }];
+  const subjectOptions = [
+    { value: "Bangla", label: t({ en: "Bangla", bn: "Bangla" }) },
+    { value: "English", label: t({ en: "English", bn: "English" }) },
+    { value: "Mathematics", label: t({ en: "Mathematics", bn: "Mathematics" }) },
+    { value: "Science", label: t({ en: "Science", bn: "Science" }) },
+    { value: "ICT", label: t({ en: "ICT", bn: "ICT" }) },
+    { value: "Agriculture Studies", label: t({ en: "Agriculture Studies", bn: "Agriculture Studies" }) },
+  ];
 
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed) return;
+    if (!classLevel || !subject) {
+      setError(t({ en: "Select class and subject first.", bn: "Select class and subject first." }));
+      return;
+    }
     setLoading(true);
     setError(null);
     setAnswer(null);
@@ -336,7 +352,8 @@ function NctbAsk({ t }: { t: Translate }) {
     const { data, error: fnError } = await supabase.functions.invoke("nctb-qa", {
       body: {
         question: trimmed,
-        classLevel: "Class 6",
+        classLevel,
+        subject,
         language,
       },
     });
@@ -352,37 +369,77 @@ function NctbAsk({ t }: { t: Translate }) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 rounded-[18px] bg-white p-3.5 shadow-sm ring-1 ring-slate-100 sm:p-4">
-        <input
-          type="text"
-          value={question}
-          onChange={(event) => setQuestion(event.target.value)}
-          placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
-          className="w-full border-none text-sm text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base"
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              if (!loading) handleAsk();
-            }
-          }}
-        />
-        <button
-          type="button"
-          disabled={loading}
-          onClick={handleAsk}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 disabled:opacity-60 sm:h-10 sm:w-10"
-          aria-label={t({ en: "Send message", bn: "Send message" })}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
-          </svg>
-        </button>
+      <div className="rounded-[18px] bg-white p-3.5 shadow-sm ring-1 ring-slate-100 sm:p-4">
+        <div className="flex items-start gap-3">
+          <textarea
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
+            rows={3}
+            className="min-h-24 max-h-40 w-full resize-none overflow-y-auto overflow-x-hidden border-none text-sm leading-6 text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:max-h-48 sm:text-base"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                if (!loading) handleAsk();
+              }
+            }}
+          />
+        </div>
+        <div className="mt-3 flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-end">
+          <div className="grid flex-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <select
+                value={classLevel}
+                onChange={(event) => {
+                  setClassLevel(event.target.value);
+                  setError(null);
+                }}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">{t({ en: "Select class", bn: "Select class" })}</option>
+                {classOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <select
+                value={subject}
+                onChange={(event) => {
+                  setSubject(event.target.value);
+                  setError(null);
+                }}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">{t({ en: "Select subject", bn: "Select subject" })}</option>
+                {subjectOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={handleAsk}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 disabled:opacity-60 sm:h-11 sm:w-11"
+            aria-label={t({ en: "Send message", bn: "Send message" })}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
+            </svg>
+          </button>
+        </div>
       </div>
       {loading && <p className="mt-2 text-xs text-slate-500">{t({ en: "Thinking...", bn: "চিন্তা করছে..." })}</p>}
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       {answer && (
-        <div className="mt-3 rounded-2xl bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-sm ring-1 ring-slate-100">
-          {answer}
+        <div className="mt-3 max-h-64 overflow-y-auto rounded-2xl bg-white/95 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm ring-1 ring-slate-100 sm:max-h-72 sm:text-base">
+          <p className="whitespace-pre-wrap break-words">{answer}</p>
         </div>
       )}
     </div>
