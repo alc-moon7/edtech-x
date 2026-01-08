@@ -328,19 +328,6 @@ function SubjectsSection({ t }: { t: Translate }) {
   );
 }
 
-function FloatingChatButton({ t }: { t: Translate }) {
-  return (
-    <button
-      type="button"
-      aria-label={t({ en: "Open AI chat", bn: "Open AI chat" })}
-      className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg ring-1 ring-slate-100 transition hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B94DE] sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
-    >
-      <img src="/figma/hero-chat.png" alt="" className="h-7 w-8" aria-hidden="true" />
-      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#66FF00]" />
-    </button>
-  );
-}
-
 export default function Home() {
   const t = useTranslate();
 
@@ -358,7 +345,6 @@ export default function Home() {
         <HeroSection t={t} />
         <AssistSection t={t} />
         <SubjectsSection t={t} />
-        <FloatingChatButton t={t} />
       </div>
     </MarketingShell>
   );

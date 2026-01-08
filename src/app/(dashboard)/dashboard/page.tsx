@@ -1,145 +1,115 @@
-import { BookOpen, Clock, Trophy, Target } from "lucide-react";
-import { StreakCard } from "@/components/dashboard/StreakCard";
-import { Leaderboard } from "@/components/dashboard/Leaderboard";
-import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
+import { useState } from "react";
+import { ChevronDown, UserCircle } from "lucide-react";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
+
+type TabKey = "info" | "syllabus" | "admission";
 
 export default function DashboardPage() {
     const { user } = useAuth();
     const t = useTranslate();
     const displayName = user?.user_metadata?.full_name || t({ en: "Student", bn: "শিক্ষার্থী" });
+    const displayClass = user?.user_metadata?.class || t({ en: "Class", bn: "ক্লাস" });
+
+    const [activeTab, setActiveTab] = useState<TabKey>("info");
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-3xl font-bold font-heading text-foreground">
-                    {t({ en: "Welcome back,", bn: "আবার স্বাগতম," })} {displayName}!
-                </h1>
-                <p className="text-muted-foreground">
-                    {t({ en: "Here's an overview of your learning progress today.", bn: "আজকের শেখার অগ্রগতির সংক্ষিপ্তসার এখানে।" })}
-                </p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <StatsCard
-                    title={t({ en: "Courses in Progress", bn: "চলমান কোর্স" })}
-                    value="4"
-                    icon={BookOpen}
-                    description={t({ en: "2 due this week", bn: "এই সপ্তাহে ২টি বাকি" })}
-                    trend={t({ en: "+1 from last month", bn: "গত মাসের তুলনায় +১" })}
-                    color="primary"
-                />
-                <StatsCard
-                    title={t({ en: "Hours Learned", bn: "শেখার ঘন্টা" })}
-                    value="12.5"
-                    icon={Clock}
-                    description={t({ en: "Total this week", bn: "এই সপ্তাহের মোট" })}
-                    trend={t({ en: "+2.4 hours", bn: "+২.৪ ঘন্টা" })}
-                    color="secondary"
-                />
-                <StatsCard
-                    title={t({ en: "Quiz Score", bn: "কুইজ স্কোর" })}
-                    value="85%"
-                    icon={Trophy}
-                    description={t({ en: "Average score", bn: "গড় স্কোর" })}
-                    trend={t({ en: "+5% improvement", bn: "+৫% উন্নতি" })}
-                    color="accent"
-                />
-                <StatsCard
-                    title={t({ en: "Daily Goals", bn: "দৈনিক লক্ষ্য" })}
-                    value="2/3"
-                    icon={Target}
-                    description={t({ en: "Tasks completed", bn: "কাজ সম্পন্ন" })}
-                    trend={t({ en: "Keep it up!", bn: "চালিয়ে যান!" })}
-                    color="primary"
-                />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                        <h3 className="mb-4 text-lg font-semibold">{t({ en: "Recent Activity", bn: "সাম্প্রতিক কার্যক্রম" })}</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                <div className="h-2 w-2 rounded-full bg-primary" />
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium">{t({ en: "Completed Chapter 3: Geometry", bn: "অধ্যায় ৩ সম্পন্ন: জ্যামিতি" })}</p>
-                                    <p className="text-xs text-muted-foreground">{t({ en: "2 hours ago", bn: "২ ঘন্টা আগে" })}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="h-2 w-2 rounded-full bg-secondary" />
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium">{t({ en: "Started New Course: Physics", bn: "নতুন কোর্স শুরু: পদার্থবিজ্ঞান" })}</p>
-                                    <p className="text-xs text-muted-foreground">{t({ en: "Yesterday", bn: "গতকাল" })}</p>
-                                </div>
-                            </div>
-                        </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <header className="flex flex-col gap-4 bg-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                    <div className="flex items-center gap-3">
+                        <img src="/logo.png" alt="HomeSchool" className="h-10 w-auto" />
                     </div>
-
-                    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                        <h3 className="mb-4 text-lg font-semibold">{t({ en: "Recommended for You", bn: "আপনার জন্য প্রস্তাবিত" })}</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-muted/50">
-                                <div>
-                                    <p className="font-medium">{t({ en: "Advanced Algebra", bn: "উন্নত বীজগণিত" })}</p>
-                                    <p className="text-xs text-muted-foreground">{t({ en: "Mathematics - Class 10", bn: "গণিত - ক্লাস ১০" })}</p>
-                                </div>
-                                <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90">
-                                    {t({ en: "View", bn: "দেখুন" })}
-                                </button>
-                            </div>
+                    <div className="flex items-center gap-3 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+                        <UserCircle className="h-8 w-8 text-slate-500" />
+                        <div className="leading-tight">
+                            <div className="text-sm font-semibold text-slate-900">{displayName}</div>
+                            <div className="text-xs text-slate-600">{t({ en: "Class", bn: "ক্লাস" })}: {displayClass}</div>
                         </div>
+                        <ChevronDown className="h-4 w-4 text-slate-500" />
                     </div>
+                </header>
 
-                    <AiQuizCard />
+                <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 px-4 py-3 sm:px-6">
+                    <TabButton label={t({ en: "Your Information", bn: "আপনার তথ্য" })} active={activeTab === "info"} onClick={() => setActiveTab("info")} />
+                    <TabButton label={t({ en: "Syllabus", bn: "সিলেবাস" })} active={activeTab === "syllabus"} onClick={() => setActiveTab("syllabus")} />
+                    <TabButton label={t({ en: "Admission Details", bn: "ভর্তি তথ্য" })} active={activeTab === "admission"} onClick={() => setActiveTab("admission")} />
                 </div>
 
-                <div className="space-y-6">
-                    <StreakCard />
-                    <Leaderboard />
+                <div className="px-4 py-5 sm:px-6 sm:py-6">
+                    {activeTab === "info" && <InfoForm t={t} />}
+                    {activeTab !== "info" && (
+                        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-600 sm:px-6">
+                            {t({ en: "This section is coming soon. Stay tuned!", bn: "এই অংশ শীঘ্রই আসছে। অপেক্ষায় থাকুন!" })}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
 
-function StatsCard({
-    title,
-    value,
-    icon: Icon,
-    description,
-    trend,
-    color,
-}: {
-    title: string;
-    value: string;
-    icon: any;
-    description: string;
-    trend: string;
-    color: "primary" | "secondary" | "accent";
-}) {
-    const colorStyles = {
-        primary: "text-primary bg-primary/10",
-        secondary: "text-secondary bg-secondary/10",
-        accent: "text-accent bg-accent/10"
-    };
-
+function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
     return (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
-                <div className={`rounded-lg p-2 ${colorStyles[color] || colorStyles.primary}`}>
-                    <Icon className="h-4 w-4" />
+        <button
+            type="button"
+            onClick={onClick}
+            className={`relative pb-2 text-sm font-semibold transition-colors ${active ? "text-slate-900" : "text-slate-500 hover:text-slate-700"}`}
+        >
+            {label}
+            {active && <span className="absolute inset-x-0 -bottom-0.5 mx-auto h-0.5 w-full rounded-full bg-[#1d4ed8]" />}
+        </button>
+    );
+}
+
+function InfoForm({ t }: { t: ReturnType<typeof useTranslate> }) {
+    return (
+        <form className="space-y-4">
+            <div className="flex flex-col items-center gap-3 py-2">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                    <UserCircle className="h-10 w-10" />
                 </div>
             </div>
-            <div className="mt-4">
-                <div className="text-2xl font-bold text-foreground">{value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                    <span className="text-green-500 font-medium">{trend}</span> {description}
-                </p>
+
+            <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-800">{t({ en: "Name", bn: "নাম" })}</label>
+                <Input placeholder={t({ en: "Enter your full name", bn: "আপনার পূর্ণ নাম লিখুন" })} />
             </div>
-        </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-800">{t({ en: "Mobile Number", bn: "মোবাইল নম্বর" })}</label>
+                    <Input placeholder={t({ en: "01XXXXXXXXX", bn: "০১XXXXXXXXX" })} />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-800">{t({ en: "Class", bn: "ক্লাস" })}</label>
+                    <Input placeholder={t({ en: "e.g., Class 7", bn: "যেমন, ক্লাস ৭" })} />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-800">{t({ en: "Birthday", bn: "জন্মতারিখ" })}</label>
+                <Input type="date" />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-800">{t({ en: "Institute Name", bn: "প্রতিষ্ঠানের নাম" })}</label>
+                    <Input placeholder={t({ en: "Enter institute name", bn: "প্রতিষ্ঠানের নাম লিখুন" })} />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-800">{t({ en: "Exam batch", bn: "পরীক্ষার ব্যাচ" })}</label>
+                    <Input placeholder={t({ en: "e.g., SSC 2026", bn: "যেমন, এসএসসি ২০২৬" })} />
+                </div>
+            </div>
+
+            <div className="flex justify-end">
+                <Button type="button" className="h-10 px-4 text-sm font-semibold">
+                    {t({ en: "Save changes", bn: "পরিবর্তন সংরক্ষণ করুন" })}
+                </Button>
+            </div>
+        </form>
     );
 }
