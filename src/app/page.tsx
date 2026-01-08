@@ -1,11 +1,12 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
 import { usePageMeta } from "@/lib/usePageMeta";
-import { useTranslate, type TranslationValue } from "@/lib/i18n";
+import { useLanguage, useTranslate, type TranslationValue } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
+import { supabase } from "@/lib/supabaseClient";
 
 type Translate = ReturnType<typeof useTranslate>;
 
@@ -266,22 +267,7 @@ function AssistSection({ t }: { t: Translate }) {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 rounded-[18px] bg-white p-3.5 shadow-sm ring-1 ring-slate-100 sm:p-4">
-          <input
-            type="text"
-            placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
-            className="w-full border-none text-sm text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base"
-          />
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 sm:h-10 sm:w-10"
-            aria-label={t({ en: "Send message", bn: "Send message" })}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
-            </svg>
-          </button>
-        </div>
+        <NctbAsk t={t} />
 
         <p className="mt-4 text-center text-[11px] text-slate-500 sm:text-xs">
           {t({
@@ -330,6 +316,76 @@ function SubjectsSection({ t }: { t: Translate }) {
         ))}
       </div>
     </Section>
+  );
+}
+
+function NctbAsk({ t }: { t: Translate }) {
+  const { language } = useLanguage();
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAsk = async () => {
+    const trimmed = question.trim();
+    if (!trimmed) return;
+    setLoading(true);
+    setError(null);
+    setAnswer(null);
+
+    const { data, error: fnError } = await supabase.functions.invoke("nctb-qa", {
+      body: {
+        question: trimmed,
+        classLevel: "Class 6",
+        language,
+      },
+    });
+
+    if (fnError || !data?.reply) {
+      setError(t({ en: "AI reply failed. Please try again.", bn: "AI উত্তর পাওয়া যায়নি। আবার চেষ্টা করুন।" }));
+    } else {
+      setAnswer(data.reply as string);
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 rounded-[18px] bg-white p-3.5 shadow-sm ring-1 ring-slate-100 sm:p-4">
+        <input
+          type="text"
+          value={question}
+          onChange={(event) => setQuestion(event.target.value)}
+          placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
+          className="w-full border-none text-sm text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:text-base"
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              if (!loading) handleAsk();
+            }
+          }}
+        />
+        <button
+          type="button"
+          disabled={loading}
+          onClick={handleAsk}
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 disabled:opacity-60 sm:h-10 sm:w-10"
+          aria-label={t({ en: "Send message", bn: "Send message" })}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
+          </svg>
+        </button>
+      </div>
+      {loading && <p className="mt-2 text-xs text-slate-500">{t({ en: "Thinking...", bn: "চিন্তা করছে..." })}</p>}
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {answer && (
+        <div className="mt-3 rounded-2xl bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-sm ring-1 ring-slate-100">
+          {answer}
+        </div>
+      )}
+    </div>
   );
 }
 
