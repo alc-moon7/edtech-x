@@ -1,102 +1,223 @@
 "use client";
 
-import { useStudent } from "@/lib/store";
-import { BookOpen, Clock, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { ChevronDown, Search } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+const tabs = [
+  { key: "all", label: { en: "All Class", bn: "সব ক্লাস" } },
+  { key: "ongoing", label: { en: "Ongoing Class", bn: "চলমান ক্লাস" } },
+  { key: "ended", label: { en: "Ended Class", bn: "শেষ হওয়া ক্লাস" } },
+];
+
+const classCards = [
+  {
+    key: "bangla",
+    title: { en: "Bangla", bn: "বাংলা" },
+    status: "ongoing",
+    cover: "from-emerald-600 via-emerald-500 to-emerald-700",
+  },
+  {
+    key: "social",
+    title: { en: "Social Science", bn: "সমাজ বিজ্ঞান" },
+    status: "ongoing",
+    cover: "from-teal-600 via-cyan-500 to-emerald-600",
+  },
+  {
+    key: "english-1",
+    title: { en: "English 1st Paper", bn: "ইংরেজি ১ম পত্র" },
+    status: "ongoing",
+    cover: "from-amber-600 via-orange-500 to-amber-700",
+  },
+  {
+    key: "english-2",
+    title: { en: "English 2nd Paper", bn: "ইংরেজি ২য় পত্র" },
+    status: "ongoing",
+    cover: "from-emerald-600 via-lime-500 to-emerald-700",
+  },
+  {
+    key: "math",
+    title: { en: "Mathematics", bn: "গণিত" },
+    status: "ongoing",
+    cover: "from-indigo-600 via-blue-500 to-indigo-700",
+  },
+  {
+    key: "ict",
+    title: { en: "ICT", bn: "তথ্য ও যোগাযোগ প্রযুক্তি" },
+    status: "ongoing",
+    cover: "from-slate-600 via-slate-500 to-slate-700",
+  },
+  {
+    key: "science",
+    title: { en: "Science", bn: "বিজ্ঞান" },
+    status: "ongoing",
+    cover: "from-emerald-700 via-emerald-600 to-emerald-800",
+  },
+  {
+    key: "religion",
+    title: { en: "Religion & Ethics", bn: "ধর্ম ও নৈতিক শিক্ষা" },
+    status: "ongoing",
+    cover: "from-rose-600 via-rose-500 to-rose-700",
+  },
+  {
+    key: "agriculture",
+    title: { en: "Agriculture Studies", bn: "কৃষি শিক্ষা" },
+    status: "ongoing",
+    cover: "from-green-700 via-green-600 to-emerald-700",
+  },
+  {
+    key: "arts",
+    title: { en: "Fine Arts", bn: "চারু ও কারুকলা" },
+    status: "ended",
+    cover: "from-purple-600 via-purple-500 to-indigo-600",
+  },
+  {
+    key: "civics",
+    title: { en: "Civics & Citizenship", bn: "পৌরনীতি ও নাগরিকতা" },
+    status: "ended",
+    cover: "from-yellow-700 via-yellow-600 to-orange-600",
+  },
+  {
+    key: "geography",
+    title: { en: "Geography", bn: "ভূগোল" },
+    status: "ended",
+    cover: "from-sky-600 via-sky-500 to-blue-600",
+  },
+  {
+    key: "health",
+    title: { en: "Health & Sports", bn: "স্বাস্থ্য ও শারীরিক শিক্ষা" },
+    status: "ended",
+    cover: "from-red-600 via-red-500 to-orange-600",
+  },
+  {
+    key: "music",
+    title: { en: "Music", bn: "সংগীত" },
+    status: "ended",
+    cover: "from-amber-700 via-amber-600 to-yellow-600",
+  },
+  {
+    key: "drawing",
+    title: { en: "Drawing", bn: "অঙ্কন" },
+    status: "ended",
+    cover: "from-lime-600 via-lime-500 to-green-600",
+  },
+  {
+    key: "science-lab",
+    title: { en: "Science Lab", bn: "বিজ্ঞান গবেষণাগার" },
+    status: "ended",
+    cover: "from-blue-700 via-blue-600 to-indigo-700",
+  },
+  {
+    key: "history",
+    title: { en: "History", bn: "ইতিহাস" },
+    status: "ended",
+    cover: "from-emerald-700 via-emerald-600 to-teal-700",
+  },
+  {
+    key: "economics",
+    title: { en: "Economics", bn: "অর্থনীতি" },
+    status: "ended",
+    cover: "from-orange-700 via-orange-600 to-amber-700",
+  },
+];
 
 export default function CoursesPage() {
-    const { courses, progress } = useStudent();
-    const t = useTranslate();
+  const { user } = useAuth();
+  const t = useTranslate();
+  const [activeTab, setActiveTab] = useState("all");
+  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Arjun";
+  const displayClass = user?.user_metadata?.class || "7";
 
-    const getCourseProgress = (courseId: string) => {
-        const courseData = courses.find(c => c.id === courseId);
-        if (!courseData) return 0;
+  const visibleCards = useMemo(() => {
+    if (activeTab === "all") return classCards;
+    return classCards.filter((card) => card.status === activeTab);
+  }, [activeTab]);
 
-        const totalLessons = courseData.chapters.reduce((acc, ch) => acc + ch.lessons.length, 0);
-        if (totalLessons === 0) return 0;
-
-        const userProgress = progress[courseId as keyof typeof progress];
-        const completedCount = userProgress?.completedLessons?.length || 0;
-
-        return Math.round((completedCount / totalLessons) * 100);
-    };
-
-    return (
-        <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold font-heading">{t({ en: "My Courses", bn: "আমার কোর্স" })}</h1>
-                <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                    {t({ en: "Browse All", bn: "সব দেখুন" })}
-                </button>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {courses.map((course) => {
-                    const courseProgress = getCourseProgress(course.id);
-                    // Calculate total lessons dynamically
-                    const totalLessons = course.chapters.reduce((acc, ch) => acc + ch.lessons.length, 0);
-                    // Calculate mock duration (just for display consistency) or use value from mockData if available, 
-                    // stored mockData doesn't have duration on root, only on lessons. 
-                    // For now we'll sum lesson durations or use a placeholder if complex.
-                    // Actually checking mockData again, COURSES doesn't have duration on root. 
-                    // Let's implement a helper or just static "10h" for now to match UI design.
-
-                    return (
-                        <div key={course.id} className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                            <div className={`h-32 w-full ${course.image} relative`}>
-                                <div className="absolute top-3 right-3 rounded-lg bg-background/90 px-2 py-1 text-xs font-bold backdrop-blur-sm">
-                                    {course.class}
-                                </div>
-                            </div>
-
-                            <div className="p-5">
-                                <div className="mb-3 flex items-center justify-between">
-                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-accent-foreground">
-                                        <Star className="h-3 w-3 fill-accent text-accent" />
-                                        4.8
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {totalLessons} {t({ en: "Lessons", bn: "লেসন" })}
-                                    </span>
-                                </div>
-
-                                <h3 className="mb-2 text-lg font-bold line-clamp-1 group-hover:text-primary transition-colors">
-                                    {course.title}
-                                </h3>
-
-                                <div className="mb-4 flex items-center gap-1 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    {t({ en: "12h 30m", bn: "12ঘ 30মি" })}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-xs font-medium">
-                                        <span>{courseProgress}% {t({ en: "Complete", bn: "সম্পন্ন" })}</span>
-                                    </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                        <div
-                                            className="h-full bg-primary transition-all duration-500 ease-out"
-                                            style={{ width: `${courseProgress}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="mt-4">
-                                    <Link
-                                        to={`/courses/${course.id}`}
-                                        className="inline-block w-full text-center rounded-lg border border-primary/20 bg-primary/5 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-all"
-                                    >
-                                        {courseProgress > 0
-                                            ? t({ en: "Continue Learning", bn: "শেখা চালিয়ে যান" })
-                                            : t({ en: "Start Course", bn: "কোর্স শুরু করুন" })}
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-slate-200/60">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-slate-900 sm:text-xl">
+              {t({ en: "Welcome back,", bn: "স্বাগতম," })} {displayName}!
+            </h1>
+            <p className="text-xs text-slate-500">
+              {t({ en: "Class", bn: "শ্রেণি" })} : {displayClass}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-2 py-1.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-600">
+              {displayName.slice(0, 1).toUpperCase()}
+            </span>
+            <ChevronDown className="h-4 w-4 text-slate-500" />
+          </div>
         </div>
-    );
+      </div>
+
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/60">
+        <div className="flex flex-col gap-4">
+          <div className="relative">
+            <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              placeholder={t({ en: "Search class name", bn: "ক্লাসের নাম খুঁজুন" })}
+              className="h-11 w-full rounded-full border border-slate-200 bg-white px-4 pr-10 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-6 border-b border-slate-200 pb-2 text-sm font-medium text-slate-500">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "relative pb-2 transition-colors",
+                  activeTab === tab.key ? "text-blue-600" : "hover:text-slate-700"
+                )}
+              >
+                {t(tab.label)}
+                {activeTab === tab.key && (
+                  <span className="absolute left-0 right-0 -bottom-[9px] h-0.5 rounded-full bg-blue-600" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {visibleCards.map((card) => (
+              <div
+                key={card.key}
+                className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm"
+              >
+                <div
+                  className={cn(
+                    "relative w-full overflow-hidden rounded-xl bg-gradient-to-b text-white",
+                    card.cover
+                  )}
+                >
+                  <div className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
+                    {t({ en: "Class 7", bn: "শ্রেণি ৭" })}
+                  </div>
+                  <div className="flex min-h-[160px] flex-col items-center justify-center px-3 text-center">
+                    <div className="text-sm font-semibold">{t(card.title)}</div>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <button
+                      type="button"
+                      className="w-full rounded-full bg-white/90 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm"
+                    >
+                      {t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
