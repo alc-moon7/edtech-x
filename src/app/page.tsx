@@ -328,7 +328,15 @@ function NctbAsk({ t }: { t: Translate }) {
   const [classLevel, setClassLevel] = useState("");
   const [subject, setSubject] = useState("");
 
-  const classOptions = [{ value: "Class 6", label: t({ en: "Class 6", bn: "ক্লাস ৬" }) }];
+  const classOptions = [
+    { value: "Class 6", label: t({ en: "Class 6", bn: "ক্লাস ৬" }) },
+    { value: "Class 7", label: t({ en: "Class 7", bn: "ক্লাস ৭" }) },
+    { value: "Class 8", label: t({ en: "Class 8", bn: "ক্লাস ৮" }) },
+    { value: "Class 9", label: t({ en: "Class 9", bn: "ক্লাস ৯" }) },
+    { value: "Class 10", label: t({ en: "Class 10", bn: "ক্লাস ১০" }) },
+    { value: "Class 11", label: t({ en: "Class 11", bn: "ক্লাস ১১" }) },
+    { value: "Class 12", label: t({ en: "Class 12", bn: "ক্লাস ১২" }) },
+  ];
   const subjectOptions = [
     { value: "Bangla", label: t({ en: "Bangla", bn: "বাংলা" }) },
     { value: "English", label: t({ en: "English", bn: "ইংরেজি" }) },
