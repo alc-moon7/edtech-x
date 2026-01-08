@@ -328,21 +328,21 @@ function NctbAsk({ t }: { t: Translate }) {
   const [classLevel, setClassLevel] = useState("");
   const [subject, setSubject] = useState("");
 
-  const classOptions = [{ value: "Class 6", label: t({ en: "Class 6", bn: "Class 6" }) }];
+  const classOptions = [{ value: "Class 6", label: t({ en: "Class 6", bn: "ক্লাস ৬" }) }];
   const subjectOptions = [
-    { value: "Bangla", label: t({ en: "Bangla", bn: "Bangla" }) },
-    { value: "English", label: t({ en: "English", bn: "English" }) },
-    { value: "Mathematics", label: t({ en: "Mathematics", bn: "Mathematics" }) },
-    { value: "Science", label: t({ en: "Science", bn: "Science" }) },
-    { value: "ICT", label: t({ en: "ICT", bn: "ICT" }) },
-    { value: "Agriculture Studies", label: t({ en: "Agriculture Studies", bn: "Agriculture Studies" }) },
+    { value: "Bangla", label: t({ en: "Bangla", bn: "বাংলা" }) },
+    { value: "English", label: t({ en: "English", bn: "ইংরেজি" }) },
+    { value: "Mathematics", label: t({ en: "Mathematics", bn: "গণিত" }) },
+    { value: "Science", label: t({ en: "Science", bn: "বিজ্ঞান" }) },
+    { value: "ICT", label: t({ en: "ICT", bn: "আইসিটি" }) },
+    { value: "Agriculture Studies", label: t({ en: "Agriculture Studies", bn: "কৃষি শিক্ষা" }) },
   ];
 
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed) return;
     if (!classLevel || !subject) {
-      setError(t({ en: "Select class and subject first.", bn: "Select class and subject first." }));
+      setError(t({ en: "Select class and subject first.", bn: "আগে ক্লাস ও বিষয় নির্বাচন করুন।" }));
       return;
     }
     setLoading(true);
@@ -374,7 +374,7 @@ function NctbAsk({ t }: { t: Translate }) {
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
+            placeholder={t({ en: "Message Homeschool AI", bn: "হোমস্কুল এআই-কে প্রশ্ন করুন" })}
             rows={3}
             className="min-h-24 max-h-40 w-full resize-none overflow-y-auto overflow-x-hidden border-none text-sm leading-6 text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:max-h-48 sm:text-base"
             onKeyDown={(event) => {
@@ -396,7 +396,7 @@ function NctbAsk({ t }: { t: Translate }) {
                 }}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="">{t({ en: "Select class", bn: "Select class" })}</option>
+                <option value="">{t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}</option>
                 {classOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -413,7 +413,7 @@ function NctbAsk({ t }: { t: Translate }) {
                 }}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="">{t({ en: "Select subject", bn: "Select subject" })}</option>
+                <option value="">{t({ en: "Select subject", bn: "বিষয় নির্বাচন করুন" })}</option>
                 {subjectOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
