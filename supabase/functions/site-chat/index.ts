@@ -59,7 +59,7 @@ serve(async (req) => {
         Authorization: `Bearer ${openAiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages,
         max_tokens: 250,
         temperature: 0.6,
