@@ -438,7 +438,7 @@ function NctbAsk({ t }: { t: Translate }) {
       {loading && <p className="mt-2 text-xs text-slate-500">{t({ en: "Thinking...", bn: "চিন্তা করছে..." })}</p>}
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       {answer && (
-        <div className="mt-3 max-h-64 overflow-y-auto rounded-2xl bg-white/95 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm ring-1 ring-slate-100 sm:max-h-72 sm:text-base">
+        <div className="mt-3 min-h-[8.5rem] max-h-[20rem] overflow-y-auto rounded-2xl bg-white/95 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm ring-1 ring-slate-100 sm:min-h-[10rem] sm:max-h-[22rem] sm:text-base">
           <p className="whitespace-pre-wrap break-words">{answer}</p>
         </div>
       )}
