@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { usePageMeta } from "@/lib/usePageMeta";
@@ -17,7 +16,10 @@ export default function LoginPage() {
 
   usePageMeta({
     title: t({ en: "Sign in", bn: "সাইন ইন" }),
-    description: t({ en: "Sign in to access your HomeSchool learning dashboard.", bn: "HomeSchool লার্নিং ড্যাশবোর্ডে প্রবেশ করতে সাইন ইন করুন।" }),
+    description: t({
+      en: "Sign in to access your HomeSchool learning dashboard.",
+      bn: "HomeSchool শেখার ড্যাশবোর্ডে যেতে সাইন ইন করুন।",
+    }),
   });
 
   const navigate = useNavigate();
@@ -52,7 +54,7 @@ export default function LoginPage() {
 
     if (authError) {
       if (authError.message.toLowerCase().includes("confirm")) {
-        setError(t({ en: "Please confirm your email before signing in.", bn: "সাইন ইন করার আগে ইমেইলটি নিশ্চিত করুন।" }));
+        setError(t({ en: "Please confirm your email before signing in.", bn: "সাইন ইন করার আগে ইমেইল নিশ্চিত করুন।" }));
       } else {
         setError(authError.message);
       }
@@ -66,123 +68,110 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <MarketingNav />
-      <div className="mx-auto mt-6 flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 md:mt-6 md:h-[calc(100vh-96px)] md:max-h-[calc(100vh-96px)] md:flex-row md:items-stretch">
-        <div className="w-full px-5 py-6 sm:px-8 md:max-w-md md:overflow-y-auto md:py-8">
-          <div className="mb-6 space-y-3 text-center">
-            <img src="/logo.png" alt="HomeSchool" className="mx-auto h-12 w-auto" />
+      <div className="mx-auto mt-6 flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 md:mt-8 md:min-h-[calc(100vh-152px)] md:flex-row">
+        <div className="w-full px-6 py-7 sm:px-8 md:max-w-md md:py-9">
+          <div className="space-y-2 text-center">
+            <img src="/logo.png" alt="HomeSchool" className="mx-auto h-11 w-auto" />
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{t({ en: "Sign in", bn: "সাইন ইন" })}</h1>
             <p className="text-sm text-muted-foreground">
               {t({ en: "Start your learning journey today", bn: "আজই আপনার শেখার যাত্রা শুরু করুন" })}
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t({ en: "Welcome back", bn: "আবার স্বাগতম" })}</CardTitle>
-              <CardDescription>{t({ en: "Sign in with your registered email.", bn: "আপনার নিবন্ধিত ইমেইল দিয়ে সাইন ইন করুন।" })}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {error && (
-                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-                    {error}
-                  </div>
-                )}
-                {message && (
-                  <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700" role="status">
-                    {message}
-                  </div>
-                )}
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            {error && (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+                {error}
+              </div>
+            )}
+            {message && (
+              <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700" role="status">
+                {message}
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-11 justify-center gap-2 text-sm font-semibold"
-                    onClick={() => setShowComingSoon(true)}
-                  >
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="h-5 w-5" />
-                    {t({ en: "Continue with Google", bn: "গুগল দিয়ে চালিয়ে যান" })}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-11 justify-center gap-2 text-sm font-semibold"
-                    onClick={() => setShowComingSoon(true)}
-                  >
-                    <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="" className="h-5 w-5" />
-                    {t({ en: "Continue with Facebook", bn: "ফেসবুক দিয়ে চালিয়ে যান" })}
-                  </Button>
-                </div>
+            <div className="grid grid-cols-1 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 justify-center gap-2 text-sm font-semibold"
+                onClick={() => setShowComingSoon(true)}
+              >
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="h-5 w-5" />
+                {t({ en: "Continue with Google", bn: "গুগল দিয়ে চালিয়ে যান" })}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 justify-center gap-2 text-sm font-semibold"
+                onClick={() => setShowComingSoon(true)}
+              >
+                <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="" className="h-5 w-5" />
+                {t({ en: "Continue with Facebook", bn: "ফেসবুক দিয়ে চালিয়ে যান" })}
+              </Button>
+            </div>
 
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <div className="h-px flex-1 bg-slate-200" />
-                  <span>{t({ en: "Continue with Email", bn: "ইমেইল দিয়ে চালিয়ে যান" })}</span>
-                  <div className="h-px flex-1 bg-slate-200" />
-                </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="h-px flex-1 bg-slate-200" />
+              <span>{t({ en: "Continue with Email", bn: "ইমেইল দিয়ে চালিয়ে যান" })}</span>
+              <div className="h-px flex-1 bg-slate-200" />
+            </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="login-email" className="text-sm font-medium">
-                    {t({ en: "Email", bn: "ইমেইল" })}
-                  </label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    autoComplete="email"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="login-password" className="text-sm font-medium">
-                    {t({ en: "Password", bn: "পাসওয়ার্ড" })}
-                  </label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder={t({ en: "Enter your password", bn: "আপনার পাসওয়ার্ড লিখুন" })}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="current-password"
-                    required
-                  />
-                </div>
+            <div className="space-y-2">
+              <label htmlFor="login-email" className="text-sm font-medium">
+                {t({ en: "Email", bn: "ইমেইল" })}
+              </label>
+              <Input
+                id="login-email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                className="h-11"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="login-password" className="text-sm font-medium">
+                {t({ en: "Password", bn: "পাসওয়ার্ড" })}
+              </label>
+              <Input
+                id="login-password"
+                type="password"
+                placeholder={t({ en: "Enter your password", bn: "আপনার পাসওয়ার্ড লিখুন" })}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
+                className="h-11"
+                required
+              />
+            </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <Link to="/forgot-password" className="hover:text-primary">
-                    {t({ en: "Forgot password?", bn: "পাসওয়ার্ড ভুলে গেছেন?" })}
-                  </Link>
-                  <Link to="/signup" className="hover:text-primary">
-                    {t({ en: "Create account", bn: "অ্যাকাউন্ট তৈরি করুন" })}
-                  </Link>
-                </div>
-
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? t({ en: "Signing in...", bn: "সাইন ইন হচ্ছে..." }) : t({ en: "Sign in", bn: "সাইন ইন" })}
-                </Button>
-              </form>
-            </CardContent>
-            <CardFooter className="justify-center text-xs text-muted-foreground">
-              {t({ en: "New here?", bn: "নতুন?" })}{" "}
-              <Link to="/signup" className="ml-1 text-primary hover:underline">
-                {t({ en: "Create an account", bn: "একটি অ্যাকাউন্ট তৈরি করুন" })}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <Link to="/forgot-password" className="hover:text-primary">
+                {t({ en: "Forgot password?", bn: "পাসওয়ার্ড ভুলে গেছেন?" })}
               </Link>
-            </CardFooter>
-          </Card>
+              <Link to="/signup" className="hover:text-primary">
+                {t({ en: "Create account", bn: "অ্যাকাউন্ট তৈরি করুন" })}
+              </Link>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? t({ en: "Signing in...", bn: "সাইন ইন হচ্ছে..." }) : t({ en: "Sign in", bn: "সাইন ইন" })}
+            </Button>
+          </form>
 
           <p className="mt-4 text-center text-[12px] text-muted-foreground">
-            {t({ en: "By continuing, you agree to Homeschool's Terms of Service and Privacy Policy", bn: "অগ্রসর হয়ে আপনি Homeschool-এর Terms of Service ও Privacy Policy মেনে নিচ্ছেন" })}
+            {t({
+              en: "By continuing, you agree to Homeschool's Terms of Service and Privacy Policy",
+              bn: "চালিয়ে গেলে আপনি HomeSchool-এর সার্ভিসের শর্তাবলি ও প্রাইভেসি পলিসিতে সম্মত হচ্ছেন।",
+            })}
           </p>
         </div>
 
-        <div className="hidden flex-1 md:block">
-          <div
-            className="h-full min-h-[360px] bg-cover bg-center"
-            style={{ backgroundImage: "url('/Login.jpg')" }}
-            aria-hidden="true"
-          />
+        <div className="relative hidden flex-1 md:block">
+          <img src="/Login.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
         </div>
       </div>
 
@@ -190,9 +179,9 @@ export default function LoginPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-200">
             <div className="mb-3 text-center">
-              <h2 className="text-lg font-semibold text-slate-900">Coming Soon</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t({ en: "Coming Soon", bn: "শিগগিরই আসছে" })}</h2>
               <p className="mt-1 text-sm text-slate-600">
-                {t({ en: "Google and Facebook sign-in are coming soon.", bn: "গুগল ও ফেসবুক সাইন-ইন শীঘ্রই আসছে।" })}
+                {t({ en: "Google and Facebook sign-in are coming soon.", bn: "গুগল ও ফেসবুক সাইন-ইন শিগগিরই আসছে।" })}
               </p>
             </div>
             <div className="flex justify-center">
