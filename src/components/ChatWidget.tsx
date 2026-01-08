@@ -89,8 +89,8 @@ export function ChatWidget() {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-4 z-[70] w-[320px] max-w-[90vw] sm:bottom-28 sm:right-6 sm:w-[340px]">
-          <div className="h-[520px] overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+        <div className="fixed bottom-24 right-4 z-[70] w-[280px] max-w-[90vw] sm:bottom-28 sm:right-6 sm:w-[300px]">
+          <div className="flex h-[480px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 sm:h-[520px]">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <div>
                 <div className="text-sm font-semibold text-slate-900">Homeschool AI</div>
@@ -106,7 +106,7 @@ export function ChatWidget() {
               </button>
             </div>
 
-            <div id="chat-widget-body" className="h-[320px] space-y-3 overflow-y-auto px-4 py-4 sm:h-[340px]">
+            <div id="chat-widget-body" className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
               {shortMessages.map((msg, idx) => (
                 <div
                   key={`${msg.role}-${idx}-${msg.content.slice(0, 8)}`}
@@ -134,13 +134,13 @@ export function ChatWidget() {
             </div>
 
             <div className="space-y-2 border-t border-slate-100 px-4 py-3">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {QUICK_QUESTIONS.map((q) => (
                   <button
                     key={q}
                     type="button"
                     onClick={() => handleAsk(q)}
-                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                    className="whitespace-nowrap rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
                   >
                     {q}
                   </button>
@@ -159,8 +159,9 @@ export function ChatWidget() {
                     }
                   }}
                 />
-                <Button type="button" className="h-10 px-3" onClick={() => handleAsk()} disabled={loading}>
+                <Button type="button" className="h-10 px-3 text-xs font-semibold" onClick={() => handleAsk()} disabled={loading}>
                   <Send className="h-4 w-4" />
+                  <span>Send</span>
                 </Button>
               </div>
             </div>
