@@ -16,6 +16,23 @@ const QUICK_QUESTIONS = [
   "How does the AI tutor work?",
 ];
 
+const FALLBACK_ANSWERS: Record<string, string> = {
+  "how do i sign up?":
+    "Tap Sign up, fill your name, email, password, and submit. You’ll get a confirmation email; verify it and sign in.",
+  "what subjects are covered?":
+    "We cover core subjects for Class 6-12 (e.g., Bangla, English, Math, Science, ICT). Content aligns to the syllabus with lessons and quizzes.",
+  "how do i reset my password?":
+    "Go to Forgot password on the login page, enter your email, and use the reset link we send you.",
+  "how does the ai tutor work?":
+    "The AI tutor suggests lessons, quizzes, and progress tips based on your class and activity. Ask a question and it guides you to the right resources.",
+};
+
+function getFallback(text: string) {
+  const key = text.trim().toLowerCase();
+  if (FALLBACK_ANSWERS[key]) return FALLBACK_ANSWERS[key];
+  return "I’m here to help with Homeschool. Ask about signup, subjects, dashboard, or support.";
+}
+
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -40,13 +57,10 @@ export function ChatWidget() {
           },
         });
 
-        if (error || !data?.reply) {
-          setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn’t reply right now. Please try again." }]);
-        } else {
-          setMessages((prev) => [...prev, { role: "assistant", content: data.reply as string }]);
-        }
+        const reply = !error && data?.reply ? (data.reply as string) : getFallback(text);
+        setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
       } catch {
-        setMessages((prev) => [...prev, { role: "assistant", content: "Sorry, I couldn’t reply right now. Please try again." }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: getFallback(text) }]);
       } finally {
         setLoading(false);
       }
@@ -75,8 +89,8 @@ export function ChatWidget() {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-4 z-[70] w-[320px] max-w-[90vw] sm:bottom-28 sm:right-6 sm:w-[360px]">
-          <div className="overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
+        <div className="fixed bottom-24 right-4 z-[70] w-[320px] max-w-[90vw] sm:bottom-28 sm:right-6 sm:w-[340px]">
+          <div className="h-[520px] overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <div>
                 <div className="text-sm font-semibold text-slate-900">Homeschool AI</div>
@@ -92,7 +106,7 @@ export function ChatWidget() {
               </button>
             </div>
 
-            <div id="chat-widget-body" className="max-h-[70vh] space-y-3 overflow-y-auto px-4 py-4">
+            <div id="chat-widget-body" className="h-[320px] space-y-3 overflow-y-auto px-4 py-4 sm:h-[340px]">
               {shortMessages.map((msg, idx) => (
                 <div
                   key={`${msg.role}-${idx}-${msg.content.slice(0, 8)}`}

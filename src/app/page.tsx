@@ -5,6 +5,7 @@ import { MarketingShell } from "@/components/MarketingShell";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate, type TranslationValue } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
 
 type Translate = ReturnType<typeof useTranslate>;
 
@@ -344,8 +345,27 @@ export default function Home() {
       <div className="bg-[linear-gradient(180deg,#F8FAFF_0%,#E9F1FF_45%,#85B2F5_100%)]">
         <HeroSection t={t} />
         <AssistSection t={t} />
+        <QuizSection t={t} />
         <SubjectsSection t={t} />
       </div>
     </MarketingShell>
+  );
+}
+
+function QuizSection({ t }: { t: Translate }) {
+  return (
+    <section className="bg-[linear-gradient(180deg,#E7F0FF_0%,#F7F9FF_100%)] py-14 sm:py-16">
+      <Section className="max-w-5xl">
+        <div className="text-center space-y-2 mb-4">
+          <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
+            {t({ en: "Generate Quiz", bn: "কুইজ তৈরি করুন" })}
+          </h2>
+          <p className="text-sm text-black/70 sm:text-[15px]">
+            {t({ en: "Select class, subject, and lesson to generate practice MCQs.", bn: "ক্লাস, বিষয় ও লেসন বেছে MCQ তৈরি করুন।" })}
+          </p>
+        </div>
+        <AiQuizCard context="home" />
+      </Section>
+    </section>
   );
 }
