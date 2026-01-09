@@ -130,6 +130,7 @@ create table if not exists public.courses (
   subject_id uuid not null references public.subjects (id) on delete cascade,
   title text not null,
   class_level text not null,
+  is_free boolean not null default false,
   description text,
   created_at timestamp with time zone default now()
 );
@@ -297,13 +298,21 @@ create policy "Courses are readable by class"
     )
   );
 
-create policy "Lessons are readable for purchased courses"
+create policy "Lessons are readable for purchased or free courses"
   on public.lessons for select
   using (
-    exists (
-      select 1 from public.purchased_courses pc
-      where pc.user_id = auth.uid()
-        and pc.course_id = lessons.course_id
+    auth.role() = 'authenticated'
+    and (
+      exists (
+        select 1 from public.courses c
+        where c.id = lessons.course_id
+          and c.is_free = true
+      )
+      or exists (
+        select 1 from public.purchased_courses pc
+        where pc.user_id = auth.uid()
+          and pc.course_id = lessons.course_id
+      )
     )
   );
 

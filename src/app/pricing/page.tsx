@@ -86,6 +86,7 @@ const faqs = [
 export default function PricingPage() {
   const { user } = useAuth();
   const { courses, refresh } = useStudent();
+  const paidCourses = courses.filter((course) => course.isFree !== true);
   const navigate = useNavigate();
   const t = useTranslate();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -104,8 +105,11 @@ export default function PricingPage() {
     }
     setSelectedPlanId(planId);
     setPaymentError(null);
-    const firstCourseId = courses[0]?.id ?? "";
+    const firstCourseId = paidCourses[0]?.id ?? "";
     setSelectedCourseId(firstCourseId);
+    if (!firstCourseId) {
+      setSelectedClassLevel(user?.user_metadata?.class ?? "");
+    }
   };
 
   const closeCheckout = () => {
@@ -131,12 +135,8 @@ export default function PricingPage() {
     }
     await refresh();
     setIsUpdatingClass(false);
-    if (courses.length) {
-      setSelectedCourseId(courses[0]?.id ?? "");
-    } else {
-      setSelectedCourseId("");
-      setSelectedClassLevel(user?.user_metadata?.class ?? "");
-    }
+    setSelectedCourseId("");
+    setSelectedClassLevel(user?.user_metadata?.class ?? "");
   };
 
   const handleCheckout = async () => {
@@ -279,44 +279,53 @@ export default function PricingPage() {
             </div>
 
             <div className="mt-4 space-y-4">
-              {courses.length === 0 ? (
-                <>
+              {paidCourses.length === 0 ? (
+                courses.length === 0 ? (
+                  <>
+                    <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                      {t({
+                        en: "No courses are available for your class yet. Select your class and refresh.",
+                        bn: "আপনার ক্লাসের জন্য এখনো কোর্স নেই। ক্লাস নির্বাচন করে রিফ্রেশ করুন।",
+                      })}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">
+                        {t({ en: "Class", bn: "ক্লাস" })}
+                      </label>
+                      <select
+                        value={selectedClassLevel}
+                        onChange={(event) => setSelectedClassLevel(event.target.value)}
+                        className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      >
+                        <option value="" disabled>
+                          {t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}
+                        </option>
+                        {CLASS_OPTIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={handleClassUpdate}
+                      disabled={!selectedClassLevel || isUpdatingClass}
+                      className="w-full"
+                    >
+                      {isUpdatingClass
+                        ? t({ en: "Refreshing...", bn: "রিফ্রেশ হচ্ছে..." })
+                        : t({ en: "Refresh courses", bn: "কোর্স রিফ্রেশ করুন" })}
+                    </Button>
+                  </>
+                ) : (
                   <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                     {t({
-                      en: "No courses are available for your class yet. Select your class and refresh.",
-                      bn: "আপনার ক্লাসের জন্য এখনো কোর্স নেই। ক্লাস নির্বাচন করে রিফ্রেশ করুন।",
+                      en: "All available courses are free right now. No payment required.",
+                      bn: "এখন সব উপলব্ধ কোর্স ফ্রি। পেমেন্ট প্রয়োজন নেই।",
                     })}
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">
-                      {t({ en: "Class", bn: "ক্লাস" })}
-                    </label>
-                    <select
-                      value={selectedClassLevel}
-                      onChange={(event) => setSelectedClassLevel(event.target.value)}
-                      className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                    >
-                      <option value="" disabled>
-                        {t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}
-                      </option>
-                      {CLASS_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={handleClassUpdate}
-                    disabled={!selectedClassLevel || isUpdatingClass}
-                    className="w-full"
-                  >
-                    {isUpdatingClass
-                      ? t({ en: "Refreshing...", bn: "রিফ্রেশ হচ্ছে..." })
-                      : t({ en: "Refresh courses", bn: "কোর্স রিফ্রেশ করুন" })}
-                  </Button>
-                </>
+                )
               ) : (
                 <>
                   <label className="text-sm font-medium text-slate-700">{t({ en: "Course", bn: "কোর্স" })}</label>
@@ -328,7 +337,7 @@ export default function PricingPage() {
                     <option value="" disabled>
                       {t({ en: "Select a course", bn: "কোর্স নির্বাচন করুন" })}
                     </option>
-                    {courses.map((course) => (
+                    {paidCourses.map((course) => (
                       <option key={course.id} value={course.id}>
                         {course.title}
                       </option>
@@ -345,7 +354,7 @@ export default function PricingPage() {
                 {t({ en: "Plan price", bn: "প্ল্যান মূল্য" })}:{" "}
                 <span className="font-semibold text-slate-800">BDT {selectedPlan.price}</span>
               </div>
-              <Button onClick={handleCheckout} disabled={isPaying || !selectedCourseId}>
+              <Button onClick={handleCheckout} disabled={isPaying || !selectedCourseId || paidCourses.length === 0}>
                 {isPaying ? t({ en: "Redirecting...", bn: "রিডাইরেক্ট হচ্ছে..." }) : t({ en: "Pay now", bn: "পেমেন্ট করুন" })}
               </Button>
             </div>

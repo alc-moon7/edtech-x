@@ -16,6 +16,7 @@ export type CourseRecord = {
   title: string;
   class_level: string;
   description: string | null;
+  is_free: boolean;
   subject_id: string;
   subject?: { id: string; name: string } | null;
 };
@@ -95,6 +96,7 @@ export type CourseData = {
   cover: string;
   status?: "ongoing" | "completed";
   isPurchased?: boolean;
+  isFree?: boolean;
   chapters: CourseChapter[];
 };
 
@@ -357,6 +359,8 @@ function buildCourses(
     const subjectName = course.subject?.name ?? "";
     const style = getSubjectStyle(subjectName || course.title);
     const courseLessons = (lessonsByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
+    const isFree = course.is_free ?? false;
+    const isPurchased = purchasedSet.has(course.id) || isFree;
     const chapter: CourseChapter = {
       id: `${course.id}-main`,
       title: "Course Content",
@@ -381,7 +385,8 @@ function buildCourses(
       color: style.color,
       cover: style.cover,
       status: enrollmentMap.get(course.id),
-      isPurchased: purchasedSet.has(course.id),
+      isPurchased,
+      isFree,
       chapters: [chapter],
     } satisfies CourseData;
   });
@@ -534,7 +539,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const { data: courses, error: coursesError } = await supabase
     .from("courses")
-    .select("id,title,class_level,description,subject_id,subject:subjects(id,name)")
+    .select("id,title,class_level,description,is_free,subject_id,subject:subjects(id,name)")
     .eq("class_level", resolvedClassLevel);
   if (coursesError) {
     throw new Error(coursesError.message);

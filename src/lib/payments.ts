@@ -12,32 +12,34 @@ export async function startCourseCheckout(courseId: string, options?: CheckoutOp
     throw new Error("Invalid course payment request.");
   }
 
-  const { data, error } = await supabase.functions.invoke("create-payment", {
-    body: {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (sessionError || !accessToken) {
+    throw new Error("Please sign in to continue.");
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "http://127.0.0.1:54321";
+  const response = await fetch(`${supabaseUrl}/functions/v1/create-payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
       courseId,
       planId: options?.planId ?? "premium",
       amount: options?.amount,
       currency: "BDT",
-    },
+    }),
   });
 
-  if (error) {
-    const context = (error as { context?: { response?: Response } }).context;
-    if (context?.response) {
-      const response = context.response.clone();
-      const payload = await response.json().catch(() => null);
-      const message =
-        payload?.error ||
-        payload?.details ||
-        (typeof payload === "string" ? payload : null);
-      if (message) {
-        throw new Error(message);
-      }
-    }
-    throw new Error(error.message);
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = payload?.error || payload?.details || "Payment failed. Please try again.";
+    throw new Error(message);
   }
 
-  const url = (data as { url?: string })?.url;
+  const url = payload?.url;
   if (!url) {
     throw new Error("Payment gateway URL missing.");
   }

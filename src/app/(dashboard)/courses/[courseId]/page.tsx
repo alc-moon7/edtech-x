@@ -33,6 +33,7 @@ export default function CourseDetailPage() {
     }
 
     const userProgress = progress[courseId as keyof typeof progress] || { completedLessons: [] };
+    const isFree = course.isFree === true;
     const isPurchased = course.isPurchased === true;
 
     const handleBuyCourse = async () => {
@@ -63,7 +64,11 @@ export default function CourseDetailPage() {
                             <p className="text-slate-700 max-w-2xl">{course.description}</p>
                         </div>
                         <div className="flex flex-col items-start gap-2 sm:items-end">
-                            {isPurchased ? (
+                            {isFree ? (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                                    {t({ en: "Free access", bn: "Free access" })}
+                                </span>
+                            ) : isPurchased ? (
                                 <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                                     <CheckCircle className="h-4 w-4" />
                                     {t({ en: "Purchased", bn: "ক্রয় করা হয়েছে" })}

@@ -143,7 +143,7 @@ export default function CoursesPage() {
         classLabel: displayClass,
       }));
     }
-    return courses.map((course) => ({
+      return courses.map((course) => ({
       key: course.id,
       title: { en: course.title, bn: course.title },
       status: course.status ?? "ongoing",
@@ -151,6 +151,7 @@ export default function CoursesPage() {
       courseId: course.id,
       classLabel: course.class,
       isPurchased: course.isPurchased === true,
+      isFree: course.isFree === true,
     }));
   }, [courses, displayClass]);
 
@@ -240,9 +241,11 @@ export default function CoursesPage() {
                         to={`/courses/${card.courseId}`}
                         className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
                       >
-                        {card.isPurchased
-                          ? t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })
-                          : t({ en: "Buy Course", bn: "কোর্স কিনুন" })}
+                        {card.isFree
+                          ? t({ en: "Start Free", bn: "Start Free" })
+                          : card.isPurchased
+                            ? t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })
+                            : t({ en: "Buy Course", bn: "কোর্স কিনুন" })}
                       </Link>
                     ) : (
                       <button
