@@ -386,17 +386,6 @@ export function StudentDashboardView() {
               </div>
             )}
           </div>
-                    <div className="text-[11px] text-slate-500">{t(test.subtitle)}</div>
-                    <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
-                      <span>{t(test.date)}</span>
-                      <span className="h-1 w-1 rounded-full bg-slate-300" />
-                      <span>{test.time}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
