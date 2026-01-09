@@ -39,7 +39,7 @@ export default function CourseDetailPage() {
         setPaymentError(null);
         setIsPaying(true);
         try {
-            await startCourseCheckout(course.id);
+            await startCourseCheckout(course.id, { planId: "premium" });
         } catch (error) {
             setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
             setIsPaying(false);

@@ -1,9 +1,13 @@
-import { CheckCircle2, HelpCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { CheckCircle2, HelpCircle, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
+import { useAuth } from "@/lib/auth";
+import { useStudent } from "@/lib/store";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate } from "@/lib/i18n";
+import { startCourseCheckout } from "@/lib/payments";
 
 const plans = [
   {
@@ -69,7 +73,51 @@ const faqs = [
 ];
 
 export default function PricingPage() {
+  const { user } = useAuth();
+  const { courses } = useStudent();
+  const navigate = useNavigate();
   const t = useTranslate();
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? null;
+
+  const openCheckout = (planId: string) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    setSelectedPlanId(planId);
+    setPaymentError(null);
+    const firstCourseId = courses[0]?.id ?? "";
+    setSelectedCourseId(firstCourseId);
+  };
+
+  const closeCheckout = () => {
+    if (isPaying) return;
+    setSelectedPlanId(null);
+    setPaymentError(null);
+  };
+
+  const handleCheckout = async () => {
+    if (!selectedPlan || !selectedCourseId) {
+      setPaymentError(t({ en: "Please select a course.", bn: "একটি কোর্স নির্বাচন করুন।" }));
+      return;
+    }
+
+    setIsPaying(true);
+    setPaymentError(null);
+    try {
+      await startCourseCheckout(selectedCourseId, {
+        planId: selectedPlan.id === "plan-standard" ? "standard" : "premium",
+      });
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
+      setIsPaying(false);
+    }
+  };
 
   usePageMeta({
     title: t({ en: "Pricing", bn: "মূল্য" }),
@@ -121,11 +169,23 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/signup" className="mt-6 inline-block w-full">
-                  <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
-                    {t(plan.cta)}
-                  </Button>
-                </Link>
+                {plan.id === "plan-free" ? (
+                  <Link to={user ? "/courses" : "/signup"} className="mt-6 inline-block w-full">
+                    <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
+                      {t(plan.cta)}
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="mt-6">
+                    <Button
+                      className="w-full"
+                      variant={plan.highlight ? "default" : "outline"}
+                      onClick={() => openCheckout(plan.id)}
+                    >
+                      {t({ en: "Pay now", bn: "এখনই পেমেন্ট করুন" })}
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -154,6 +214,64 @@ export default function PricingPage() {
           </div>
         </div>
       </section>
+
+      {selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 py-6">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {t({ en: "Choose a course", bn: "কোর্স নির্বাচন করুন" })}
+                </h3>
+                <p className="text-sm text-slate-500">
+                  {t({
+                    en: "Select which course to unlock with this plan.",
+                    bn: "এই প্ল্যান দিয়ে কোন কোর্স আনলক করবেন তা নির্বাচন করুন।",
+                  })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCheckout}
+                className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
+                aria-label={t({ en: "Close", bn: "বন্ধ করুন" })}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <label className="text-sm font-medium text-slate-700">{t({ en: "Course", bn: "কোর্স" })}</label>
+              <select
+                value={selectedCourseId}
+                onChange={(event) => setSelectedCourseId(event.target.value)}
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="" disabled>
+                  {t({ en: "Select a course", bn: "কোর্স নির্বাচন করুন" })}
+                </option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {paymentError && <p className="mt-3 text-sm text-red-500">{paymentError}</p>}
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-slate-500">
+                {t({ en: "Plan price", bn: "প্ল্যান মূল্য" })}:{" "}
+                <span className="font-semibold text-slate-800">BDT {selectedPlan.price}</span>
+              </div>
+              <Button onClick={handleCheckout} disabled={isPaying || !selectedCourseId}>
+                {isPaying ? t({ en: "Redirecting...", bn: "রিডাইরেক্ট হচ্ছে..." }) : t({ en: "Pay now", bn: "পেমেন্ট করুন" })}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </MarketingShell>
   );
 }

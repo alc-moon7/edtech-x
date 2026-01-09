@@ -5,11 +5,16 @@ import { getSslcommerzInitUrl } from "../_shared/sslcommerz.ts";
 
 type CreatePaymentPayload = {
   courseId?: string;
+  planId?: string;
   amount?: number;
   currency?: string;
 };
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschoo.moonx.dev";
+const PLAN_PRICES: Record<string, number> = {
+  standard: 299,
+  premium: 499,
+};
 
 function jsonResponse(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
@@ -31,11 +36,13 @@ serve(async (req) => {
 
     const payload = (await req.json()) as CreatePaymentPayload;
     const courseId = payload.courseId?.trim();
-    const amount = Number(payload.amount);
+    const planId = typeof payload.planId === "string" ? payload.planId.toLowerCase() : "premium";
+    const planAmount = PLAN_PRICES[planId];
+    const amount = planAmount ?? Number(payload.amount);
     const currency = (payload.currency ?? "BDT").toUpperCase();
 
     if (!courseId || Number.isNaN(amount) || amount <= 0) {
-      return jsonResponse(400, { error: "courseId and amount are required." });
+      return jsonResponse(400, { error: "courseId and plan are required." });
     }
 
     const storeId = Deno.env.get("SSLCOMMERZ_STORE_ID");

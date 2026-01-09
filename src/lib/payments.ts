@@ -2,18 +2,21 @@
 
 import { supabase } from "@/lib/supabaseClient";
 
-const DEFAULT_COURSE_PRICE = 1200;
+type CheckoutOptions = {
+  planId?: "standard" | "premium";
+  amount?: number;
+};
 
-export async function startCourseCheckout(courseId: string, amount?: number) {
-  const price = Number(amount ?? DEFAULT_COURSE_PRICE);
-  if (!courseId || Number.isNaN(price) || price <= 0) {
+export async function startCourseCheckout(courseId: string, options?: CheckoutOptions) {
+  if (!courseId) {
     throw new Error("Invalid course payment request.");
   }
 
   const { data, error } = await supabase.functions.invoke("create-payment", {
     body: {
       courseId,
-      amount: price,
+      planId: options?.planId ?? "premium",
+      amount: options?.amount,
       currency: "BDT",
     },
   });
