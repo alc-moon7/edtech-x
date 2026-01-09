@@ -1,14 +1,14 @@
-"use client";
+﻿"use client";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { BookOpen, Brain, CalendarDays, LineChart, LogOut } from "lucide-react";
+import { BookOpen, Brain, CalendarDays, LineChart, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
 
 const sidebarItems = [
   {
-    title: { en: "Class", bn: "ক্লাস" },
+    title: { en: "Class", bn: "শ্রেণি" },
     href: "/courses",
     icon: BookOpen,
   },
@@ -23,7 +23,7 @@ const sidebarItems = [
     icon: Brain,
   },
   {
-    title: { en: "Progress", bn: "অগ্রগতি" },
+    title: { en: "Progress", bn: "প্রোগ্রেস" },
     href: "/progress",
     icon: LineChart,
   },
@@ -33,7 +33,10 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
   const t = useTranslate();
-  const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || t({ en: "Student", bn: "শিক্ষার্থী" });
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    t({ en: "Student", bn: "শিক্ষার্থী" });
 
   const handleSignOut = async () => {
     await signOut();
@@ -77,6 +80,21 @@ export function Sidebar() {
         <div className="mb-3 text-xs text-slate-500">
           {t({ en: "Signed in as", bn: "সাইন ইন করেছেন" })}: {displayName}
         </div>
+        <NavLink
+          to="/settings"
+          end
+          className={({ isActive }) =>
+            cn(
+              "mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+              isActive
+                ? "bg-slate-200 text-slate-900 shadow-sm"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            )
+          }
+        >
+          <Settings className="h-5 w-5" />
+          {t({ en: "Settings", bn: "সেটিংস" })}
+        </NavLink>
         <button
           type="button"
           onClick={handleSignOut}

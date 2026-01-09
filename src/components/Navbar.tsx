@@ -12,6 +12,7 @@ import {
   Brain,
   LineChart,
   LogOut,
+  Settings,
   X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -167,6 +168,22 @@ export function Navbar() {
             <div className="mb-3 text-xs text-slate-500">
               {t({ en: "Signed in as", bn: "সাইন ইন করেছেন" })}: {displayName}
             </div>
+            <NavLink
+              to="/settings"
+              end
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "mb-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-slate-200 text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                )
+              }
+            >
+              <Settings className="h-5 w-5" />
+              {t({ en: "Settings", bn: "সেটিংস" })}
+            </NavLink>
             <button
               type="button"
               onClick={handleSignOut}
