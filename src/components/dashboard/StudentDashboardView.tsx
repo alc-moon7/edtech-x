@@ -278,19 +278,6 @@ export function StudentDashboardView() {
             </div>
           )}
         </div>
-                    <div className="text-xs text-slate-500">
-                      {subject.lessons} {t({ en: "lessons", bn: "লেসন" })}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100">
-                  <div className={cn("h-1.5 rounded-full", subject.accent)} style={{ width: `${subject.progress}%` }} />
-                </div>
-                <div className="mt-2 text-xs font-medium text-slate-500">{subject.progress}%</div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
