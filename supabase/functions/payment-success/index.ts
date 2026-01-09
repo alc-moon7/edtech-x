@@ -4,24 +4,19 @@ import { getSslcommerzValidationUrl } from "../_shared/sslcommerz.ts";
 
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschoo.moonx.dev";
 
-async function readPayload(req: Request) {
-  const contentType = req.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
-    return await req.json();
-  }
-  const formData = await req.formData();
-  return Object.fromEntries(formData.entries());
-}
-
 function redirect(url: string) {
   return new Response(null, { status: 302, headers: { Location: url } });
 }
 
 serve(async (req) => {
   try {
-    const payload = await readPayload(req);
-    const valId = typeof payload.val_id === "string" ? payload.val_id : "";
-    const orderId = typeof payload.value_a === "string" ? payload.value_a : "";
+    const body = await req.text();
+    const params = new URLSearchParams(body);
+    const tranId = params.get("tran_id") ?? "";
+    const valId = params.get("val_id") ?? "";
+    const amount = params.get("amount") ?? "";
+    const statusParam = params.get("status") ?? "";
+    const orderId = params.get("value_a") ?? "";
 
     if (!valId) {
       return redirect(`${SITE_URL}/payment/fail?reason=missing_val_id`);
@@ -72,11 +67,11 @@ serve(async (req) => {
     await supabase.from("payments").upsert(
       {
         order_id: order.id,
-        tran_id: validation.tran_id ?? "",
-        amount: Number(validation.amount ?? order.amount),
+        tran_id: validation.tran_id ?? tranId,
+        amount: Number(validation.amount ?? amount ?? order.amount),
         card_type: validation.card_type ?? null,
         validation_id: validation.val_id ?? valId,
-        status: validation.status ?? null,
+        status: validation.status ?? statusParam ?? null,
         raw_response: validation ?? {},
       },
       { onConflict: "tran_id" }
