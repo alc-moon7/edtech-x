@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
+import { formatDateKey } from "@/lib/date";
 import {
   fetchDashboardData,
   type CalendarEventRecord,
@@ -207,7 +208,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       user_id: user.id,
       subject_id: course?.subjectId ?? null,
       duration_minutes: durationMinutes,
-      session_date: new Date().toISOString().slice(0, 10),
+      session_date: formatDateKey(new Date()),
     });
 
     if (sessionError) {

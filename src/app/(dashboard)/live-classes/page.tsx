@@ -5,6 +5,7 @@ import { ChevronDown, Flame } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useStudent } from "@/lib/store";
 import type { CalendarEventRecord, StudySessionRecord } from "@/lib/dashboardData";
+import { formatDateKey, getBangladeshToday } from "@/lib/date";
 import { useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -78,20 +79,16 @@ const WEEKDAY_LABELS = [
   { en: "SAT", bn: "SAT" },
 ];
 
-function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
 function buildCalendarDays(events: CalendarEventRecord[], sessions: StudySessionRecord[]) {
   if (!events.length && !sessions.length) return [];
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const startDay = firstDay.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const today = getBangladeshToday();
+  const year = today.getUTCFullYear();
+  const month = today.getUTCMonth();
+  const firstDay = new Date(Date.UTC(year, month, 1));
+  const startDay = firstDay.getUTCDay();
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const daysInPrevMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
 
   const eventMap = new Map();
@@ -101,7 +98,7 @@ function buildCalendarDays(events: CalendarEventRecord[], sessions: StudySession
   });
 
   const sessionSet = new Set(sessions.map((session) => session.session_date));
-  const todayKey = toDateKey(today);
+  const todayKey = formatDateKey(today);
   const days = [];
 
   for (let i = 0; i < totalCells; i += 1) {
@@ -117,8 +114,8 @@ function buildCalendarDays(events: CalendarEventRecord[], sessions: StudySession
       dateValue = dayNumber - daysInMonth;
     }
 
-    const date = new Date(year, month + monthOffset, dateValue);
-    const dateKey = toDateKey(date);
+    const date = new Date(Date.UTC(year, month + monthOffset, dateValue));
+    const dateKey = formatDateKey(date);
     const dayEvents = eventMap.get(dateKey) || [];
 
     days.push({

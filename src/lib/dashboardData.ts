@@ -1,6 +1,7 @@
 "use client";
 
 import { supabase } from "@/lib/supabaseClient";
+import { formatDateKey, getBangladeshToday, parseDateKey } from "@/lib/date";
 
 const MS_DAY = 24 * 60 * 60 * 1000;
 
@@ -215,18 +216,16 @@ export function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function addDays(date: Date, days: number) {
+  return new Date(date.getTime() + days * MS_DAY);
+}
+
 function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return formatDateKey(date);
 }
 
 function startOfDay(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
+  return parseDateKey(formatDateKey(date));
 }
 
 function formatMinutes(minutes: number | null) {
@@ -237,7 +236,7 @@ function formatMinutes(minutes: number | null) {
 function calculateWeeklyActivity(sessions: StudySessionRecord[]) {
   const activity = Array(7).fill(false);
   const now = startOfDay(new Date());
-  const weekStart = addDays(now, -now.getDay());
+  const weekStart = addDays(now, -now.getUTCDay());
   const sessionDates = new Set(sessions.map((item) => item.session_date));
 
   for (let i = 0; i < 7; i += 1) {
@@ -269,8 +268,8 @@ function calculateWeeklyStudyHours(sessions: StudySessionRecord[]) {
   const buckets = [0, 0, 0, 0];
 
   sessions.forEach((session) => {
-    const date = new Date(`${session.session_date}T00:00:00`);
-    const diff = startOfDay(date).getTime() - start.getTime();
+    const date = parseDateKey(session.session_date);
+    const diff = date.getTime() - start.getTime();
     const dayOffset = Math.floor(diff / MS_DAY);
     if (dayOffset < 0 || dayOffset >= 28) return;
     const weekIndex = Math.floor(dayOffset / 7);
@@ -559,7 +558,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(progressError.message);
   }
 
-  const ninetyDaysAgo = toDateKey(addDays(new Date(), -90));
+  const ninetyDaysAgo = toDateKey(addDays(startOfDay(new Date()), -90));
   const { data: quizAttempts, error: quizError } = await supabase
     .from("quiz_attempts")
     .select("lesson_id,subject_id,score,created_at")
@@ -569,7 +568,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(quizError.message);
   }
 
-  const sixtyDaysAgo = toDateKey(addDays(new Date(), -60));
+  const sixtyDaysAgo = toDateKey(addDays(startOfDay(new Date()), -60));
   const { data: studySessions, error: sessionsError } = await supabase
     .from("study_sessions")
     .select("subject_id,duration_minutes,session_date")
@@ -579,9 +578,9 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(sessionsError.message);
   }
 
-  const now = new Date();
-  const monthStart = toDateKey(new Date(now.getFullYear(), now.getMonth(), 1));
-  const monthEnd = toDateKey(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  const now = getBangladeshToday();
+  const monthStart = toDateKey(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)));
+  const monthEnd = toDateKey(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)));
   const { data: classEvents, error: classEventError } = await supabase
     .from("calendar_events")
     .select("id,title,date,type,class_level")
