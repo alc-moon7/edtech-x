@@ -124,6 +124,8 @@ serve(async (req) => {
     return jsonResponse(200, { url: initData.GatewayPageURL, orderId });
   } catch (error) {
     console.error("create-payment error", error);
-    return jsonResponse(500, { error: "Unexpected error." });
+    return jsonResponse(500, {
+      error: error instanceof Error ? error.message : "Unexpected error.",
+    });
   }
 });

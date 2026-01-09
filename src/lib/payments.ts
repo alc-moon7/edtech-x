@@ -22,6 +22,18 @@ export async function startCourseCheckout(courseId: string, options?: CheckoutOp
   });
 
   if (error) {
+    const context = (error as { context?: { response?: Response } }).context;
+    if (context?.response) {
+      const response = context.response.clone();
+      const payload = await response.json().catch(() => null);
+      const message =
+        payload?.error ||
+        payload?.details ||
+        (typeof payload === "string" ? payload : null);
+      if (message) {
+        throw new Error(message);
+      }
+    }
     throw new Error(error.message);
   }
 
