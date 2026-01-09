@@ -53,6 +53,7 @@ create table if not exists public.contact_messages (
 alter table public.contact_messages enable row level security;
 
 create extension if not exists vector;
+create extension if not exists pgcrypto;
 
 create table if not exists public.nctb_chunks (
   id uuid primary key default gen_random_uuid(),
@@ -61,11 +62,13 @@ create table if not exists public.nctb_chunks (
   book_name text,
   page integer,
   content text not null,
+  content_hash text not null,
   embedding vector(1536),
   created_at timestamp with time zone default now()
 );
 
 create index if not exists nctb_chunks_class_idx on public.nctb_chunks (class_level);
+create unique index if not exists nctb_chunks_content_hash_key on public.nctb_chunks (content_hash);
 -- Optional: add a vector index later when embedding dimension is confirmed.
 
 alter table public.nctb_chunks enable row level security;
