@@ -5,9 +5,20 @@ import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
 import { useAuth } from "@/lib/auth";
 import { useStudent } from "@/lib/store";
+import { supabase } from "@/lib/supabaseClient";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate } from "@/lib/i18n";
 import { startCourseCheckout } from "@/lib/payments";
+
+const CLASS_OPTIONS = [
+  "Class 6",
+  "Class 7",
+  "Class 8",
+  "Class 9",
+  "Class 10",
+  "Class 11",
+  "Class 12",
+];
 
 const plans = [
   {
@@ -74,11 +85,13 @@ const faqs = [
 
 export default function PricingPage() {
   const { user } = useAuth();
-  const { courses } = useStudent();
+  const { courses, refresh } = useStudent();
   const navigate = useNavigate();
   const t = useTranslate();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedClassLevel, setSelectedClassLevel] = useState("");
+  const [isUpdatingClass, setIsUpdatingClass] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -99,6 +112,31 @@ export default function PricingPage() {
     if (isPaying) return;
     setSelectedPlanId(null);
     setPaymentError(null);
+  };
+
+  const handleClassUpdate = async () => {
+    if (!user || !selectedClassLevel) {
+      setPaymentError(t({ en: "Please select a class.", bn: "একটি ক্লাস নির্বাচন করুন।" }));
+      return;
+    }
+    setIsUpdatingClass(true);
+    setPaymentError(null);
+    const { error } = await supabase
+      .from("user_profiles")
+      .upsert({ user_id: user.id, class_level: selectedClassLevel }, { onConflict: "user_id" });
+    if (error) {
+      setPaymentError(error.message);
+      setIsUpdatingClass(false);
+      return;
+    }
+    await refresh();
+    setIsUpdatingClass(false);
+    if (courses.length) {
+      setSelectedCourseId(courses[0]?.id ?? "");
+    } else {
+      setSelectedCourseId("");
+      setSelectedClassLevel(user?.user_metadata?.class ?? "");
+    }
   };
 
   const handleCheckout = async () => {
@@ -240,22 +278,64 @@ export default function PricingPage() {
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
-              <label className="text-sm font-medium text-slate-700">{t({ en: "Course", bn: "কোর্স" })}</label>
-              <select
-                value={selectedCourseId}
-                onChange={(event) => setSelectedCourseId(event.target.value)}
-                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              >
-                <option value="" disabled>
-                  {t({ en: "Select a course", bn: "কোর্স নির্বাচন করুন" })}
-                </option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.title}
-                  </option>
-                ))}
-              </select>
+            <div className="mt-4 space-y-4">
+              {courses.length === 0 ? (
+                <>
+                  <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                    {t({
+                      en: "No courses are available for your class yet. Select your class and refresh.",
+                      bn: "আপনার ক্লাসের জন্য এখনো কোর্স নেই। ক্লাস নির্বাচন করে রিফ্রেশ করুন।",
+                    })}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      {t({ en: "Class", bn: "ক্লাস" })}
+                    </label>
+                    <select
+                      value={selectedClassLevel}
+                      onChange={(event) => setSelectedClassLevel(event.target.value)}
+                      className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="" disabled>
+                        {t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}
+                      </option>
+                      {CLASS_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleClassUpdate}
+                    disabled={!selectedClassLevel || isUpdatingClass}
+                    className="w-full"
+                  >
+                    {isUpdatingClass
+                      ? t({ en: "Refreshing...", bn: "রিফ্রেশ হচ্ছে..." })
+                      : t({ en: "Refresh courses", bn: "কোর্স রিফ্রেশ করুন" })}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <label className="text-sm font-medium text-slate-700">{t({ en: "Course", bn: "কোর্স" })}</label>
+                  <select
+                    value={selectedCourseId}
+                    onChange={(event) => setSelectedCourseId(event.target.value)}
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="" disabled>
+                      {t({ en: "Select a course", bn: "কোর্স নির্বাচন করুন" })}
+                    </option>
+                    {courses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.title}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
             </div>
 
             {paymentError && <p className="mt-3 text-sm text-red-500">{paymentError}</p>}
