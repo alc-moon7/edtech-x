@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronDown, Search } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useStudent } from "@/lib/store";
 import { useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -125,15 +127,39 @@ const classCards = [
 
 export default function CoursesPage() {
   const { user } = useAuth();
+  const { courses } = useStudent();
   const t = useTranslate();
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Arjun";
   const displayClass = user?.user_metadata?.class || "7";
 
+  const resolvedCards = useMemo(() => {
+    if (!courses.length) {
+      return classCards.map((card) => ({
+        ...card,
+        courseId: undefined,
+        classLabel: displayClass,
+      }));
+    }
+    return courses.map((course) => ({
+      key: course.id,
+      title: { en: course.title, bn: course.title },
+      status: course.status ?? "ongoing",
+      cover: course.cover,
+      courseId: course.id,
+      classLabel: course.class,
+    }));
+  }, [courses, displayClass]);
+
   const visibleCards = useMemo(() => {
-    if (activeTab === "all") return classCards;
-    return classCards.filter((card) => card.status === activeTab);
-  }, [activeTab]);
+    const filtered = activeTab === "all"
+      ? resolvedCards
+      : resolvedCards.filter((card) => card.status === activeTab);
+    if (!searchQuery.trim()) return filtered;
+    const query = searchQuery.trim().toLowerCase();
+    return filtered.filter((card) => card.title.en.toLowerCase().includes(query));
+  }, [activeTab, resolvedCards, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -162,6 +188,8 @@ export default function CoursesPage() {
             <Search className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={t({ en: "Search class name", bn: "ক্লাসের নাম খুঁজুন" })}
               className="h-11 w-full rounded-full border border-slate-200 bg-white px-4 pr-10 text-sm text-slate-700 placeholder:text-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
@@ -199,18 +227,27 @@ export default function CoursesPage() {
                   )}
                 >
                   <div className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
-                    {t({ en: "Class 7", bn: "শ্রেণি ৭" })}
+                    {t({ en: card.classLabel ?? "Class", bn: card.classLabel ?? "Class" })}
                   </div>
                   <div className="flex min-h-[160px] flex-col items-center justify-center px-3 text-center">
                     <div className="text-sm font-semibold">{t(card.title)}</div>
                   </div>
                   <div className="absolute bottom-3 left-3 right-3">
-                    <button
-                      type="button"
-                      className="w-full rounded-full bg-white/90 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm"
-                    >
-                      {t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })}
-                    </button>
+                    {card.courseId ? (
+                      <Link
+                        to={`/courses/${card.courseId}`}
+                        className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
+                      >
+                        {t({ en: "Continue Class", bn: "????? ?????" })}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        className="w-full rounded-full bg-white/90 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm"
+                      >
+                        {t({ en: "Continue Class", bn: "????? ?????" })}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

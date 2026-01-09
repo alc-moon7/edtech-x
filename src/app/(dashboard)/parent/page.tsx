@@ -11,7 +11,7 @@ const scheduleItems = [
 ];
 
 export default function ParentDashboard() {
-    const { courses, progress, userStats } = useStudent();
+    const { courses, progress, dashboardStats } = useStudent();
     const t = useTranslate();
     const { language } = useLanguage();
 
@@ -24,6 +24,8 @@ export default function ParentDashboard() {
     const progressLabel = language === "bn"
         ? `${child.name} এর অগ্রগতি পর্যবেক্ষণ`
         : `Monitoring progress for ${child.name}`;
+
+    const weeklyHours = dashboardStats.weeklyStudyHours[dashboardStats.weeklyStudyHours.length - 1] ?? 0;
 
     return (
         <div className="space-y-8">
@@ -49,17 +51,17 @@ export default function ParentDashboard() {
             <div className="grid gap-6 md:grid-cols-3">
                 <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
                     <Clock className="h-8 w-8 text-primary mb-3" />
-                    <h3 className="text-2xl font-bold">{t({ en: "12.5 hrs", bn: "12.5 ঘন্টা" })}</h3>
+                    <h3 className="text-2xl font-bold">{weeklyHours} {t({ en: "hrs", bn: "?????" })}</h3>
                     <p className="text-sm text-muted-foreground">{t({ en: "Study Time (This Week)", bn: "পড়ার সময় (এই সপ্তাহে)" })}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
                     <TrendingUp className="h-8 w-8 text-green-500 mb-3" />
-                    <h3 className="text-2xl font-bold">{userStats.totalPoints} {t({ en: "pts", bn: "পয়েন্ট" })}</h3>
+                    <h3 className="text-2xl font-bold">{dashboardStats.totalPoints} {t({ en: "pts", bn: "পয়েন্ট" })}</h3>
                     <p className="text-sm text-muted-foreground">{t({ en: "Total Learning Points", bn: "মোট লার্নিং পয়েন্ট" })}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
                     <BookOpen className="h-8 w-8 text-secondary mb-3" />
-                    <h3 className="text-2xl font-bold">85%</h3>
+                    <h3 className="text-2xl font-bold">{dashboardStats.averageScore}%</h3>
                     <p className="text-sm text-muted-foreground">{t({ en: "Avg. Quiz Score", bn: "গড় কুইজ স্কোর" })}</p>
                 </div>
             </div>

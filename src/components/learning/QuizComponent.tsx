@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle, RefreshCw } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useTranslate } from "@/lib/i18n";
-import { MOCK_QUIZ_Questions } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
 export type QuizQuestion = {
@@ -28,18 +27,12 @@ export function QuizComponent({
 }) {
     const { saveQuizScore } = useStudent();
     const t = useTranslate();
-    const storedQuestions = quizId ? MOCK_QUIZ_Questions[quizId as keyof typeof MOCK_QUIZ_Questions] : undefined;
 
     // Support generic fallback if no mock questions found
     const activeQuestions = useMemo<QuizQuestion[]>(() => {
-        if (questions && questions.length) {
-            return questions;
-        }
-        if (storedQuestions && storedQuestions.length) {
-            return storedQuestions as QuizQuestion[];
-        }
+        if (questions && questions.length) return questions;
         return [{ id: 1, question: "Sample Question 1?", options: ["A", "B", "C", "D"], correctAnswer: 0 }];
-    }, [questions, storedQuestions]);
+    }, [questions]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -93,7 +86,7 @@ export function QuizComponent({
         const percentScore = Math.round((correctCount / activeQuestions.length) * 100);
         setFinalScore(percentScore);
         if (quizId) {
-            saveQuizScore(courseId, quizId, percentScore);
+            void saveQuizScore(courseId, quizId, percentScore);
         }
     };
 

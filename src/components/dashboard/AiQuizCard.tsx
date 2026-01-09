@@ -88,7 +88,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
         }
     }, [courseOptions, courseId]);
     const selectedCourse = useMemo(
-        () => courseOptions.find((course) => course.id === courseId) ?? courseOptions[0],
+        () => courseOptions.find((course) => course.id === courseId) ?? courseOptions[0] ?? null,
         [courseOptions, courseId]
     );
     const chapters = selectedCourse?.chapters ?? [];

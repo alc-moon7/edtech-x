@@ -5,7 +5,7 @@ import { useStudent } from "@/lib/store";
 import { useTranslate } from "@/lib/i18n";
 
 export function StreakCard() {
-    const { userStats } = useStudent();
+    const { dashboardStats } = useStudent();
     const t = useTranslate();
     const days = [
         { en: "S", bn: "র" },
@@ -26,13 +26,13 @@ export function StreakCard() {
 
             <div className="mb-6">
                 <div className="text-3xl font-bold font-heading">
-                    {userStats.streak} {t({ en: "Days", bn: "দিন" })}
+                    {dashboardStats.streakDays} {t({ en: "Days", bn: "দিন" })}
                 </div>
                 <p className="text-sm text-muted-foreground">{t({ en: "Current Streak", bn: "বর্তমান ধারাবাহিকতা" })}</p>
             </div>
 
             <div className="flex gap-2">
-                {userStats.weeklyActivity.map((active, idx) => (
+                {dashboardStats.weeklyActivity.map((active, idx) => (
                     <div key={idx} className="flex flex-col items-center gap-1">
                         <div className={`h-8 w-2 rounded-full ${active ? 'bg-orange-500' : 'bg-muted'}`} />
                         <span className="text-[10px] text-muted-foreground font-medium">{t(days[idx])}</span>

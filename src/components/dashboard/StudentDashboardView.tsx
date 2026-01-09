@@ -17,6 +17,21 @@ import { useStudent } from "@/lib/store";
 import { useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+const SUBJECT_ICON_MAP: Record<string, typeof BookOpen> = {
+  mathematics: BookOpen,
+  math: BookOpen,
+  science: FlaskConical,
+  english: PenLine,
+  "social-studies": Globe,
+  social: Globe,
+};
+
+function formatShortDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 const statCards = [
   {
     key: "streak",
@@ -131,15 +146,50 @@ const upcomingTests = [
 
 export function StudentDashboardView() {
   const { user } = useAuth();
-  const { leaderboard } = useStudent();
+  const {
+    leaderboard,
+    dashboardStats,
+    subjectCards: subjectCardsData,
+    performanceBars: performanceBarsData,
+    studyHours: studyHoursData,
+    upcomingTests: upcomingTestsData,
+  } = useStudent();
   const t = useTranslate();
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Arjun";
   const displayClass = user?.user_metadata?.class || t({ en: "Class 7", bn: "ক্লাস ৭" });
 
-  const maxHour = Math.max(...studyHours, 1);
-  const points = studyHours
+  const statValues: Record<string, string> = {
+    streak: `${dashboardStats.streakDays}`,
+    hours: `${dashboardStats.totalHours}`,
+    score: `${dashboardStats.averageScore}%`,
+    lessons: `${dashboardStats.lessonsDone}/${dashboardStats.lessonsTotal}`,
+  };
+
+  const subjectCardsForRender = subjectCardsData.map((subject) => ({
+    ...subject,
+    icon: SUBJECT_ICON_MAP[subject.key] ?? BookOpen,
+    title: { en: subject.title, bn: subject.title },
+  }));
+
+  const performanceBarsForRender = performanceBarsData.map((bar) => ({
+    label: { en: bar.label, bn: bar.label },
+    value: bar.value,
+  }));
+
+  const upcomingTestsForRender = upcomingTestsData.map((test) => ({
+    key: test.id,
+    title: { en: test.title, bn: test.title },
+    subtitle: { en: test.subtitle, bn: test.subtitle },
+    date: { en: formatShortDate(test.date), bn: formatShortDate(test.date) },
+    time: test.time,
+    accent: test.accent,
+  }));
+
+  const resolvedStudyHours = studyHoursData;
+  const maxHour = Math.max(...resolvedStudyHours, 1);
+  const points = resolvedStudyHours
     .map((value, index) => {
-      const x = (index / (studyHours.length - 1)) * 220 + 20;
+      const x = (index / (resolvedStudyHours.length - 1)) * 220 + 20;
       const y = 120 - (value / maxHour) * 90;
       return `${x},${y}`;
     })
@@ -187,7 +237,7 @@ export function StudentDashboardView() {
                 </span>
               </div>
               <div className="mt-3 text-xl font-semibold text-slate-900">
-                {card.value}
+                {statValues[card.key] ?? card.value}
                 {card.suffix && <span className="ml-1">{t(card.suffix)}</span>}
               </div>
               <p className={cn("mt-1 text-[11px] font-medium", card.noteClass)}>{t(card.note)}</p>
@@ -199,16 +249,35 @@ export function StudentDashboardView() {
       <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
         <h2 className="text-sm font-semibold text-slate-800">{t({ en: "My Subjects", bn: "আমার বিষয়গুলো" })}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {subjectCards.map((subject) => {
-            const Icon = subject.icon;
-            return (
-              <div key={subject.key} className="rounded-xl border border-slate-200/70 bg-white p-4">
-                <div className="flex items-center gap-3">
-                  <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-white", subject.accent)}>
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">{t(subject.title)}</div>
+          {subjectCardsForRender.length ? (
+            subjectCardsForRender.map((subject) => {
+              const Icon = subject.icon;
+              return (
+                <div key={subject.key} className="rounded-xl border border-slate-200/70 bg-white p-4">
+                  <div className="flex items-center gap-3">
+                    <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-white", subject.accent)}>
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <div className="text-sm font-semibold text-slate-900">{t(subject.title)}</div>
+                      <div className="text-xs text-slate-500">
+                        {subject.lessons} {t({ en: "lessons", bn: "???" })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100">
+                    <div className={cn("h-1.5 rounded-full", subject.accent)} style={{ width: `${subject.progress}%` }} />
+                  </div>
+                  <div className="mt-2 text-xs font-medium text-slate-500">{subject.progress}%</div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="col-span-full rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+              {t({ en: "No subjects available yet.", bn: "???? ???? ???? ????" })}
+            </div>
+          )}
+        </div>
                     <div className="text-xs text-slate-500">
                       {subject.lessons} {t({ en: "lessons", bn: "লেসন" })}
                     </div>
@@ -228,7 +297,7 @@ export function StudentDashboardView() {
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
           <h2 className="text-sm font-semibold text-slate-800">{t({ en: "Subject Performance", bn: "বিষয়ভিত্তিক পারফরম্যান্স" })}</h2>
           <div className="mt-5 flex h-40 items-end gap-4 rounded-xl bg-slate-50 px-4 py-3">
-            {performanceBars.map((bar) => (
+            {performanceBarsForRender.map((bar) => (
               <div key={t(bar.label)} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex h-full w-full items-end rounded-lg bg-purple-100">
                   <div className="w-full rounded-lg bg-[#7A5AF8]" style={{ height: `${bar.value}%` }} />
@@ -287,8 +356,8 @@ export function StudentDashboardView() {
                 strokeLinejoin="round"
                 points={points}
               />
-              {studyHours.map((value, index) => {
-                const x = (index / (studyHours.length - 1)) * 220 + 20;
+              {resolvedStudyHours.map((value, index) => {
+                const x = (index / (resolvedStudyHours.length - 1)) * 220 + 20;
                 const y = 120 - (value / maxHour) * 90;
                 return <circle key={index} cx={x} cy={y} r="4" fill="#4F6EF7" />;
               })}
@@ -305,14 +374,31 @@ export function StudentDashboardView() {
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
           <h2 className="text-sm font-semibold text-slate-800">{t({ en: "Upcoming Tests", bn: "আগামী পরীক্ষাগুলো" })}</h2>
           <div className="mt-4 space-y-3">
-            {upcomingTests.map((test) => (
-              <div key={test.key} className="rounded-xl border border-slate-200/70 p-3">
-                <div className="flex items-start gap-3">
-                  <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg", test.accent)}>
-                    <CalendarDays className="h-4 w-4" />
-                  </span>
-                  <div className="flex-1">
-                    <div className="text-xs font-semibold text-slate-900">{t(test.title)}</div>
+            {upcomingTestsForRender.length ? (
+              upcomingTestsForRender.map((test) => (
+                <div key={test.key} className="rounded-xl border border-slate-200/70 p-3">
+                  <div className="flex items-start gap-3">
+                    <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg", test.accent)}>
+                      <CalendarDays className="h-4 w-4" />
+                    </span>
+                    <div className="flex-1">
+                      <div className="text-xs font-semibold text-slate-900">{t(test.title)}</div>
+                      <div className="text-[11px] text-slate-500">{t(test.subtitle)}</div>
+                      <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+                        <span>{t(test.date)}</span>
+                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+                        <span>{test.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
+                {t({ en: "No upcoming tests scheduled.", bn: "???? ????? ??????? ????" })}
+              </div>
+            )}
+          </div>
                     <div className="text-[11px] text-slate-500">{t(test.subtitle)}</div>
                     <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
                       <span>{t(test.date)}</span>

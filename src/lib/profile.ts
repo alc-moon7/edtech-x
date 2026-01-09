@@ -43,4 +43,19 @@ export async function syncProfile(user: User) {
   if (error) {
     console.warn("Profile sync failed:", error.message);
   }
+
+  const { error: profileError } = await supabase
+    .from("user_profiles")
+    .upsert(
+      {
+        user_id: user.id,
+        full_name: payload.full_name,
+        class_level: payload.class_name,
+      },
+      { onConflict: "user_id" }
+    );
+
+  if (profileError) {
+    console.warn("User profile sync failed:", profileError.message);
+  }
 }

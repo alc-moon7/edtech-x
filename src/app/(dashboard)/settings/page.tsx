@@ -39,7 +39,9 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<SettingsState>(initialState);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
-  const activeTab = searchParams.get("tab") === "syllabus" ? "syllabus" : "info";
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get("tab") === "syllabus" ? "syllabus" : "info"
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -52,6 +54,11 @@ export default function SettingsPage() {
       examBatch: user.user_metadata?.exam_batch || "",
     });
   }, [user]);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    setActiveTab(tabParam === "syllabus" ? "syllabus" : "info");
+  }, [searchParams]);
 
   const classDisplay = useMemo(() => {
     const value = settings.studentClass?.trim();
@@ -72,6 +79,7 @@ export default function SettingsPage() {
     } else {
       next.set("tab", tabKey);
     }
+    setActiveTab(tabKey);
     setSearchParams(next, { replace: true });
   };
 

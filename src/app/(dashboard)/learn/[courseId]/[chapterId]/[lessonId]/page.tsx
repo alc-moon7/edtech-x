@@ -15,7 +15,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent } from "@/components/learning/QuizComponent";
-import { getNextLesson } from "@/lib/dataHelpers";
 import { useLanguage, useTranslate } from "@/lib/i18n";
 
 const typeLabels: Record<string, { en: string; bn: string }> = {
@@ -59,14 +58,21 @@ export default function LessonPlayerPage() {
         setQuizCompleted(isCompleted);
     }, [isCompleted, lessonId]);
 
-    const handleComplete = () => {
-        markLessonComplete(courseId, lessonId);
+    const handleComplete = async () => {
+        await markLessonComplete(courseId, lessonId);
         if (isQuiz) {
             setQuizCompleted(true);
         }
     };
 
-    const nextLesson = getNextLesson(courseId, chapterId, lessonId);
+    const lessonSequence = course.chapters.flatMap((ch) =>
+        ch.lessons.map((item) => ({
+            ...item,
+            chapterId: ch.id,
+        }))
+    );
+    const currentIndex = lessonSequence.findIndex((item) => item.id === lessonId);
+    const nextLesson = currentIndex >= 0 ? lessonSequence[currentIndex + 1] : undefined;
     const typeLabel = t(typeLabels[lesson.type] ?? { en: lesson.type, bn: lesson.type });
     const readingCopy = language === "bn"
         ? `এই পাঠে ${lesson.title} বিষয়ের মূল ধারণাগুলো উদাহরণ ও দ্রুত চেকসহ ব্যাখ্যা করা হয়েছে। নিচের মূল পয়েন্টগুলো রিভিশনের জন্য ব্যবহার করুন।`

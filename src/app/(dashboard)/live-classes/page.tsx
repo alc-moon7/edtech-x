@@ -1,7 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import { ChevronDown, Flame } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useStudent } from "@/lib/store";
+import type { CalendarEventRecord, StudySessionRecord } from "@/lib/dashboardData";
 import { useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -65,11 +68,88 @@ const calendarDays = [
   { key: "sat-31", date: 31, monthOffset: 0 },
 ];
 
+const WEEKDAY_LABELS = [
+  { en: "SUN", bn: "SUN" },
+  { en: "MON", bn: "MON" },
+  { en: "TUE", bn: "TUE" },
+  { en: "WED", bn: "WED" },
+  { en: "THU", bn: "THU" },
+  { en: "FRI", bn: "FRI" },
+  { en: "SAT", bn: "SAT" },
+];
+
+function toDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildCalendarDays(events: CalendarEventRecord[], sessions: StudySessionRecord[]) {
+  if (!events.length && !sessions.length) return [];
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startDay = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
+
+  const eventMap = new Map();
+  events.forEach((event) => {
+    if (!eventMap.has(event.date)) eventMap.set(event.date, []);
+    eventMap.get(event.date).push(event);
+  });
+
+  const sessionSet = new Set(sessions.map((session) => session.session_date));
+  const todayKey = toDateKey(today);
+  const days = [];
+
+  for (let i = 0; i < totalCells; i += 1) {
+    const dayNumber = i - startDay + 1;
+    let monthOffset = 0;
+    let dateValue = dayNumber;
+
+    if (dayNumber <= 0) {
+      monthOffset = -1;
+      dateValue = daysInPrevMonth + dayNumber;
+    } else if (dayNumber > daysInMonth) {
+      monthOffset = 1;
+      dateValue = dayNumber - daysInMonth;
+    }
+
+    const date = new Date(year, month + monthOffset, dateValue);
+    const dateKey = toDateKey(date);
+    const dayEvents = eventMap.get(dateKey) || [];
+
+    days.push({
+      key: dateKey,
+      date: dateValue,
+      monthOffset,
+      weekday: i < 7 ? WEEKDAY_LABELS[i] : undefined,
+      highlight: dateKey === todayKey,
+      flame: sessionSet.has(dateKey),
+      events: dayEvents.map((event) => ({
+        label: { en: event.title, bn: event.title },
+        tone: "emerald",
+      })),
+    });
+  }
+
+  return days;
+}
+
 export default function SchedulePage() {
   const { user } = useAuth();
+  const { calendarEvents, studySessions } = useStudent();
   const t = useTranslate();
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Arjun";
   const displayClass = user?.user_metadata?.class || "7";
+
+  const dynamicCalendarDays = useMemo(
+    () => buildCalendarDays(calendarEvents, studySessions),
+    [calendarEvents, studySessions]
+  );
+  const resolvedCalendarDays = dynamicCalendarDays.length ? dynamicCalendarDays : calendarDays;
 
   return (
     <div className="space-y-6">
@@ -96,9 +176,9 @@ export default function SchedulePage() {
         <div className="overflow-x-auto">
           <div className="min-w-[720px]">
             <div className="grid grid-cols-7">
-              {calendarDays.map((day, index) => {
+              {resolvedCalendarDays.map((day, index) => {
                 const isTopRow = index < 7;
-                const isLastRow = index >= calendarDays.length - 7;
+                const isLastRow = index >= resolvedCalendarDays.length - 7;
                 const isLastCol = (index + 1) % 7 === 0;
                 const mutedDate = day.monthOffset !== 0;
                 return (
