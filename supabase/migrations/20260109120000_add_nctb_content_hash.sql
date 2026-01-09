@@ -1,11 +1,12 @@
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 alter table public.nctb_chunks
   add column if not exists content_hash text;
 
 update public.nctb_chunks
-  set content_hash = encode(digest(content, 'sha256'), 'hex')
-  where content_hash is null;
+  set content_hash = encode(extensions.digest(convert_to(content, 'UTF8'), 'sha256'), 'hex')
+  where content_hash is null
+    and content is not null;
 
 delete from public.nctb_chunks a
 using public.nctb_chunks b
