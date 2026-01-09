@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { UserCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabaseClient";
@@ -34,10 +35,11 @@ const tabs = [
 export default function SettingsPage() {
   const { user } = useAuth();
   const t = useTranslate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [settings, setSettings] = useState<SettingsState>(initialState);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("info");
+  const activeTab = searchParams.get("tab") === "syllabus" ? "syllabus" : "info";
 
   useEffect(() => {
     if (!user) return;
@@ -62,6 +64,16 @@ export default function SettingsPage() {
   }, [settings.studentClass]);
 
   const groupDisplay = settings.examBatch?.trim() || "S.S.C. 2032";
+
+  const handleTabChange = (tabKey: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (tabKey === "info") {
+      next.delete("tab");
+    } else {
+      next.set("tab", tabKey);
+    }
+    setSearchParams(next, { replace: true });
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -100,13 +112,20 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2 text-sm font-medium text-slate-500">
+        <div
+          className="flex items-center justify-between border-b border-slate-200 pb-2 text-sm font-medium text-slate-500"
+          role="tablist"
+          aria-label="Settings tabs"
+        >
           {tabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => handleTabChange(tab.key)}
               className={cn("relative pb-2", activeTab === tab.key ? "text-blue-600" : "text-slate-600")}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              aria-controls={`settings-${tab.key}`}
             >
               {t(tab.label)}
               {activeTab === tab.key && (
@@ -117,7 +136,7 @@ export default function SettingsPage() {
         </div>
 
         {activeTab === "info" ? (
-          <>
+          <div id="settings-info">
             <div className="flex flex-col items-center gap-6 py-8">
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-slate-300">
                 <UserCircle className="h-14 w-14" />
@@ -215,9 +234,9 @@ export default function SettingsPage() {
                 </button>
               </div>
             </form>
-          </>
+          </div>
         ) : (
-          <div className="space-y-8 py-8">
+          <div id="settings-syllabus" className="space-y-8 py-8">
             <h2 className="text-center text-lg font-semibold text-slate-800">
               {t({ en: "Class & Group", bn: "শ্রেণি ও গ্রুপ" })}
             </h2>
