@@ -139,6 +139,7 @@ export default function CoursesPage() {
       return classCards.map((card) => ({
         ...card,
         courseId: undefined,
+        isPurchased: false,
         classLabel: displayClass,
       }));
     }
@@ -149,6 +150,7 @@ export default function CoursesPage() {
       cover: course.cover,
       courseId: course.id,
       classLabel: course.class,
+      isPurchased: course.isPurchased === true,
     }));
   }, [courses, displayClass]);
 
@@ -238,14 +240,16 @@ export default function CoursesPage() {
                         to={`/courses/${card.courseId}`}
                         className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
                       >
-                        {t({ en: "Continue Class", bn: "????? ?????" })}
+                        {card.isPurchased
+                          ? t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })
+                          : t({ en: "Buy Course", bn: "কোর্স কিনুন" })}
                       </Link>
                     ) : (
                       <button
                         type="button"
                         className="w-full rounded-full bg-white/90 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm"
                       >
-                        {t({ en: "Continue Class", bn: "????? ?????" })}
+                        {t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })}
                       </button>
                     )}
                   </div>

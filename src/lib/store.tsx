@@ -160,6 +160,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
+    if (course && course.isPurchased === false) {
+      setError("Course not purchased.");
+      return;
+    }
     const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === lessonId);
     const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
 
@@ -234,6 +238,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
+    if (course && course.isPurchased === false) {
+      setError("Course not purchased.");
+      return;
+    }
     const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === quizId);
 
     const { error: quizError } = await supabase.from("quiz_attempts").insert({

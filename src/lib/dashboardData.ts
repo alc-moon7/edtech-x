@@ -35,6 +35,11 @@ export type EnrollmentRecord = {
   status: "ongoing" | "completed";
 };
 
+export type PurchasedCourseRecord = {
+  course_id: string;
+  purchased_at: string;
+};
+
 export type LessonProgressRecord = {
   lesson_id: string;
   course_id: string;
@@ -89,6 +94,7 @@ export type CourseData = {
   color: string;
   cover: string;
   status?: "ongoing" | "completed";
+  isPurchased?: boolean;
   chapters: CourseChapter[];
 };
 
@@ -147,6 +153,7 @@ export type DashboardData = {
   studySessions: StudySessionRecord[];
   enrollments: EnrollmentRecord[];
   quizAttempts: QuizAttemptRecord[];
+  purchasedCourses: PurchasedCourseRecord[];
 };
 
 const SUBJECT_STYLES: Record<
@@ -335,7 +342,8 @@ function buildProgressMap(
 function buildCourses(
   courses: CourseRecord[],
   lessons: LessonRecord[],
-  enrollments: EnrollmentRecord[]
+  enrollments: EnrollmentRecord[],
+  purchasedCourses: PurchasedCourseRecord[]
 ) {
   const lessonsByCourse = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
     if (!acc[lesson.course_id]) acc[lesson.course_id] = [];
@@ -343,6 +351,7 @@ function buildCourses(
     return acc;
   }, {});
   const enrollmentMap = new Map(enrollments.map((enrollment) => [enrollment.course_id, enrollment.status]));
+  const purchasedSet = new Set(purchasedCourses.map((item) => item.course_id));
 
   return courses.map((course) => {
     const subjectName = course.subject?.name ?? "";
@@ -372,6 +381,7 @@ function buildCourses(
       color: style.color,
       cover: style.cover,
       status: enrollmentMap.get(course.id),
+      isPurchased: purchasedSet.has(course.id),
       chapters: [chapter],
     } satisfies CourseData;
   });
@@ -510,6 +520,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
       studySessions: [],
       enrollments: [],
       quizAttempts: [],
+      purchasedCourses: [],
     };
   }
 
@@ -548,6 +559,14 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     .eq("user_id", userId);
   if (enrollmentError) {
     throw new Error(enrollmentError.message);
+  }
+
+  const { data: purchasedCourses, error: purchaseError } = await supabase
+    .from("purchased_courses")
+    .select("course_id,purchased_at")
+    .eq("user_id", userId);
+  if (purchaseError) {
+    throw new Error(purchaseError.message);
   }
 
   const { data: lessonProgress, error: progressError } = await supabase
@@ -603,7 +622,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const calendarEvents = [...(classEvents ?? []), ...(globalEvents ?? [])];
   const progress = buildProgressMap(lessons ?? [], lessonProgress ?? [], quizAttempts ?? []);
-  const coursesData = buildCourses(courses ?? [], lessons ?? [], enrollments ?? []);
+  const coursesData = buildCourses(courses ?? [], lessons ?? [], enrollments ?? [], purchasedCourses ?? []);
   const subjectCards = buildSubjectCards(subjects ?? [], courses ?? [], lessons ?? [], lessonProgress ?? []);
   const performanceBars = buildPerformanceBars(subjects ?? [], quizAttempts ?? []);
   const weeklyActivity = calculateWeeklyActivity(studySessions ?? []);
@@ -638,5 +657,6 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     studySessions: studySessions ?? [],
     enrollments: enrollments ?? [],
     quizAttempts: quizAttempts ?? [],
+    purchasedCourses: purchasedCourses ?? [],
   };
 }

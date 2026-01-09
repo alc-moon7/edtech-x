@@ -13,6 +13,9 @@ import SignupPage from "@/app/signup/page";
 import ForgotPasswordPage from "@/app/forgot-password/page";
 import ResetPasswordPage from "@/app/reset_pass/page";
 import HelpCenterPage from "@/app/help/page";
+import PaymentSuccessPage from "@/app/payment/success/page";
+import PaymentFailPage from "@/app/payment/fail/page";
+import PaymentCancelPage from "@/app/payment/cancel/page";
 import DashboardPage from "@/app/(dashboard)/dashboard/page";
 import CoursesPage from "@/app/(dashboard)/courses/page";
 import CourseDetailPage from "@/app/(dashboard)/courses/[courseId]/page";
@@ -40,6 +43,9 @@ export default function App() {
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
         <Route path="reset_pass" element={<ResetPasswordPage />} />
         <Route path="help" element={<HelpCenterPage />} />
+        <Route path="payment/success" element={<PaymentSuccessPage />} />
+        <Route path="payment/fail" element={<PaymentFailPage />} />
+        <Route path="payment/cancel" element={<PaymentCancelPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="dashboard" element={<DashboardPage />} />
