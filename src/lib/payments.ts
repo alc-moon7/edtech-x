@@ -12,11 +12,11 @@ export async function startCourseCheckout(courseId: string, options?: CheckoutOp
     throw new Error("Invalid course payment request.");
   }
 
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  const accessToken = sessionData?.session?.access_token;
-  if (sessionError || !accessToken) {
-    throw new Error("Please sign in to continue.");
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session) {
+    throw new Error("Not logged in");
   }
+  const accessToken = session.access_token;
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "http://127.0.0.1:54321";
   const response = await fetch(`${supabaseUrl}/functions/v1/create-payment`, {
