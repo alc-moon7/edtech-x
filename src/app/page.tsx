@@ -325,12 +325,14 @@ function NctbAsk({ t }: { t: Translate }) {
   const [limitReached, setLimitReached] = useState(false);
   const [classLevel, setClassLevel] = useState("");
   const [subject, setSubject] = useState("");
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-    }
+    const scrollEl = chatScrollRef.current;
+    if (!scrollEl) return;
+    const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+    if (maxScroll <= 0) return;
+    scrollEl.scrollTo({ top: scrollEl.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
   const classOptions = [
@@ -415,7 +417,7 @@ function NctbAsk({ t }: { t: Translate }) {
           <div className="text-sm font-semibold text-slate-900">Homeschool NCTB AI</div>
           <div className="text-xs text-slate-500">Class & subject based answers with notes</div>
         </div>
-        <div className="max-h-72 space-y-3 overflow-y-auto pr-1 sm:max-h-80">
+        <div ref={chatScrollRef} className="max-h-72 space-y-3 overflow-y-auto pr-1 sm:max-h-80">
           {messages.length === 0 && !thinking && (
             <p className="text-xs text-slate-400">Ask a question and get notes in bullet points.</p>
           )}
@@ -443,7 +445,6 @@ function NctbAsk({ t }: { t: Translate }) {
               </div>
             </div>
           )}
-          <div ref={chatEndRef} />
         </div>
         <div className="mt-3 border-t border-slate-100 pt-3">
           <textarea
