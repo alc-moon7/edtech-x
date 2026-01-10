@@ -44,12 +44,15 @@ export function MarketingNav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/50 backdrop-blur-xl">
-      <div className="relative mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:h-16 sm:px-6 lg:h-16 lg:px-8">
+      <div className="relative mx-auto grid h-14 w-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:h-16 sm:px-6 lg:h-16 lg:px-8">
         <Link to="/" className="flex items-center" aria-label={t({ en: "HomeSchool home", bn: "HomeSchool হোম" })}>
           <img src="/figma/logo.png" alt="HomeSchool" className="h-8 w-auto sm:h-9 lg:h-10" loading="eager" />
         </Link>
 
-        <nav className="hidden items-center justify-center gap-5 text-sm font-semibold text-black lg:absolute lg:left-1/2 lg:flex lg:-translate-x-1/2 lg:text-base" aria-label="Primary">
+        <nav
+          className="hidden min-w-0 items-center justify-center gap-4 text-sm font-semibold text-black lg:flex lg:text-sm xl:gap-5 xl:text-base"
+          aria-label="Primary"
+        >
           {navItems.map((item) => (
             <Link key={item.href} to={item.href} className="transition-colors hover:text-[#060BF7]">
               {t(item.label)}

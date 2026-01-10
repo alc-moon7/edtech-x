@@ -171,6 +171,14 @@ function HeroVisual({ t }: { t: Translate }) {
 }
 
 function HeroSection({ t }: { t: Translate }) {
+  const { language } = useLanguage();
+  const heroTitleClass = cn(
+    "animate-hero-up font-bold leading-tight text-transparent bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text",
+    language === "bn"
+      ? "text-2xl sm:text-3xl md:text-4xl lg:text-[48px]"
+      : "text-3xl sm:text-4xl md:text-5xl lg:text-[54px]"
+  );
+
   return (
     <section id="home" className="relative overflow-hidden">
       <img
@@ -189,7 +197,7 @@ function HeroSection({ t }: { t: Translate }) {
         <Section className="pt-32 pb-28 sm:pt-36 sm:pb-32 lg:pt-40 lg:pb-36">
           <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-8 lg:gap-10">
             <div className="max-w-3xl text-center md:text-left">
-              <h1 className="animate-hero-up text-3xl font-bold leading-tight text-transparent sm:text-4xl md:text-5xl lg:text-[54px] bg-[linear-gradient(180deg,_#000000_0%,_#060BF7_60%)] bg-clip-text">
+              <h1 className={heroTitleClass}>
                 {t({ en: "Learn Smarter,", bn: "আরও স্মার্টভাবে শিখুন," })}
                 <br />
                 {t({ en: "Not Harder", bn: "কঠোরভাবে নয়" })}
