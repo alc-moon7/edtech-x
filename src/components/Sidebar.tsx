@@ -8,17 +8,17 @@ import { useTranslate } from "@/lib/i18n";
 
 const sidebarItems = [
   {
-    title: { en: "Class", bn: "??????" },
+    title: { en: "Class", bn: "ক্লাস" },
     href: "/courses",
     icon: BookOpen,
   },
   {
-    title: { en: "Schedule", bn: "????????" },
+    title: { en: "Schedule", bn: "সময়সূচি" },
     href: "/live-classes",
     icon: CalendarDays,
   },
   {
-    title: { en: "Progress", bn: "?????????" },
+    title: { en: "Progress", bn: "অগ্রগতি" },
     href: "/progress",
     icon: LineChart,
   },
@@ -31,7 +31,7 @@ export function Sidebar() {
   const displayName =
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
-    t({ en: "Student", bn: "??????????" });
+    t({ en: "Student", bn: "শিক্ষার্থী" });
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,7 +73,7 @@ export function Sidebar() {
 
       <div className="border-t border-slate-200 p-4">
         <div className="mb-3 text-xs text-slate-500">
-          {t({ en: "Signed in as", bn: "???? ?? ??????" })}: {displayName}
+          {t({ en: "Signed in as", bn: "সাইন ইন করেছেন" })}: {displayName}
         </div>
         <NavLink
           to="/settings"
@@ -88,7 +88,7 @@ export function Sidebar() {
           }
         >
           <Settings className="h-5 w-5" />
-          {t({ en: "Settings", bn: "??????" })}
+          {t({ en: "Settings", bn: "সেটিংস" })}
         </NavLink>
         <button
           type="button"
@@ -96,7 +96,7 @@ export function Sidebar() {
           className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
         >
           <LogOut className="h-5 w-5" />
-          {t({ en: "Sign Out", bn: "???? ???" })}
+          {t({ en: "Sign Out", bn: "সাইন আউট" })}
         </button>
       </div>
     </div>

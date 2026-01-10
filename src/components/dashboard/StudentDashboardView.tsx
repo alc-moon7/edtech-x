@@ -261,7 +261,7 @@ export function StudentDashboardView() {
                     <div>
                       <div className="text-sm font-semibold text-slate-900">{t(subject.title)}</div>
                       <div className="text-xs text-slate-500">
-                        {subject.lessons} {t({ en: "lessons", bn: "???" })}
+                        {subject.lessons} {t({ en: "lessons", bn: "লেসন" })}
                       </div>
                     </div>
                   </div>
@@ -274,7 +274,7 @@ export function StudentDashboardView() {
             })
           ) : (
             <div className="col-span-full rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
-              {t({ en: "No subjects available yet.", bn: "???? ???? ???? ????" })}
+              {t({ en: "No subjects available yet.", bn: "এখনও কোনো বিষয় উপলভ্য নয়।" })}
             </div>
           )}
         </div>
@@ -382,7 +382,7 @@ export function StudentDashboardView() {
               ))
             ) : (
               <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center text-xs text-slate-500">
-                {t({ en: "No upcoming tests scheduled.", bn: "???? ????? ??????? ????" })}
+                {t({ en: "No upcoming tests scheduled.", bn: "কোনো আসন্ন পরীক্ষা নির্ধারিত নেই।" })}
               </div>
             )}
           </div>

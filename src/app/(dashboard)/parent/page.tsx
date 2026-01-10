@@ -51,7 +51,7 @@ export default function ParentDashboard() {
             <div className="grid gap-6 md:grid-cols-3">
                 <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
                     <Clock className="h-8 w-8 text-primary mb-3" />
-                    <h3 className="text-2xl font-bold">{weeklyHours} {t({ en: "hrs", bn: "?????" })}</h3>
+                    <h3 className="text-2xl font-bold">{weeklyHours} {t({ en: "hrs", bn: "ঘণ্টা" })}</h3>
                     <p className="text-sm text-muted-foreground">{t({ en: "Study Time (This Week)", bn: "পড়ার সময় (এই সপ্তাহে)" })}</p>
                 </div>
                 <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center text-center">
