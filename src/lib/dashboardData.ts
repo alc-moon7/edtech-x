@@ -49,6 +49,8 @@ export type EnrollmentRecord = {
 export type PurchasedCourseRecord = {
   course_id: string;
   purchased_at: string;
+  plan_id?: string | null;
+  expires_at?: string | null;
 };
 
 export type LessonProgressRecord = {
@@ -255,6 +257,12 @@ function formatMinutes(minutes: number | null) {
   return `${minutes} min`;
 }
 
+function isPurchaseActive(purchase: PurchasedCourseRecord) {
+  if (!purchase.expires_at) return true;
+  const expiry = new Date(purchase.expires_at).getTime();
+  return Number.isFinite(expiry) && expiry > Date.now();
+}
+
 function calculateWeeklyActivity(sessions: StudySessionRecord[]) {
   const activity = Array(7).fill(false);
   const now = startOfDay(new Date());
@@ -372,7 +380,9 @@ function buildCourses(
     return acc;
   }, {});
   const enrollmentMap = new Map(enrollments.map((enrollment) => [enrollment.course_id, enrollment.status]));
-  const purchasedSet = new Set(purchasedCourses.map((item) => item.course_id));
+  const purchasedSet = new Set(
+    purchasedCourses.filter((purchase) => isPurchaseActive(purchase)).map((item) => item.course_id)
+  );
 
   return courses.map((course) => {
     const subjectName = course.subject?.name ?? "";
@@ -616,7 +626,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const { data: purchasedCourses, error: purchaseError } = await supabase
     .from("purchased_courses")
-    .select("course_id,purchased_at")
+    .select("course_id,purchased_at,plan_id,expires_at")
     .eq("user_id", userId);
   if (purchaseError) {
     throw new Error(purchaseError.message);

@@ -16,10 +16,12 @@ async function isPremiumUser(
   supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
   userId: string
 ) {
+  const nowIso = new Date().toISOString();
   const { count, error } = await supabaseAdmin
     .from("purchased_courses")
     .select("course_id", { count: "exact", head: true })
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
 
   if (error) {
     console.error("Premium check failed", error);

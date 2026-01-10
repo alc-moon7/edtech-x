@@ -83,9 +83,22 @@ const faqs = [
   },
 ];
 
+function formatExpiryLabel(value?: string | null) {
+  if (!value) return "No expiry";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "No expiry";
+  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function resolvePlanLabel(planId?: string | null) {
+  if (planId === "standard") return "Standard";
+  if (planId === "premium") return "Premium";
+  return "Premium";
+}
+
 export default function PricingPage() {
   const { user } = useAuth();
-  const { courses, refresh } = useStudent();
+  const { courses, refresh, purchasedCourses } = useStudent();
   const paidCourses = courses.filter((course) => course.isFree !== true);
   const navigate = useNavigate();
   const t = useTranslate();
@@ -97,6 +110,17 @@ export default function PricingPage() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? null;
+  const nowMs = Date.now();
+  const activePurchases = purchasedCourses.filter((purchase) => {
+    if (!purchase.expires_at) return true;
+    const expiry = new Date(purchase.expires_at).getTime();
+    return Number.isFinite(expiry) && expiry > nowMs;
+  });
+  const activePurchaseByCourse = new Map(
+    activePurchases.map((purchase) => [purchase.course_id, purchase])
+  );
+  const selectedPurchase = selectedCourseId ? activePurchaseByCourse.get(selectedCourseId) : null;
+  const courseTitleMap = new Map(courses.map((course) => [course.id, course.title]));
 
   const openCheckout = (planId: string) => {
     if (!user) {
@@ -145,6 +169,15 @@ export default function PricingPage() {
       return;
     }
 
+    if (selectedPurchase) {
+      setPaymentError(
+        `You already have an active ${resolvePlanLabel(selectedPurchase.plan_id)} plan until ${formatExpiryLabel(
+          selectedPurchase.expires_at
+        )}.`
+      );
+      return;
+    }
+
     setIsPaying(true);
     setPaymentError(null);
     try {
@@ -178,6 +211,27 @@ export default function PricingPage() {
 
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
+          {user && activePurchases.length > 0 && (
+            <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 text-left shadow-sm">
+              <div className="text-sm font-semibold uppercase tracking-wider text-emerald-700">
+                Active plan
+              </div>
+              <div className="mt-3 space-y-2 text-sm text-emerald-700">
+                {activePurchases.map((purchase) => {
+                  const courseTitle = courseTitleMap.get(purchase.course_id) ?? "Course";
+                  return (
+                    <div key={purchase.course_id} className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold text-emerald-900">{courseTitle}</span>
+                      <span>
+                        {resolvePlanLabel(purchase.plan_id)} • expires{" "}
+                        {formatExpiryLabel(purchase.expires_at)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="grid gap-6 lg:grid-cols-3">
             {plans.map((plan) => (
               <div
@@ -347,6 +401,13 @@ export default function PricingPage() {
               )}
             </div>
 
+            {selectedPurchase && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+                Active {resolvePlanLabel(selectedPurchase.plan_id)} plan until{" "}
+                {formatExpiryLabel(selectedPurchase.expires_at)}.
+              </div>
+            )}
+
             {paymentError && <p className="mt-3 text-sm text-red-500">{paymentError}</p>}
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -354,7 +415,15 @@ export default function PricingPage() {
                 {t({ en: "Plan price", bn: "প্ল্যান মূল্য" })}:{" "}
                 <span className="font-semibold text-slate-800">BDT {selectedPlan.price}</span>
               </div>
-              <Button onClick={handleCheckout} disabled={isPaying || !selectedCourseId || paidCourses.length === 0}>
+              <Button
+                onClick={handleCheckout}
+                disabled={
+                  isPaying ||
+                  !selectedCourseId ||
+                  paidCourses.length === 0 ||
+                  Boolean(selectedPurchase)
+                }
+              >
                 {isPaying ? t({ en: "Redirecting...", bn: "রিডাইরেক্ট হচ্ছে..." }) : t({ en: "Pay now", bn: "পেমেন্ট করুন" })}
               </Button>
             </div>

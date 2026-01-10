@@ -11,6 +11,7 @@ import {
   type DashboardStats,
   type PerformanceBar,
   type ProgressMap,
+  type PurchasedCourseRecord,
   type StudySessionRecord,
   type SubjectCard,
   type UpcomingTest,
@@ -36,6 +37,7 @@ type StudentContextType = {
   upcomingTests: UpcomingTest[];
   calendarEvents: CalendarEventRecord[];
   studySessions: StudySessionRecord[];
+  purchasedCourses: PurchasedCourseRecord[];
   refresh: () => Promise<void>;
   markLessonComplete: (courseId: string, lessonId: string) => Promise<void>;
   saveQuizScore: (courseId: string, quizId: string, score: number) => Promise<void>;
@@ -76,6 +78,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const [upcomingTests, setUpcomingTests] = useState<UpcomingTest[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEventRecord[]>([]);
   const [studySessions, setStudySessions] = useState<StudySessionRecord[]>([]);
+  const [purchasedCourses, setPurchasedCourses] = useState<PurchasedCourseRecord[]>([]);
 
   const resetState = () => {
     setCourses([]);
@@ -88,6 +91,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     setUpcomingTests([]);
     setCalendarEvents([]);
     setStudySessions([]);
+    setPurchasedCourses([]);
   };
 
   const refresh = async () => {
@@ -135,6 +139,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       setUpcomingTests(data.upcomingTests);
       setCalendarEvents(data.calendarEvents);
       setStudySessions(data.studySessions);
+      setPurchasedCourses(data.purchasedCourses);
 
       const updatedLeaderboard = DEFAULT_LEADERBOARD.map((entry) =>
         entry.name === "You" ? { ...entry, points: data.stats.totalPoints } : entry
@@ -293,6 +298,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         upcomingTests,
         calendarEvents,
         studySessions,
+        purchasedCourses,
         refresh,
         markLessonComplete,
         saveQuizScore,

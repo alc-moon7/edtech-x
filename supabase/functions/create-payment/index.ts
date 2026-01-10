@@ -69,6 +69,28 @@ serve(async (req) => {
       return jsonResponse(404, { error: "Course not found." });
     }
 
+    const { data: activePurchase, error: activeError } = await supabase
+      .from("purchased_courses")
+      .select("course_id,plan_id,expires_at")
+      .eq("user_id", user.id)
+      .eq("course_id", courseId)
+      .maybeSingle();
+
+    if (activeError) {
+      return jsonResponse(500, { error: activeError.message });
+    }
+
+    if (activePurchase) {
+      const expiresAt = activePurchase.expires_at ? new Date(activePurchase.expires_at) : null;
+      if (!expiresAt || expiresAt.getTime() > Date.now()) {
+        return jsonResponse(409, {
+          error: "Active subscription already exists.",
+          planId: activePurchase.plan_id ?? planId,
+          expiresAt: activePurchase.expires_at ?? null,
+        });
+      }
+    }
+
     const orderId = crypto.randomUUID();
     const tranId = `HS-${orderId.replace(/-/g, "").slice(0, 20)}`;
 
@@ -79,6 +101,7 @@ serve(async (req) => {
       amount,
       currency,
       status: "pending",
+      plan_id: planId,
     });
 
     if (orderError) {

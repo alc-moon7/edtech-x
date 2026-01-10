@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useTranslate } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useAuth } from "@/lib/auth";
+import { useStudent } from "@/lib/store";
 
 const navItems = [
   { label: { en: "Home", bn: "হোম" }, href: "/" },
@@ -20,7 +21,17 @@ export function MarketingNav() {
   const [profileOpen, setProfileOpen] = useState(false);
   const t = useTranslate();
   const { user, signOut } = useAuth();
+  const { purchasedCourses } = useStudent();
   const navigate = useNavigate();
+  const nowMs = Date.now();
+  const hasActiveSubscription = purchasedCourses.some((purchase) => {
+    if (!purchase.expires_at) return true;
+    const expiry = new Date(purchase.expires_at).getTime();
+    return Number.isFinite(expiry) && expiry > nowMs;
+  });
+  const premiumLabel = hasActiveSubscription
+    ? t({ en: "Premium account", bn: "প্রিমিয়াম অ্যাকাউন্ট" })
+    : t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" });
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || t({ en: "Student", bn: "শিক্ষার্থী" });
 
   const handleLogout = async () => {
@@ -64,19 +75,27 @@ export function MarketingNav() {
                 <Button
                   className="h-9 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
                 >
-                  {t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" })}
+                  {premiumLabel}
                 </Button>
               </Link>
             </>
           ) : (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setProfileOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50"
-                aria-haspopup="menu"
-                aria-expanded={profileOpen}
-              >
+            <div className="flex items-center gap-2">
+              <Link to="/pricing">
+                <Button
+                  className="h-9 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
+                >
+                  {premiumLabel}
+                </Button>
+              </Link>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((prev) => !prev)}
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50"
+                  aria-haspopup="menu"
+                  aria-expanded={profileOpen}
+                >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
                   <User className="h-4 w-4" />
                 </span>
@@ -97,7 +116,7 @@ export function MarketingNav() {
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                     onClick={() => setProfileOpen(false)}
                   >
-                    {t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" })}
+                    {premiumLabel}
                   </Link>
                   <button
                     type="button"
@@ -110,6 +129,7 @@ export function MarketingNav() {
                 </div>
               )}
             </div>
+          </div>
           )}
         </div>
 
@@ -148,7 +168,7 @@ export function MarketingNav() {
                 </Link>
                 <Link to="/pricing" onClick={() => setOpen(false)}>
                   <Button className="w-full rounded-full bg-[#F3AB36] text-xs font-semibold text-black">
-                    {t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" })}
+                    {premiumLabel}
                   </Button>
                 </Link>
               </>
@@ -161,7 +181,7 @@ export function MarketingNav() {
                 </Link>
                 <Link to="/pricing" onClick={() => setOpen(false)}>
                   <Button className="w-full rounded-full bg-[#F3AB36] text-xs font-semibold text-black">
-                    {t({ en: "Get Premium", bn: "প্রিমিয়াম নিন" })}
+                    {premiumLabel}
                   </Button>
                 </Link>
                 <Button

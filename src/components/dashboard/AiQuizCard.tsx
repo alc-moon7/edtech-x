@@ -28,11 +28,18 @@ type AiQuizCardProps = {
 export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { courses } = useStudent();
+    const { courses, purchasedCourses } = useStudent();
     const { language } = useLanguage();
     const t = useTranslate();
     const isHome = context === "home";
+    const nowMs = Date.now();
+    const hasActiveSubscription = purchasedCourses.some((purchase) => {
+        if (!purchase.expires_at) return true;
+        const expiry = new Date(purchase.expires_at).getTime();
+        return Number.isFinite(expiry) && expiry > nowMs;
+    });
     const isPremium =
+        hasActiveSubscription ||
         user?.user_metadata?.is_premium === true ||
         user?.user_metadata?.premium === true ||
         user?.user_metadata?.plan === "premium" ||
