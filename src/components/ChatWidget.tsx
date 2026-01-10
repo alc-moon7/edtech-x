@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { invokeEdgeFunction } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -14,7 +14,7 @@ const ERROR_MESSAGE = "AI reply failed. Please try again.";
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: "Hi! I’m Homeschool AI. Ask me anything about this site." },
+    { role: "assistant", content: "Hi! I'm Homeschool AI. Ask me anything about this site." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,11 +30,9 @@ export function ChatWidget() {
       setError(null);
 
       try {
-        const { data, error } = await supabase.functions.invoke("site-chat", {
-          body: {
-            message: text,
-            history: messages.slice(-6), // recent history
-          },
+        const { data, error } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
+          message: text,
+          history: messages.slice(-6), // recent history
         });
 
         if (error || !data?.reply) {

@@ -22,7 +22,7 @@ import { useLanguage, useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
-import { supabase } from "@/lib/supabaseClient";
+import { invokeEdgeFunction } from "@/lib/supabaseClient";
 import { startCourseCheckout } from "@/lib/payments";
 
 type TabKey = "brainbite" | "lesson" | "quiz";
@@ -49,6 +49,9 @@ function getChapterDurationMinutes(lessons: { durationMinutes?: number }[], fall
 }
 
 async function parseFunctionError(error: unknown) {
+  if (error && typeof error === "object" && "error" in error) {
+    return error as Record<string, unknown>;
+  }
   const context = (error as { context?: { response?: Response } }).context;
   if (!context?.response) return null;
   const response = context.response.clone();
@@ -122,14 +125,12 @@ function BrainBitePanel({
       "End with a gentle prompt question.",
     ].join(" ");
 
-    const { data, error: fnError } = await supabase.functions.invoke("site-chat", {
-      body: {
-        message: prompt,
-        mode: "brainbite",
-        subject,
-        chapter,
-        classLevel,
-      },
+    const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
+      message: prompt,
+      mode: "brainbite",
+      subject,
+      chapter,
+      classLevel,
     });
 
     if (fnError || !data?.reply) {
@@ -214,15 +215,13 @@ function LessonGeneratorPanel({
     setMessages(nextHistory);
     setInput("");
 
-    const { data, error: fnError } = await supabase.functions.invoke("site-chat", {
-      body: {
-        message: trimmed,
-        history: nextHistory,
-        mode: "lesson",
-        subject,
-        chapter,
-        classLevel,
-      },
+    const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
+      message: trimmed,
+      history: nextHistory,
+      mode: "lesson",
+      subject,
+      chapter,
+      classLevel,
     });
 
     if (fnError || !data?.reply) {
@@ -315,15 +314,13 @@ function QuizGeneratorPanel({
     if (!selectedChapter || disabled) return;
     setLoading(true);
     setError(null);
-    const { data, error: fnError } = await supabase.functions.invoke("generate-quiz", {
-      body: {
-        subject,
-        chapter: selectedChapter.title,
-        classLevel,
-        language,
-        count: 10,
-        difficulty: "medium",
-      },
+    const { data, error: fnError } = await invokeEdgeFunction<{ questions?: QuizQuestion[] }>("generate-quiz", {
+      subject,
+      chapter: selectedChapter.title,
+      classLevel,
+      language,
+      count: 10,
+      difficulty: "medium",
     });
 
     if (fnError) {

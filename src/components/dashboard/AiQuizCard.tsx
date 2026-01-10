@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
-import { supabase } from "@/lib/supabaseClient";
+import { invokeEdgeFunction } from "@/lib/supabaseClient";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
@@ -117,19 +117,20 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
         setError(null);
 
         const resolvedClassLevel = isHome ? classLevel : selectedCourse.class ?? classLevel;
-        const { data, error: fnError } = await supabase.functions.invoke("generate-quiz", {
-            body: {
-                subject: selectedCourse.title,
-                chapter: selectedChapter.title,
-                classLevel: resolvedClassLevel,
-                language,
-                count: 10,
-                difficulty: "medium",
-            },
+        const { data, error: fnError } = await invokeEdgeFunction<{ questions?: QuizQuestion[] }>("generate-quiz", {
+            subject: selectedCourse.title,
+            chapter: selectedChapter.title,
+            classLevel: resolvedClassLevel,
+            language,
+            count: 10,
+            difficulty: "medium",
         });
 
         if (fnError) {
-            setError(fnError.message);
+            const message =
+                (fnError as { error?: string }).error ??
+                t({ en: "Quiz generation failed. Please try again.", bn: "Quiz generation failed. Please try again." });
+            setError(message);
             setLoading(false);
             return;
         }

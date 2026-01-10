@@ -5,7 +5,7 @@ import { MarketingShell } from "@/components/MarketingShell";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useLanguage, useTranslate, type TranslationValue } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabaseClient";
+import { invokeEdgeFunction } from "@/lib/supabaseClient";
 
 type Translate = ReturnType<typeof useTranslate>;
 
@@ -344,6 +344,9 @@ function NctbAsk({ t }: { t: Translate }) {
   ];
 
   const parseFunctionError = async (fnError: unknown) => {
+    if (fnError && typeof fnError === "object" && "error" in fnError) {
+      return fnError as Record<string, unknown>;
+    }
     const context = (fnError as { context?: { response?: Response } }).context;
     if (!context?.response) return null;
     const response = context.response.clone();
@@ -362,13 +365,11 @@ function NctbAsk({ t }: { t: Translate }) {
     setAnswer(null);
     setLimitReached(false);
 
-    const { data, error: fnError } = await supabase.functions.invoke("nctb-qa", {
-      body: {
-        question: trimmed,
-        classLevel,
-        subject,
-        language,
-      },
+    const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("nctb-qa", {
+      question: trimmed,
+      classLevel,
+      subject,
+      language,
     });
 
     if (fnError || !data?.reply) {
