@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { getSupabaseAdmin } from "../_shared/supabase.ts";
 import { getSslcommerzValidationUrl } from "../_shared/sslcommerz.ts";
 
-const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschoo.moonx.dev";
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschool.moonx.dev";
 
 function redirect(url: string) {
   return new Response(null, { status: 302, headers: { Location: url } });

@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { getSupabaseAdmin } from "../_shared/supabase.ts";
 
-const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschoo.moonx.dev";
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschool.moonx.dev";
 
 async function readPayload(req: Request) {
   const contentType = req.headers.get("content-type") ?? "";

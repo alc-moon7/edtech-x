@@ -10,7 +10,7 @@ type CreatePaymentPayload = {
   currency?: string;
 };
 
-const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschoo.moonx.dev";
+const SITE_URL = Deno.env.get("SITE_URL") ?? "https://homeschool.moonx.dev";
 const PLAN_PRICES: Record<string, number> = {
   standard: 299,
   premium: 499,
