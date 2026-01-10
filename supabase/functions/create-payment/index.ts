@@ -45,6 +45,13 @@ serve(async (req) => {
       return jsonResponse(400, { error: "courseId and plan are required." });
     }
 
+    const rawPhone =
+      (user.user_metadata?.phone as string | undefined) ??
+      (user.phone as string | undefined) ??
+      "";
+    const sanitizedPhone = rawPhone.replace(/[^\d]/g, "");
+    const customerPhone = sanitizedPhone.length >= 10 ? sanitizedPhone : "01700000000";
+
     const storeId = Deno.env.get("SSLCOMMERZ_STORE_ID");
     const storePassword = Deno.env.get("SSLCOMMERZ_STORE_PASSWORD");
     if (!storeId || !storePassword) {
@@ -93,6 +100,7 @@ serve(async (req) => {
       product_profile: "general",
       cus_name: user.user_metadata?.full_name ?? user.email ?? "Student",
       cus_email: user.email ?? "student@example.com",
+      cus_phone: customerPhone,
       cus_add1: "N/A",
       cus_city: "N/A",
       cus_country: "Bangladesh",
