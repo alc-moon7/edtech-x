@@ -87,23 +87,21 @@ async function checkAndIncrementUsage(
 }
 
 function buildSystemPrompt(language: "en" | "bn", classLevel: string, subject: string) {
-  if (language === "bn") {
-    return [
-      `???? Homeschool AI, ${classLevel} ?? ${subject} ?????? ????? ??????`,
-      "??????? ??????? ???????? ????? ???? ??????? ????",
-      "???????? ?? ????? ?? ?????? ?? ??? ??????????? ?????? ???????? ????",
-      "??? ?????? ???????? ???, ??? ??? ????? ????? ????? ?????? ?????????",
-      "????? ?????????, ???????? ? ??????????? ?????",
-    ].join(" ");
-  }
-
-  return [
-    `You are Homeschool AI, a helpful tutor for ${classLevel} ${subject}.`,
-    "Use the provided textbook context when it is relevant and sufficient.",
-    "If context is missing or not enough, answer with a concise subject-based explanation.",
-    "When you go beyond the context, mention it is a general explanation (not from the book).",
+  const languageLine = language === "bn" ? "Respond in Bangla." : "Respond in English.";
+  const base = [
+    `You are Homeschool AI for Bangladesh NCTB ${classLevel} ${subject}.`,
+    "Answer ONLY from the NCTB curriculum for the given class and subject.",
+    "If the question is outside the syllabus, say it is outside the NCTB syllabus.",
+    "Format your reply as: Answer: <short answer> then Notes: with 3-5 bullet points.",
+    languageLine,
     "Keep answers short, clear, and student-friendly.",
   ].join(" ");
+
+  if (language === "bn") {
+    return base;
+  }
+
+  return base;
 }
 
 serve(async (req) => {
@@ -129,12 +127,18 @@ serve(async (req) => {
 
     const payload = (await req.json()) as QaPayload;
     const question = (payload.question ?? "").trim();
-    const classLevel = (payload.classLevel ?? "Class 6").trim();
-    const subject = (payload.subject ?? "General subject").trim() || "General subject";
+    const classLevel = (payload.classLevel ?? "").trim();
+    const subject = (payload.subject ?? "").trim();
     const language = payload.language === "bn" ? "bn" : "en";
 
     if (!question) {
       return new Response(JSON.stringify({ error: "Question is required." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!classLevel || !subject) {
+      return new Response(JSON.stringify({ error: "Class and subject are required." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -220,20 +224,18 @@ serve(async (req) => {
       }),
     });
 
-    if (!matchRes.ok) {
+    let chunks: ChunkRow[] = [];
+    if (matchRes.ok) {
+      chunks = (await matchRes.json()) as ChunkRow[];
+    } else {
       const errorText = await matchRes.text();
-      return new Response(JSON.stringify({ error: "Chunk search failed.", details: errorText }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.warn("Chunk search failed, falling back to direct answer.", errorText);
     }
-
-    const chunks = (await matchRes.json()) as ChunkRow[];
     const normalizedSubject = subject.toLowerCase();
-    const subjectChunks = normalizedSubject
-      ? chunks.filter((chunk) => chunk.subject?.toLowerCase().includes(normalizedSubject))
-      : [];
-    const selectedChunks = subjectChunks.length ? subjectChunks : chunks;
+    const subjectChunks = chunks.filter((chunk) =>
+      chunk.subject?.toLowerCase().includes(normalizedSubject)
+    );
+    const selectedChunks = subjectChunks.length ? subjectChunks : [];
 
     const context = selectedChunks
       .filter((chunk) => chunk?.content)
