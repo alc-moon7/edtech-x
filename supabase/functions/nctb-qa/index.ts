@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { getSupabaseAdmin, getUserFromRequest } from "../_shared/supabase.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,7 @@ const corsHeaders = {
 type QaPayload = {
   question?: string;
   classLevel?: string;
+  subject?: string;
   language?: "en" | "bn";
 };
 
@@ -20,24 +22,90 @@ type ChunkRow = {
   similarity: number;
 };
 
-const EMBEDDING_MODEL = "text-embedding-3-small";
+const EMBEDDING_MODEL = "text-embedding-3-large";
 const CHAT_MODEL = Deno.env.get("OPENAI_MODEL") ?? "gpt-4o-mini";
+const DAILY_LIMIT = 3;
+const USAGE_TYPE = "home_qa";
 
-function buildSystemPrompt(language: "en" | "bn") {
+function getBangladeshDateKey() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
+  const bd = new Date(utcMs + 6 * 60 * 60 * 1000);
+  return bd.toISOString().slice(0, 10);
+}
+
+async function isPremiumUser(supabaseAdmin: ReturnType<typeof getSupabaseAdmin>, userId: string) {
+  const { count, error } = await supabaseAdmin
+    .from("purchased_courses")
+    .select("course_id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Premium check failed", error);
+    return false;
+  }
+
+  return (count ?? 0) > 0;
+}
+
+async function checkAndIncrementUsage(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string
+) {
+  const usageDate = getBangladeshDateKey();
+  const { data, error } = await supabaseAdmin
+    .from("ai_usage")
+    .select("count")
+    .eq("user_id", userId)
+    .eq("usage_date", usageDate)
+    .eq("usage_type", USAGE_TYPE)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Usage lookup failed", error);
+    throw new Error("Usage lookup failed");
+  }
+
+  const current = data?.count ?? 0;
+  if (current >= DAILY_LIMIT) {
+    return { allowed: false, count: current };
+  }
+
+  const { error: upsertError } = await supabaseAdmin.from("ai_usage").upsert(
+    {
+      user_id: userId,
+      usage_date: usageDate,
+      usage_type: USAGE_TYPE,
+      count: current + 1,
+    },
+    { onConflict: "user_id,usage_date,usage_type" }
+  );
+
+  if (upsertError) {
+    console.error("Usage update failed", upsertError);
+    throw new Error("Usage update failed");
+  }
+
+  return { allowed: true, count: current + 1 };
+}
+
+function buildSystemPrompt(language: "en" | "bn", classLevel: string, subject: string) {
   if (language === "bn") {
     return [
-      "তুমি NCTB Class 6 বইয়ের সহায়ক।",
-      "শুধু দেওয়া context থেকে উত্তর দেবে।",
-      "context এ উত্তর না থাকলে বলবে: “এই প্রশ্নের উত্তর বইয়ে পাইনি।”",
-      "উত্তর সংক্ষিপ্ত ও পরিষ্কার হবে।",
+      `???? Homeschool AI, ${classLevel} ?? ${subject} ?????? ????? ??????`,
+      "??????? ??????? ???????? ????? ???? ??????? ????",
+      "???????? ?? ????? ?? ?????? ?? ??? ??????????? ?????? ???????? ????",
+      "??? ?????? ???????? ???, ??? ??? ????? ????? ????? ?????? ?????????",
+      "????? ?????????, ???????? ? ??????????? ?????",
     ].join(" ");
   }
 
   return [
-    "You are a helpful assistant for NCTB Class 6 textbooks.",
-    "Answer strictly from the provided context.",
-    "If the answer is not in the context, say: “I couldn’t find this in the Class 6 books.”",
-    "Keep the reply concise and clear.",
+    `You are Homeschool AI, a helpful tutor for ${classLevel} ${subject}.`,
+    "Use the provided textbook context when it is relevant and sufficient.",
+    "If context is missing or not enough, answer with a concise subject-based explanation.",
+    "When you go beyond the context, mention it is a general explanation (not from the book).",
+    "Keep answers short, clear, and student-friendly.",
   ].join(" ");
 }
 
@@ -54,9 +122,18 @@ serve(async (req) => {
   }
 
   try {
+    const { user, error: authError } = await getUserFromRequest(req);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const payload = (await req.json()) as QaPayload;
     const question = (payload.question ?? "").trim();
     const classLevel = (payload.classLevel ?? "Class 6").trim();
+    const subject = (payload.subject ?? "General subject").trim() || "General subject";
     const language = payload.language === "bn" ? "bn" : "en";
 
     if (!question) {
@@ -67,14 +144,30 @@ serve(async (req) => {
     }
 
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!openAiKey || !supabaseUrl || !serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Missing server configuration." }), {
+    if (!openAiKey) {
+      return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const isPremium = await isPremiumUser(supabaseAdmin, user.id);
+
+    if (!isPremium) {
+      const usage = await checkAndIncrementUsage(supabaseAdmin, user.id);
+      if (!usage.allowed) {
+        return new Response(
+          JSON.stringify({
+            error: "Daily limit reached. Upgrade your plan to continue.",
+            code: "DAILY_LIMIT",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     const embeddingRes = await fetch("https://api.openai.com/v1/embeddings", {
@@ -106,6 +199,15 @@ serve(async (req) => {
       });
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !serviceRoleKey) {
+      return new Response(JSON.stringify({ error: "Missing server configuration." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const matchRes = await fetch(`${supabaseUrl}/rest/v1/rpc/match_nctb_chunks`, {
       method: "POST",
       headers: {
@@ -130,7 +232,13 @@ serve(async (req) => {
     }
 
     const chunks = (await matchRes.json()) as ChunkRow[];
-    const context = chunks
+    const normalizedSubject = subject.toLowerCase();
+    const subjectChunks = normalizedSubject
+      ? chunks.filter((chunk) => chunk.subject?.toLowerCase().includes(normalizedSubject))
+      : [];
+    const selectedChunks = subjectChunks.length ? subjectChunks : chunks;
+
+    const context = selectedChunks
       .filter((chunk) => chunk?.content)
       .map((chunk, index) => {
         const book = chunk.book_name ?? "NCTB";
@@ -140,19 +248,14 @@ serve(async (req) => {
       .join("\n\n")
       .slice(0, 6000);
 
-    if (!context.trim()) {
-      const fallback =
-        language === "bn"
-          ? "এই প্রশ্নের উত্তর বইয়ে পাইনি।"
-          : "I couldn’t find this in the Class 6 books.";
-      return new Response(JSON.stringify({ reply: fallback }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const system = buildSystemPrompt(language);
-    const user = `Question: ${question}\n\nContext:\n${context}\n\nAnswer:`;
+    const system = buildSystemPrompt(language, classLevel, subject);
+    const userPrompt = [
+      `Question: ${question}`,
+      `Class level: ${classLevel}`,
+      `Subject: ${subject}`,
+      `Context:\n${context || "(none)"}`,
+      "Answer:",
+    ].join("\n\n");
 
     const completion = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -164,7 +267,7 @@ serve(async (req) => {
         model: CHAT_MODEL,
         messages: [
           { role: "system", content: system },
-          { role: "user", content: user },
+          { role: "user", content: userPrompt },
         ],
         max_tokens: 350,
         temperature: 0.3,

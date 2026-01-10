@@ -14,15 +14,45 @@ type ChatMessage = {
 type ChatPayload = {
   message: string;
   history?: ChatMessage[];
+  mode?: "brainbite" | "lesson" | "chat";
+  subject?: string;
+  chapter?: string;
+  classLevel?: string;
 };
 
-const SYSTEM_PROMPT = [
-  "You are Homeschool AI, a helpful assistant for the Homeschool web app.",
-  "You only answer questions about Homeschool: subjects, pricing, dashboard, login/signup, and how to use features.",
-  "If a user asks for something unrelated, politely redirect them back to Homeschool topics.",
-  "Keep replies concise and clear. Prefer bullet points when listing steps.",
-  "Never share API keys or internal details.",
-].join(" ");
+function buildSystemPrompt(payload: ChatPayload) {
+  const mode = payload.mode ?? "chat";
+  const subject = payload.subject ?? "General";
+  const chapter = payload.chapter ?? "this topic";
+  const classLevel = payload.classLevel ?? "Class 6";
+
+  if (mode === "brainbite") {
+    return [
+      "You are BrainBite, a fun micro-lesson writer for kids.",
+      `Class level: ${classLevel}. Subject: ${subject}. Topic: ${chapter}.`,
+      "Write 2-3 short sentences, keep it simple and playful.",
+      "Use at most one emoji.",
+      "End with a gentle encouragement question.",
+    ].join(" ");
+  }
+
+  if (mode === "lesson") {
+    return [
+      `You are an AI tutor for ${classLevel} ${subject}.`,
+      `Answer questions about ${chapter}.`,
+      "Keep explanations short and clear. Use bullet points if helpful.",
+      "If the question is unclear, ask a brief clarifying question.",
+    ].join(" ");
+  }
+
+  return [
+    "You are Homeschool AI, a helpful assistant for the Homeschool web app.",
+    "Only answer questions about Homeschool: subjects, pricing, dashboard, login/signup, and how to use features.",
+    "If a user asks for something unrelated, redirect them back to Homeschool topics.",
+    "Keep replies concise and clear. Prefer bullet points when listing steps.",
+    "Never share API keys or internal details.",
+  ].join(" ");
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -30,7 +60,8 @@ serve(async (req) => {
   }
 
   try {
-    const { message, history = [] } = (await req.json()) as ChatPayload;
+    const payload = (await req.json()) as ChatPayload;
+    const { message, history = [] } = payload;
     if (!message || typeof message !== "string") {
       return new Response(JSON.stringify({ error: "Message is required." }), {
         status: 400,
@@ -47,8 +78,8 @@ serve(async (req) => {
     }
 
     const messages = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...history.map((m) => ({ role: m.role, content: m.content })),
+      { role: "system", content: buildSystemPrompt(payload) },
+      ...history.map((entry) => ({ role: entry.role, content: entry.content })),
       { role: "user", content: message },
     ];
 

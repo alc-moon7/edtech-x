@@ -1,10 +1,79 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { getSupabaseAdmin, getUserFromRequest } from "../_shared/supabase.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+const DAILY_LIMIT = 3;
+const USAGE_TYPE = "quiz";
+
+function getBangladeshDateKey() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
+  const bd = new Date(utcMs + 6 * 60 * 60 * 1000);
+  return bd.toISOString().slice(0, 10);
+}
+
+async function isPremiumUser(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string
+) {
+  const { count, error } = await supabaseAdmin
+    .from("purchased_courses")
+    .select("course_id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Premium check failed", error);
+    return false;
+  }
+
+  return (count ?? 0) > 0;
+}
+
+async function checkAndIncrementUsage(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string
+) {
+  const usageDate = getBangladeshDateKey();
+  const { data, error } = await supabaseAdmin
+    .from("ai_usage")
+    .select("count")
+    .eq("user_id", userId)
+    .eq("usage_date", usageDate)
+    .eq("usage_type", USAGE_TYPE)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Usage lookup failed", error);
+    throw new Error("Usage lookup failed");
+  }
+
+  const current = data?.count ?? 0;
+  if (current >= DAILY_LIMIT) {
+    return { allowed: false, count: current };
+  }
+
+  const { error: upsertError } = await supabaseAdmin.from("ai_usage").upsert(
+    {
+      user_id: userId,
+      usage_date: usageDate,
+      usage_type: USAGE_TYPE,
+      count: current + 1,
+    },
+    { onConflict: "user_id,usage_date,usage_type" }
+  );
+
+  if (upsertError) {
+    console.error("Usage update failed", upsertError);
+    throw new Error("Usage update failed");
+  }
+
+  return { allowed: true, count: current + 1 };
+}
 
 type QuizQuestion = {
   id: string;
@@ -240,6 +309,32 @@ serve(async (req) => {
   }
 
   try {
+    const { user, error: authError } = await getUserFromRequest(req);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const isPremium = await isPremiumUser(supabaseAdmin, user.id);
+    if (!isPremium) {
+      const usage = await checkAndIncrementUsage(supabaseAdmin, user.id);
+      if (!usage.allowed) {
+        return new Response(
+          JSON.stringify({
+            error: "Daily limit reached. Upgrade your plan to continue.",
+            code: "DAILY_LIMIT",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
     const payload = (await req.json()) as GenerateQuizPayload;
     const language = payload.language === "bn" ? "bn" : "en";
     const count = Math.max(1, payload.count ?? 10);

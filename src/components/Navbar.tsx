@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -9,7 +9,6 @@ import {
   User,
   BookOpen,
   CalendarDays,
-  Brain,
   LineChart,
   LogOut,
   Settings,
@@ -22,22 +21,17 @@ import { cn } from "@/lib/utils";
 
 const mobileNavItems = [
   {
-    title: { en: "Class", bn: "শ্রেণি" },
+    title: { en: "Class", bn: "??????" },
     href: "/courses",
     icon: BookOpen,
   },
   {
-    title: { en: "Schedule", bn: "সময়সূচি" },
+    title: { en: "Schedule", bn: "????????" },
     href: "/live-classes",
     icon: CalendarDays,
   },
   {
-    title: { en: "AI Tutor", bn: "এআই টিউটর" },
-    href: "/help",
-    icon: Brain,
-  },
-  {
-    title: { en: "Progress", bn: "প্রোগ্রেস" },
+    title: { en: "Progress", bn: "?????????" },
     href: "/progress",
     icon: LineChart,
   },
@@ -51,8 +45,8 @@ export function Navbar() {
   const displayName =
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
-    t({ en: "Student", bn: "শিক্ষার্থী" });
-  const displayClass = user?.user_metadata?.class || t({ en: "Class", bn: "শ্রেণি" });
+    t({ en: "Student", bn: "??????????" });
+  const displayClass = user?.user_metadata?.class || t({ en: "Class", bn: "??????" });
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,7 +62,7 @@ export function Navbar() {
             type="button"
             onClick={() => setMobileOpen(true)}
             className="md:hidden text-muted-foreground hover:text-foreground"
-            aria-label={t({ en: "Open sidebar", bn: "সাইডবার খুলুন" })}
+            aria-label={t({ en: "Open sidebar", bn: "??????? ?????" })}
             aria-expanded={mobileOpen}
             aria-controls="dashboard-mobile-menu"
           >
@@ -78,8 +72,8 @@ export function Navbar() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
               type="search"
-              placeholder={t({ en: "Search courses...", bn: "কোর্স খুঁজুন..." })}
-              aria-label={t({ en: "Search courses", bn: "কোর্স খুঁজুন" })}
+              placeholder={t({ en: "Search courses...", bn: "????? ??????..." })}
+              aria-label={t({ en: "Search courses", bn: "????? ??????" })}
               className="h-9 w-64 rounded-xl border border-border bg-accent/50 py-2 pl-9 pr-4 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -90,7 +84,7 @@ export function Navbar() {
           <button
             type="button"
             className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-            aria-label={t({ en: "Notifications", bn: "নোটিফিকেশন" })}
+            aria-label={t({ en: "Notifications", bn: "??????????" })}
           >
             <Bell className="h-5 w-5" />
             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
@@ -104,7 +98,7 @@ export function Navbar() {
             <button
               type="button"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all border border-primary/20"
-              aria-label={t({ en: "User menu", bn: "ইউজার মেনু" })}
+              aria-label={t({ en: "User menu", bn: "????? ????" })}
             >
               <User className="h-5 w-5" />
             </button>
@@ -122,7 +116,7 @@ export function Navbar() {
           type="button"
           className="absolute inset-0 bg-slate-900/30"
           onClick={() => setMobileOpen(false)}
-          aria-label={t({ en: "Close menu", bn: "মেনু বন্ধ করুন" })}
+          aria-label={t({ en: "Close menu", bn: "???? ???? ????" })}
         />
         <div className="relative h-full w-72 bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
@@ -133,7 +127,7 @@ export function Navbar() {
               type="button"
               className="rounded-full p-1 text-slate-500 hover:bg-slate-100"
               onClick={() => setMobileOpen(false)}
-              aria-label={t({ en: "Close menu", bn: "মেনু বন্ধ করুন" })}
+              aria-label={t({ en: "Close menu", bn: "???? ???? ????" })}
             >
               <X className="h-5 w-5" />
             </button>
@@ -166,7 +160,7 @@ export function Navbar() {
 
           <div className="border-t border-slate-200 px-4 py-4">
             <div className="mb-3 text-xs text-slate-500">
-              {t({ en: "Signed in as", bn: "সাইন ইন করেছেন" })}: {displayName}
+              {t({ en: "Signed in as", bn: "???? ?? ??????" })}: {displayName}
             </div>
             <NavLink
               to="/settings"
@@ -182,7 +176,7 @@ export function Navbar() {
               }
             >
               <Settings className="h-5 w-5" />
-              {t({ en: "Settings", bn: "সেটিংস" })}
+              {t({ en: "Settings", bn: "??????" })}
             </NavLink>
             <button
               type="button"
@@ -190,7 +184,7 @@ export function Navbar() {
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="h-5 w-5" />
-              {t({ en: "Sign Out", bn: "সাইন আউট" })}
+              {t({ en: "Sign Out", bn: "???? ???" })}
             </button>
           </div>
         </div>
@@ -198,3 +192,4 @@ export function Navbar() {
     </>
   );
 }
+

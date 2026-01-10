@@ -9,121 +9,122 @@ import { useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { key: "all", label: { en: "All Class", bn: "সব ক্লাস" } },
-  { key: "ongoing", label: { en: "Ongoing Class", bn: "চলমান ক্লাস" } },
-  { key: "ended", label: { en: "Ended Class", bn: "শেষ হওয়া ক্লাস" } },
+  { key: "all", label: { en: "All Class", bn: "All Class" } },
+  { key: "ongoing", label: { en: "Ongoing Class", bn: "Ongoing Class" } },
+  { key: "ended", label: { en: "Ended Class", bn: "Ended Class" } },
 ];
 
 const classCards = [
   {
     key: "bangla",
-    title: { en: "Bangla", bn: "বাংলা" },
+    title: { en: "Bangla", bn: "Bangla" },
     status: "ongoing",
     cover: "from-emerald-600 via-emerald-500 to-emerald-700",
   },
   {
     key: "social",
-    title: { en: "Social Science", bn: "সমাজ বিজ্ঞান" },
+    title: { en: "Social Science", bn: "Social Science" },
     status: "ongoing",
     cover: "from-teal-600 via-cyan-500 to-emerald-600",
   },
   {
     key: "english-1",
-    title: { en: "English 1st Paper", bn: "ইংরেজি ১ম পত্র" },
+    title: { en: "English 1st Paper", bn: "English 1st Paper" },
     status: "ongoing",
     cover: "from-amber-600 via-orange-500 to-amber-700",
   },
   {
     key: "english-2",
-    title: { en: "English 2nd Paper", bn: "ইংরেজি ২য় পত্র" },
+    title: { en: "English 2nd Paper", bn: "English 2nd Paper" },
     status: "ongoing",
     cover: "from-emerald-600 via-lime-500 to-emerald-700",
   },
   {
     key: "math",
-    title: { en: "Mathematics", bn: "গণিত" },
+    title: { en: "Mathematics", bn: "Mathematics" },
     status: "ongoing",
     cover: "from-indigo-600 via-blue-500 to-indigo-700",
   },
   {
     key: "ict",
-    title: { en: "ICT", bn: "তথ্য ও যোগাযোগ প্রযুক্তি" },
+    title: { en: "ICT", bn: "ICT" },
     status: "ongoing",
     cover: "from-slate-600 via-slate-500 to-slate-700",
   },
   {
     key: "science",
-    title: { en: "Science", bn: "বিজ্ঞান" },
+    title: { en: "Science", bn: "Science" },
     status: "ongoing",
     cover: "from-emerald-700 via-emerald-600 to-emerald-800",
   },
   {
     key: "religion",
-    title: { en: "Religion & Ethics", bn: "ধর্ম ও নৈতিক শিক্ষা" },
+    title: { en: "Religion & Ethics", bn: "Religion & Ethics" },
     status: "ongoing",
     cover: "from-rose-600 via-rose-500 to-rose-700",
   },
   {
     key: "agriculture",
-    title: { en: "Agriculture Studies", bn: "কৃষি শিক্ষা" },
+    title: { en: "Agriculture Studies", bn: "Agriculture Studies" },
     status: "ongoing",
     cover: "from-green-700 via-green-600 to-emerald-700",
   },
   {
     key: "arts",
-    title: { en: "Fine Arts", bn: "চারু ও কারুকলা" },
+    title: { en: "Fine Arts", bn: "Fine Arts" },
     status: "ended",
     cover: "from-purple-600 via-purple-500 to-indigo-600",
   },
   {
     key: "civics",
-    title: { en: "Civics & Citizenship", bn: "পৌরনীতি ও নাগরিকতা" },
+    title: { en: "Civics & Citizenship", bn: "Civics & Citizenship" },
     status: "ended",
     cover: "from-yellow-700 via-yellow-600 to-orange-600",
   },
   {
     key: "geography",
-    title: { en: "Geography", bn: "ভূগোল" },
+    title: { en: "Geography", bn: "Geography" },
     status: "ended",
     cover: "from-sky-600 via-sky-500 to-blue-600",
   },
   {
     key: "health",
-    title: { en: "Health & Sports", bn: "স্বাস্থ্য ও শারীরিক শিক্ষা" },
+    title: { en: "Health & Sports", bn: "Health & Sports" },
     status: "ended",
     cover: "from-red-600 via-red-500 to-orange-600",
   },
   {
     key: "music",
-    title: { en: "Music", bn: "সংগীত" },
+    title: { en: "Music", bn: "Music" },
     status: "ended",
     cover: "from-amber-700 via-amber-600 to-yellow-600",
   },
   {
     key: "drawing",
-    title: { en: "Drawing", bn: "অঙ্কন" },
+    title: { en: "Drawing", bn: "Drawing" },
     status: "ended",
     cover: "from-lime-600 via-lime-500 to-green-600",
   },
   {
     key: "science-lab",
-    title: { en: "Science Lab", bn: "বিজ্ঞান গবেষণাগার" },
+    title: { en: "Science Lab", bn: "Science Lab" },
     status: "ended",
     cover: "from-blue-700 via-blue-600 to-indigo-700",
   },
   {
     key: "history",
-    title: { en: "History", bn: "ইতিহাস" },
+    title: { en: "History", bn: "History" },
     status: "ended",
     cover: "from-emerald-700 via-emerald-600 to-teal-700",
   },
   {
     key: "economics",
-    title: { en: "Economics", bn: "অর্থনীতি" },
+    title: { en: "Economics", bn: "Economics" },
     status: "ended",
     cover: "from-orange-700 via-orange-600 to-amber-700",
   },
 ];
+
 
 export default function CoursesPage() {
   const { user } = useAuth();
@@ -143,7 +144,7 @@ export default function CoursesPage() {
         classLabel: displayClass,
       }));
     }
-      return courses.map((course) => ({
+    return courses.map((course) => ({
       key: course.id,
       title: { en: course.title, bn: course.title },
       status: course.status ?? "ongoing",
@@ -152,6 +153,7 @@ export default function CoursesPage() {
       classLabel: course.class,
       isPurchased: course.isPurchased === true,
       isFree: course.isFree === true,
+      hasFreeChapter: course.chapters?.some((chapter) => chapter.isFree) ?? false,
     }));
   }, [courses, displayClass]);
 
@@ -241,10 +243,10 @@ export default function CoursesPage() {
                         to={`/courses/${card.courseId}`}
                         className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
                       >
-                        {card.isFree
-                          ? t({ en: "Start Free", bn: "Start Free" })
-                          : card.isPurchased
+                        {card.isPurchased
                             ? t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })
+                          : card.isFree || card.hasFreeChapter
+                            ? t({ en: "Start Free", bn: "Start Free" })
                             : t({ en: "Buy Course", bn: "কোর্স কিনুন" })}
                       </Link>
                     ) : (

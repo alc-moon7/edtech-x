@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
-import { formatDateKey } from "@/lib/date";
+import { formatDateKey, getBangladeshToday } from "@/lib/date";
 import {
   fetchDashboardData,
   type CalendarEventRecord,
@@ -160,11 +160,14 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
-    if (course && course.isPurchased === false) {
-      setError("Course not purchased.");
+    const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === lessonId);
+    const chapter = course?.chapters.find((item) => item.lessons.some((entry) => entry.id === lessonId));
+    const hasAccess = course?.isPurchased || course?.isFree || chapter?.isFree;
+
+    if (course && !hasAccess) {
+      setError("Chapter locked.");
       return;
     }
-    const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === lessonId);
     const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
 
     if (alreadyCompleted) return;
@@ -212,7 +215,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       user_id: user.id,
       subject_id: course?.subjectId ?? null,
       duration_minutes: durationMinutes,
-      session_date: formatDateKey(new Date()),
+      session_date: formatDateKey(getBangladeshToday()),
     });
 
     if (sessionError) {
@@ -238,11 +241,14 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
-    if (course && course.isPurchased === false) {
-      setError("Course not purchased.");
+    const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === quizId);
+    const chapter = course?.chapters.find((item) => item.lessons.some((entry) => entry.id === quizId));
+    const hasAccess = course?.isPurchased || course?.isFree || chapter?.isFree;
+
+    if (course && !hasAccess) {
+      setError("Chapter locked.");
       return;
     }
-    const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === quizId);
 
     const { error: quizError } = await supabase.from("quiz_attempts").insert({
       user_id: user.id,

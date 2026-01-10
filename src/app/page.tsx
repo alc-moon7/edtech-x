@@ -5,7 +5,6 @@ import { MarketingShell } from "@/components/MarketingShell";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useLanguage, useTranslate, type TranslationValue } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { AiQuizCard } from "@/components/dashboard/AiQuizCard";
 import { supabase } from "@/lib/supabaseClient";
 
 type Translate = ReturnType<typeof useTranslate>;
@@ -276,9 +275,6 @@ function AssistSection({ t }: { t: Translate }) {
           })}
         </p>
 
-        <div className="mt-8">
-          <AiQuizCard context="home" />
-        </div>
       </Section>
     </section>
   );
@@ -325,37 +321,46 @@ function NctbAsk({ t }: { t: Translate }) {
   const [answer, setAnswer] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
   const [classLevel, setClassLevel] = useState("");
   const [subject, setSubject] = useState("");
 
   const classOptions = [
-    { value: "Class 6", label: t({ en: "Class 6", bn: "ক্লাস ৬" }) },
-    { value: "Class 7", label: t({ en: "Class 7", bn: "ক্লাস ৭" }) },
-    { value: "Class 8", label: t({ en: "Class 8", bn: "ক্লাস ৮" }) },
-    { value: "Class 9", label: t({ en: "Class 9", bn: "ক্লাস ৯" }) },
-    { value: "Class 10", label: t({ en: "Class 10", bn: "ক্লাস ১০" }) },
-    { value: "Class 11", label: t({ en: "Class 11", bn: "ক্লাস ১১" }) },
-    { value: "Class 12", label: t({ en: "Class 12", bn: "ক্লাস ১২" }) },
+    { value: "Class 6", label: t({ en: "Class 6", bn: "Class 6" }) },
+    { value: "Class 7", label: t({ en: "Class 7", bn: "Class 7" }) },
+    { value: "Class 8", label: t({ en: "Class 8", bn: "Class 8" }) },
+    { value: "Class 9", label: t({ en: "Class 9", bn: "Class 9" }) },
+    { value: "Class 10", label: t({ en: "Class 10", bn: "Class 10" }) },
+    { value: "Class 11", label: t({ en: "Class 11", bn: "Class 11" }) },
+    { value: "Class 12", label: t({ en: "Class 12", bn: "Class 12" }) },
   ];
   const subjectOptions = [
-    { value: "Bangla", label: t({ en: "Bangla", bn: "বাংলা" }) },
-    { value: "English", label: t({ en: "English", bn: "ইংরেজি" }) },
-    { value: "Mathematics", label: t({ en: "Mathematics", bn: "গণিত" }) },
-    { value: "Science", label: t({ en: "Science", bn: "বিজ্ঞান" }) },
-    { value: "ICT", label: t({ en: "ICT", bn: "আইসিটি" }) },
-    { value: "Agriculture Studies", label: t({ en: "Agriculture Studies", bn: "কৃষি শিক্ষা" }) },
+    { value: "Bangla", label: t({ en: "Bangla", bn: "Bangla" }) },
+    { value: "English", label: t({ en: "English", bn: "English" }) },
+    { value: "Mathematics", label: t({ en: "Mathematics", bn: "Mathematics" }) },
+    { value: "Science", label: t({ en: "Science", bn: "Science" }) },
+    { value: "ICT", label: t({ en: "ICT", bn: "ICT" }) },
+    { value: "Agriculture Studies", label: t({ en: "Agriculture Studies", bn: "Agriculture Studies" }) },
   ];
+
+  const parseFunctionError = async (fnError: unknown) => {
+    const context = (fnError as { context?: { response?: Response } }).context;
+    if (!context?.response) return null;
+    const response = context.response.clone();
+    return response.json().catch(() => null);
+  };
 
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed) return;
     if (!classLevel || !subject) {
-      setError(t({ en: "Select class and subject first.", bn: "আগে ক্লাস ও বিষয় নির্বাচন করুন।" }));
+      setError(t({ en: "Select class and subject first.", bn: "Select class and subject first." }));
       return;
     }
     setLoading(true);
     setError(null);
     setAnswer(null);
+    setLimitReached(false);
 
     const { data, error: fnError } = await supabase.functions.invoke("nctb-qa", {
       body: {
@@ -367,7 +372,19 @@ function NctbAsk({ t }: { t: Translate }) {
     });
 
     if (fnError || !data?.reply) {
-      setError(t({ en: "AI reply failed. Please try again.", bn: "AI উত্তর পাওয়া যায়নি। আবার চেষ্টা করুন।" }));
+      const payload = await parseFunctionError(fnError);
+      if (payload?.code === "DAILY_LIMIT") {
+        setLimitReached(true);
+        setError(t({ en: "Daily limit reached. Upgrade your plan to continue.", bn: "Daily limit reached. Upgrade your plan to continue." }));
+      } else if (payload?.error === "Unauthorized") {
+        setError(t({ en: "Please sign in to use AI.", bn: "Please sign in to use AI." }));
+      } else {
+        setError(
+          payload?.error ||
+            fnError?.message ||
+            t({ en: "AI reply failed. Please try again.", bn: "AI reply failed. Please try again." })
+        );
+      }
     } else {
       setAnswer(data.reply as string);
     }
@@ -382,7 +399,7 @@ function NctbAsk({ t }: { t: Translate }) {
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder={t({ en: "Message Homeschool AI", bn: "হোমস্কুল এআই-কে প্রশ্ন করুন" })}
+            placeholder={t({ en: "Message Homeschool AI", bn: "Message Homeschool AI" })}
             rows={3}
             className="min-h-24 max-h-40 w-full resize-none overflow-y-auto overflow-x-hidden border-none text-sm leading-6 text-black placeholder:text-slate-400 focus:outline-none focus:ring-0 sm:max-h-48 sm:text-base"
             onKeyDown={(event) => {
@@ -404,7 +421,7 @@ function NctbAsk({ t }: { t: Translate }) {
                 }}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="">{t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}</option>
+                <option value="">{t({ en: "Select class", bn: "Select class" })}</option>
                 {classOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -421,7 +438,7 @@ function NctbAsk({ t }: { t: Translate }) {
                 }}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="">{t({ en: "Select subject", bn: "বিষয় নির্বাচন করুন" })}</option>
+                <option value="">{t({ en: "Select subject", bn: "Select subject" })}</option>
                 {subjectOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -435,7 +452,7 @@ function NctbAsk({ t }: { t: Translate }) {
             disabled={loading}
             onClick={handleAsk}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 disabled:opacity-60 sm:h-11 sm:w-11"
-            aria-label={t({ en: "Send message", bn: "বার্তা পাঠান" })}
+            aria-label={t({ en: "Send message", bn: "Send message" })}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 8-16 8 4-8-4-8z" />
@@ -443,8 +460,17 @@ function NctbAsk({ t }: { t: Translate }) {
           </button>
         </div>
       </div>
-      {loading && <p className="mt-2 text-xs text-slate-500">{t({ en: "Thinking...", bn: "চিন্তা করছে..." })}</p>}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {loading && <p className="mt-2 text-xs text-slate-500">{t({ en: "Thinking...", bn: "Thinking..." })}</p>}
+      {error && (
+        <div className="mt-2 space-y-1">
+          <p className="text-xs text-red-600">{error}</p>
+          {limitReached && (
+            <Link to="/pricing" className="text-xs font-semibold text-blue-600 hover:underline">
+              {t({ en: "Upgrade plan", bn: "Upgrade plan" })}
+            </Link>
+          )}
+        </div>
+      )}
       {answer && (
         <div className="mt-3 min-h-[8.5rem] max-h-[20rem] overflow-y-auto rounded-2xl bg-white/95 px-4 py-3 text-sm leading-6 text-slate-700 shadow-sm ring-1 ring-slate-100 sm:min-h-[10rem] sm:max-h-[22rem] sm:text-base">
           <p className="whitespace-pre-wrap break-words">{answer}</p>

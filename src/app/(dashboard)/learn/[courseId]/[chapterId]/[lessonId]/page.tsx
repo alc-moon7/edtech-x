@@ -36,17 +36,17 @@ export default function LessonPlayerPage() {
     const lessonId = params.lessonId as string;
 
     const course = courses.find((c) => c.id === courseId);
-    const isCoursePurchased = course?.isPurchased === true;
     const chapter = course?.chapters.find((ch) => ch.id === chapterId);
     const lesson = chapter?.lessons.find((l) => l.id === lessonId);
+    const hasAccess = course?.isPurchased || course?.isFree || chapter?.isFree;
 
-    if (course && !isCoursePurchased) {
+    if (course && !hasAccess) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center">
-                <h2 className="text-2xl font-bold mb-3">{t({ en: "Course locked", bn: "কোর্স লক করা আছে" })}</h2>
+                <h2 className="text-2xl font-bold mb-3">{t({ en: "Chapter locked", bn: "কোর্স লক করা আছে" })}</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                     {t({
-                        en: "Purchase this course to access lessons and quizzes.",
+                        en: "Upgrade your plan to unlock the next chapter.",
                         bn: "লেসন এবং কুইজ দেখতে কোর্সটি কিনুন।",
                     })}
                 </p>
@@ -282,3 +282,4 @@ export default function LessonPlayerPage() {
         </div>
     );
 }
+

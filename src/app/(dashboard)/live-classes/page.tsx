@@ -80,8 +80,6 @@ const WEEKDAY_LABELS = [
 ];
 
 function buildCalendarDays(events: CalendarEventRecord[], sessions: StudySessionRecord[]) {
-  if (!events.length && !sessions.length) return [];
-
   const today = getBangladeshToday();
   const year = today.getUTCFullYear();
   const month = today.getUTCMonth();

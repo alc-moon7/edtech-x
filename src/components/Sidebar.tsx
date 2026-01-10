@@ -1,29 +1,24 @@
-﻿"use client";
+"use client";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { BookOpen, Brain, CalendarDays, LineChart, LogOut, Settings } from "lucide-react";
+import { BookOpen, CalendarDays, LineChart, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
 
 const sidebarItems = [
   {
-    title: { en: "Class", bn: "শ্রেণি" },
+    title: { en: "Class", bn: "??????" },
     href: "/courses",
     icon: BookOpen,
   },
   {
-    title: { en: "Schedule", bn: "সময়সূচি" },
+    title: { en: "Schedule", bn: "????????" },
     href: "/live-classes",
     icon: CalendarDays,
   },
   {
-    title: { en: "AI Tutor", bn: "এআই টিউটর" },
-    href: "/help",
-    icon: Brain,
-  },
-  {
-    title: { en: "Progress", bn: "প্রোগ্রেস" },
+    title: { en: "Progress", bn: "?????????" },
     href: "/progress",
     icon: LineChart,
   },
@@ -36,7 +31,7 @@ export function Sidebar() {
   const displayName =
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
-    t({ en: "Student", bn: "শিক্ষার্থী" });
+    t({ en: "Student", bn: "??????????" });
 
   const handleSignOut = async () => {
     await signOut();
@@ -78,7 +73,7 @@ export function Sidebar() {
 
       <div className="border-t border-slate-200 p-4">
         <div className="mb-3 text-xs text-slate-500">
-          {t({ en: "Signed in as", bn: "সাইন ইন করেছেন" })}: {displayName}
+          {t({ en: "Signed in as", bn: "???? ?? ??????" })}: {displayName}
         </div>
         <NavLink
           to="/settings"
@@ -93,7 +88,7 @@ export function Sidebar() {
           }
         >
           <Settings className="h-5 w-5" />
-          {t({ en: "Settings", bn: "সেটিংস" })}
+          {t({ en: "Settings", bn: "??????" })}
         </NavLink>
         <button
           type="button"
@@ -101,9 +96,10 @@ export function Sidebar() {
           className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
         >
           <LogOut className="h-5 w-5" />
-          {t({ en: "Sign Out", bn: "সাইন আউট" })}
+          {t({ en: "Sign Out", bn: "???? ???" })}
         </button>
       </div>
     </div>
   );
 }
+

@@ -21,9 +21,19 @@ export type CourseRecord = {
   subject?: { id: string; name: string } | null;
 };
 
+export type ChapterRecord = {
+  id: string;
+  course_id: string;
+  title: string;
+  order_no: number;
+  is_free: boolean;
+  duration_minutes: number | null;
+};
+
 export type LessonRecord = {
   id: string;
   course_id: string;
+  chapter_id: string;
   title: string;
   order_no: number;
   type: "video" | "article" | "quiz";
@@ -81,6 +91,9 @@ export type CourseLesson = {
 export type CourseChapter = {
   id: string;
   title: string;
+  order?: number;
+  isFree?: boolean;
+  durationMinutes?: number;
   lessons: CourseLesson[];
 };
 
@@ -343,13 +356,19 @@ function buildProgressMap(
 
 function buildCourses(
   courses: CourseRecord[],
+  chapters: ChapterRecord[],
   lessons: LessonRecord[],
   enrollments: EnrollmentRecord[],
   purchasedCourses: PurchasedCourseRecord[]
 ) {
-  const lessonsByCourse = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
-    if (!acc[lesson.course_id]) acc[lesson.course_id] = [];
-    acc[lesson.course_id].push(lesson);
+  const lessonsByChapter = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
+    if (!acc[lesson.chapter_id]) acc[lesson.chapter_id] = [];
+    acc[lesson.chapter_id].push(lesson);
+    return acc;
+  }, {});
+  const chaptersByCourse = chapters.reduce<Record<string, ChapterRecord[]>>((acc, chapter) => {
+    if (!acc[chapter.course_id]) acc[chapter.course_id] = [];
+    acc[chapter.course_id].push(chapter);
     return acc;
   }, {});
   const enrollmentMap = new Map(enrollments.map((enrollment) => [enrollment.course_id, enrollment.status]));
@@ -358,21 +377,39 @@ function buildCourses(
   return courses.map((course) => {
     const subjectName = course.subject?.name ?? "";
     const style = getSubjectStyle(subjectName || course.title);
-    const courseLessons = (lessonsByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
+    const courseChapters = (chaptersByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
     const isFree = course.is_free ?? false;
     const isPurchased = purchasedSet.has(course.id) || isFree;
-    const chapter: CourseChapter = {
-      id: `${course.id}-main`,
-      title: "Course Content",
-      lessons: courseLessons.map((lesson) => ({
-        id: lesson.id,
-        title: lesson.title,
-        type: lesson.type,
-        duration: formatMinutes(lesson.duration_minutes),
-        durationMinutes: lesson.duration_minutes ?? undefined,
-        questions: lesson.quiz_question_count ?? undefined,
-      })),
-    };
+    const resolvedChapters = courseChapters.length
+      ? courseChapters
+      : [
+          {
+            id: `${course.id}-chapter-1`,
+            course_id: course.id,
+            title: "Chapter 1",
+            order_no: 1,
+            is_free: true,
+            duration_minutes: null,
+          } satisfies ChapterRecord,
+        ];
+    const chapterData: CourseChapter[] = resolvedChapters.map((chapter) => {
+      const chapterLessons = (lessonsByChapter[chapter.id] ?? []).sort((a, b) => a.order_no - b.order_no);
+      return {
+        id: chapter.id,
+        title: chapter.title,
+        order: chapter.order_no,
+        isFree: chapter.is_free ?? false,
+        durationMinutes: chapter.duration_minutes ?? undefined,
+        lessons: chapterLessons.map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          type: lesson.type,
+          duration: formatMinutes(lesson.duration_minutes),
+          durationMinutes: lesson.duration_minutes ?? undefined,
+          questions: lesson.quiz_question_count ?? undefined,
+        })),
+      };
+    });
 
     return {
       id: course.id,
@@ -387,7 +424,7 @@ function buildCourses(
       status: enrollmentMap.get(course.id),
       isPurchased,
       isFree,
-      chapters: [chapter],
+      chapters: chapterData,
     } satisfies CourseData;
   });
 }
@@ -547,10 +584,21 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const courseIds = (courses ?? []).map((course) => course.id);
 
+  const { data: chapters, error: chapterError } = courseIds.length
+    ? await supabase
+        .from("chapters")
+        .select("id,course_id,title,order_no,is_free,duration_minutes")
+        .in("course_id", courseIds)
+        .order("order_no", { ascending: true })
+    : { data: [], error: null };
+  if (chapterError) {
+    throw new Error(chapterError.message);
+  }
+
   const { data: lessons, error: lessonsError } = courseIds.length
     ? await supabase
         .from("lessons")
-        .select("id,course_id,title,order_no,type,duration_minutes,quiz_question_count")
+        .select("id,course_id,chapter_id,title,order_no,type,duration_minutes,quiz_question_count")
         .in("course_id", courseIds)
         .order("order_no", { ascending: true })
     : { data: [], error: null };
@@ -627,7 +675,13 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const calendarEvents = [...(classEvents ?? []), ...(globalEvents ?? [])];
   const progress = buildProgressMap(lessons ?? [], lessonProgress ?? [], quizAttempts ?? []);
-  const coursesData = buildCourses(courses ?? [], lessons ?? [], enrollments ?? [], purchasedCourses ?? []);
+  const coursesData = buildCourses(
+    courses ?? [],
+    chapters ?? [],
+    lessons ?? [],
+    enrollments ?? [],
+    purchasedCourses ?? []
+  );
   const subjectCards = buildSubjectCards(subjects ?? [], courses ?? [], lessons ?? [], lessonProgress ?? []);
   const performanceBars = buildPerformanceBars(subjects ?? [], quizAttempts ?? []);
   const weeklyActivity = calculateWeeklyActivity(studySessions ?? []);
