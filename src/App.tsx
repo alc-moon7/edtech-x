@@ -21,6 +21,7 @@ import CoursesPage from "@/app/(dashboard)/courses/page";
 import CourseDetailPage from "@/app/(dashboard)/courses/[courseId]/page";
 import ProgressPage from "@/app/(dashboard)/progress/page";
 import LiveClassesPage from "@/app/(dashboard)/live-classes/page";
+import HomeschoolAIPage from "@/app/(dashboard)/homeschool-ai/page";
 import SettingsPage from "@/app/(dashboard)/settings/page";
 import LessonPlayerPage from "@/app/(dashboard)/learn/[courseId]/[chapterId]/[lessonId]/page";
 import ParentDashboard from "@/app/(dashboard)/parent/page";
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="courses/:courseId" element={<CourseDetailPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="live-classes" element={<LiveClassesPage />} />
+            <Route path="homeschool-ai" element={<HomeschoolAIPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="learn/:courseId/:chapterId/:lessonId" element={<LessonPlayerPage />} />
             <Route path="parent" element={<ParentDashboard />} />

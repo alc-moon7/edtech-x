@@ -128,7 +128,7 @@ export default function SignupPage() {
         title={t({ en: "Create your account", bn: "আপনার অ্যাকাউন্ট তৈরি করুন" })}
         subtitle={t({ en: "Start your learning journey today", bn: "আজই আপনার শেখার যাত্রা শুরু করুন" })}
       >
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2">
           {errors.form && (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
               {errors.form}
@@ -144,7 +144,7 @@ export default function SignupPage() {
             <Button
               type="button"
               variant="outline"
-              className="h-11 justify-center gap-2 text-sm font-semibold"
+              className="h-10 justify-center gap-2 text-sm font-semibold"
               onClick={() => setShowComingSoon(true)}
             >
               📱 {t({ en: "Continue with Mobile", bn: "মোবাইল দিয়ে চালিয়ে যান" })}
@@ -157,8 +157,8 @@ export default function SignupPage() {
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
               <label htmlFor="full_name" className="text-sm font-medium text-slate-800">
                 {t({ en: "Full name *", bn: "পূর্ণ নাম *" })}
               </label>
@@ -171,7 +171,7 @@ export default function SignupPage() {
               />
               {errors.full_name && <p className="text-xs text-red-600">{errors.full_name}</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label htmlFor="email" className="text-sm font-medium text-slate-800">
                 {t({ en: "Email *", bn: "ইমেইল *" })}
               </label>
@@ -187,8 +187,8 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
               <label htmlFor="password" className="text-sm font-medium text-slate-800">
                 {t({ en: "Password *", bn: "পাসওয়ার্ড *" })}
               </label>
@@ -202,7 +202,7 @@ export default function SignupPage() {
               />
               {errors.password && <p className="text-xs text-red-600">{errors.password}</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-800">
                 {t({ en: "Confirm password *", bn: "পাসওয়ার্ড নিশ্চিত করুন *" })}
               </label>
@@ -218,8 +218,8 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
               <label htmlFor="school" className="text-sm font-medium text-slate-800">
                 {t({ en: "School *", bn: "স্কুল *" })}
               </label>
@@ -232,7 +232,7 @@ export default function SignupPage() {
               />
               {errors.school && <p className="text-xs text-red-600">{errors.school}</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label htmlFor="class_name" className="text-sm font-medium text-slate-800">
                 {t({ en: "Class *", bn: "ক্লাস *" })}
               </label>
@@ -241,7 +241,7 @@ export default function SignupPage() {
                 value={formData.class_name}
                 onChange={(event) => handleChange("class_name", event.target.value)}
                 aria-invalid={!!errors.class_name}
-                className="flex h-11 w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-100"
+                className="flex h-10 w-full rounded-xl border border-slate-200 bg-white/70 px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-100"
               >
                 <option value="">{t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}</option>
                 <option value="Class 6">{t({ en: "Class 6", bn: "ক্লাস ৬" })}</option>
@@ -256,8 +256,8 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
               <label htmlFor="section" className="text-sm font-medium text-slate-800">
                 {t({ en: "Section (optional)", bn: "সেকশন (ঐচ্ছিক)" })}
               </label>
@@ -270,7 +270,7 @@ export default function SignupPage() {
               />
               {errors.section && <p className="text-xs text-red-600">{errors.section}</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label htmlFor="student_id" className="text-sm font-medium text-slate-800">
                 {t({ en: "Student ID / Roll *", bn: "স্টুডেন্ট আইডি / রোল *" })}
               </label>
@@ -285,8 +285,8 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div className="space-y-1">
               <label htmlFor="guardian_name" className="text-sm font-medium text-slate-800">
                 {t({ en: "Guardian name *", bn: "অভিভাবকের নাম *" })}
               </label>
@@ -299,7 +299,7 @@ export default function SignupPage() {
               />
               {errors.guardian_name && <p className="text-xs text-red-600">{errors.guardian_name}</p>}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <label htmlFor="phone" className="text-sm font-medium text-slate-800">
                 {t({ en: "Phone *", bn: "ফোন *" })}
               </label>

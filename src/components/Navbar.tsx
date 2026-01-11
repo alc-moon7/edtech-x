@@ -8,6 +8,7 @@ import {
   Menu,
   User,
   BookOpen,
+  Bot,
   CalendarDays,
   LineChart,
   LogOut,
@@ -29,6 +30,11 @@ const mobileNavItems = [
     title: { en: "Schedule", bn: "সময়সূচি" },
     href: "/live-classes",
     icon: CalendarDays,
+  },
+  {
+    title: { en: "HomeSchool AI", bn: "???????? ???" },
+    href: "/homeschool-ai",
+    icon: Bot,
   },
   {
     title: { en: "Progress", bn: "অগ্রগতি" },

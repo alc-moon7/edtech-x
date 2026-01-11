@@ -1,7 +1,7 @@
 "use client";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { BookOpen, CalendarDays, LineChart, LogOut, Settings } from "lucide-react";
+import { BookOpen, Bot, CalendarDays, LineChart, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
@@ -16,6 +16,11 @@ const sidebarItems = [
     title: { en: "Schedule", bn: "সময়সূচি" },
     href: "/live-classes",
     icon: CalendarDays,
+  },
+  {
+    title: { en: "HomeSchool AI", bn: "হোমস্কুল এআই" },
+    href: "/homeschool-ai",
+    icon: Bot,
   },
   {
     title: { en: "Progress", bn: "অগ্রগতি" },
