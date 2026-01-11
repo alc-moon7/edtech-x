@@ -186,29 +186,23 @@ function HeroSection({ t }: { t: Translate }) {
   );
 
   return (
-    <section id="home" className="relative overflow-hidden">
-      {/* top decorative wave removed to keep navbar area clean per design request */}
+    <section id="home" className="relative overflow-hidden bg-white">
       <img
         src="/figma/hero-wave.svg"
         alt=""
-        className="pointer-events-none absolute bottom-0 left-0 z-0 h-72 w-full translate-y-6 object-cover sm:h-80 sm:translate-y-8 lg:h-96 lg:translate-y-10 opacity-95"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 h-64 w-full object-cover sm:h-72 lg:h-80"
         aria-hidden="true"
-      />
-      {/* dark bottom band to match reference wave (gradient -> solid) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-0 w-full h-8 z-[5] bg-gradient-to-b from-transparent to-[#0b4a94] opacity-95"
       />
       <div className="relative z-10">
-        <Section className="pt-15 pb-20 sm:pt-22 sm:pb-28 lg:pt-32 lg:pb-36">
-          <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-8 lg:gap-10">
-            <div className="max-w-3xl text-center md:text-left -mt-6 sm:-mt-8 md:-mt-10 lg:-mt-12">
+        <Section className="pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+          <div className="flex flex-col items-center gap-10 md:flex-row md:items-center md:gap-12">
+            <div className="max-w-3xl text-center md:text-left">
               <h1 className={heroTitleClass}>
                 {t({ en: "Learn Smarter,", bn: "আরও স্মার্টভাবে শিখুন," })}
                 <br />
                 {t({ en: "Not Harder", bn: "কঠোরভাবে নয়" })}
               </h1>
-              <p className="animate-hero-up-delay-1 mt-4 max-w-2xl text-sm leading-relaxed text-black sm:text-[15px] lg:text-base">
+              <p className="animate-hero-up-delay-1 mt-4 max-w-2xl text-base leading-relaxed text-black sm:text-[15px] lg:text-base">
                 {t({
                   en: "HomeSchool turns study time into a clear journey with lessons, quizzes, and progress insights for students, parents, and schools.",
                   bn: "HomeSchool পড়াশোনার সময়কে স্পষ্ট একটি যাত্রায় রূপ দেয়—লেসন, কুইজ ও অগ্রগতির তথ্য দিয়ে শিক্ষার্থী, অভিভাবক ও স্কুলের জন্য।",

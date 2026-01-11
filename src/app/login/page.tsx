@@ -8,8 +8,8 @@ import { usePageMeta } from "@/lib/usePageMeta";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
-import { MarketingNav } from "@/components/MarketingNav";
-import { Footer } from "@/components/Footer";
+import { AuthModal } from "@/components/AuthModal";
+import HomePage from "@/app/page";
 
 export default function LoginPage() {
   const t = useTranslate();
@@ -79,117 +79,103 @@ export default function LoginPage() {
     navigate(redirectTo, { replace: true });
   };
 
+  const illustrationSrc = "/assets/Login_img.png";
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MarketingNav />
-      <div className="mx-auto mt-6 flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 md:mt-8 md:min-h-[calc(100vh-152px)] md:flex-row">
-        <div className="w-full px-6 py-7 sm:px-8 md:max-w-md md:py-9">
-          <div className="space-y-2 text-center">
-            <img src="/logo.png" alt="HomeSchool" className="mx-auto h-11 w-auto" />
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t({ en: "Sign in", bn: "সাইন ইন" })}</h1>
-            <p className="text-sm text-muted-foreground">
-              {t({ en: "Start your learning journey today", bn: "আজই আপনার শেখার যাত্রা শুরু করুন" })}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {error && (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-                {error}
-              </div>
-            )}
-            {message && (
-              <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700" role="status">
-                {message}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 justify-center gap-2 text-sm font-semibold"
-                onClick={() => setShowComingSoon(true)}
-              >
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="h-5 w-5" />
-                {t({ en: "Continue with Google", bn: "গুগল দিয়ে চালিয়ে যান" })}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 justify-center gap-2 text-sm font-semibold"
-                onClick={() => setShowComingSoon(true)}
-              >
-                <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="" className="h-5 w-5" />
-                {t({ en: "Continue with Facebook", bn: "ফেসবুক দিয়ে চালিয়ে যান" })}
-              </Button>
-            </div>
-
-            {/* demo button removed - demo login works via entering demo credentials in the form */}
-
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-slate-200" />
-              <span>{t({ en: "Continue with Email", bn: "ইমেইল দিয়ে চালিয়ে যান" })}</span>
-              <div className="h-px flex-1 bg-slate-200" />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="login-email" className="text-sm font-medium">
-                {t({ en: "Email", bn: "ইমেইল" })}
-              </label>
-              <Input
-                id="login-email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-                className="h-11"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="login-password" className="text-sm font-medium">
-                {t({ en: "Password", bn: "পাসওয়ার্ড" })}
-              </label>
-              <Input
-                id="login-password"
-                type="password"
-                placeholder={t({ en: "Enter your password", bn: "আপনার পাসওয়ার্ড লিখুন" })}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                className="h-11"
-                required
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <Link to="/forgot-password" className="hover:text-primary">
-                {t({ en: "Forgot password?", bn: "পাসওয়ার্ড ভুলে গেছেন?" })}
-              </Link>
-              <Link to="/signup" className="hover:text-primary">
-                {t({ en: "Create account", bn: "অ্যাকাউন্ট তৈরি করুন" })}
-              </Link>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t({ en: "Signing in...", bn: "সাইন ইন হচ্ছে..." }) : t({ en: "Sign in", bn: "সাইন ইন" })}
-            </Button>
-          </form>
-
-          <p className="mt-4 text-center text-[12px] text-muted-foreground">
-            {t({
-              en: "By continuing, you agree to Homeschool's Terms of Service and Privacy Policy",
-              bn: "চালিয়ে গেলে আপনি HomeSchool-এর সার্ভিসের শর্তাবলি ও প্রাইভেসি পলিসিতে সম্মত হচ্ছেন।",
-            })}
-          </p>
-        </div>
-
-        <div className="relative hidden flex-1 md:block">
-          <img src="/Login.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
+    <>
+      <div className="relative">
+        <div className="pointer-events-none filter blur-[6px]">
+          <HomePage />
         </div>
       </div>
+      <AuthModal
+        open
+        onClose={() => navigate("/")}
+        illustrationSrc={illustrationSrc}
+        title={t({ en: "Sign in", bn: "সাইন ইন" })}
+        subtitle={t({ en: "Start your learning journey today", bn: "আজই আপনার শেখার যাত্রা শুরু করুন" })}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+              {error}
+            </div>
+          )}
+          {message && (
+            <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700" role="status">
+              {message}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 justify-center gap-2 text-sm font-semibold"
+              onClick={() => setShowComingSoon(true)}
+            >
+              📱 {t({ en: "Continue with Mobile", bn: "মোবাইল দিয়ে চালিয়ে যান" })}
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span>{t({ en: "Continue with Email", bn: "ইমেইল দিয়ে চালিয়ে যান" })}</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="login-email" className="text-sm font-medium text-slate-800">
+              {t({ en: "Email", bn: "ইমেইল" })}
+            </label>
+            <Input
+              id="login-email"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              className="h-11 rounded-xl border-slate-200 bg-white/70 shadow-sm"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="login-password" className="text-sm font-medium text-slate-800">
+              {t({ en: "Password", bn: "পাসওয়ার্ড" })}
+            </label>
+            <Input
+              id="login-password"
+              type="password"
+              placeholder={t({ en: "Enter your password", bn: "আপনার পাসওয়ার্ড লিখুন" })}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              className="h-11 rounded-xl border-slate-200 bg-white/70 shadow-sm"
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-slate-600">
+            <Link to="/forgot-password" className="font-semibold text-blue-700 hover:text-blue-800">
+              {t({ en: "Forgot password?", bn: "পাসওয়ার্ড ভুলে গেছেন?" })}
+            </Link>
+            <Link to="/signup" className="font-semibold text-blue-700 hover:text-blue-800">
+              {t({ en: "Create account", bn: "অ্যাকাউন্ট তৈরি করুন" })}
+            </Link>
+          </div>
+
+          <Button type="submit" className="w-full rounded-xl py-3 text-sm font-semibold" disabled={loading}>
+            {loading ? t({ en: "Signing in...", bn: "সাইন ইন হচ্ছে..." }) : t({ en: "Sign in", bn: "সাইন ইন" })}
+          </Button>
+        </form>
+
+        <p className="mt-4 text-center text-[12px] text-slate-500">
+          {t({
+            en: "By continuing, you agree to Homeschool's Terms of Service and Privacy Policy",
+            bn: "চালিয়ে গেলে আপনি HomeSchool-এর সার্ভিসের শর্তাবলি ও প্রাইভেসি পলিসিতে সম্মত হচ্ছেন।",
+          })}
+        </p>
+      </AuthModal>
 
       {showComingSoon && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
@@ -197,7 +183,7 @@ export default function LoginPage() {
             <div className="mb-3 text-center">
               <h2 className="text-lg font-semibold text-slate-900">{t({ en: "Coming Soon", bn: "শিগগিরই আসছে" })}</h2>
               <p className="mt-1 text-sm text-slate-600">
-                {t({ en: "Google and Facebook sign-in are coming soon.", bn: "গুগল ও ফেসবুক সাইন-ইন শিগগিরই আসছে।" })}
+                {t({ en: "Mobile login is coming soon.", bn: "মোবাইল লগইন শিগগিরই আসছে।" })}
               </p>
             </div>
             <div className="flex justify-center">
@@ -208,8 +194,6 @@ export default function LoginPage() {
           </div>
         </div>
       )}
-
-      <Footer />
-    </div>
+    </>
   );
 }
