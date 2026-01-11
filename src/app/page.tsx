@@ -200,7 +200,7 @@ function HeroSection({ t }: { t: Translate }) {
         className="pointer-events-none absolute bottom-0 left-0 w-full h-8 z-[5] bg-gradient-to-b from-transparent to-[#0b4a94] opacity-95"
       />
       <div className="relative z-10">
-        <Section className="pt-32 pb-28 sm:pt-36 sm:pb-32 lg:pt-40 lg:pb-36">
+        <Section className="pt-15 pb-20 sm:pt-22 sm:pb-28 lg:pt-32 lg:pb-36">
           <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-8 lg:gap-10">
             <div className="max-w-3xl text-center md:text-left -mt-6 sm:-mt-8 md:-mt-10 lg:-mt-12">
               <h1 className={heroTitleClass}>
@@ -255,85 +255,6 @@ function HeroSection({ t }: { t: Translate }) {
   );
 }
 
-function AssistSection({ t }: { t: Translate }) {
-  return (
-    <section className="py-12 sm:py-16">
-      <Section id="homeschool-ai" className="max-w-5xl">
-        <div className="mb-4 space-y-2 text-center">
-          <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
-            {t({ en: "How can I help you today?", bn: "আজ আমি কীভাবে সাহায্য করতে পারি?" })}
-          </h2>
-          <p className="text-sm text-black/70 sm:text-[15px]">
-            {t({ en: "Your personal AI tutor for all subjects", bn: "সব বিষয়ের জন্য আপনার ব্যক্তিগত এআই টিউটর" })}
-          </p>
-        </div>
-
-        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-          {assistCards.map((card) => (
-            <div
-              key={card.id}
-              className="flex items-start gap-3 rounded-2xl bg-white px-3.5 py-3 shadow-[0_6px_18px_rgba(15,23,42,0.06)] ring-1 ring-slate-100 sm:px-4 sm:py-3.5"
-            >
-              <span className="mt-0.5 text-lg sm:text-xl" aria-hidden="true">
-                {card.icon}
-              </span>
-              <div>
-                <div className="text-sm font-semibold text-black sm:text-base">{t(card.title)}</div>
-                <div className="text-xs text-slate-600 sm:text-sm">{t(card.subtitle)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <NctbAsk t={t} />
-
-        <p className="mt-4 text-center text-[11px] text-slate-500 sm:text-xs">
-          {t({
-            en: "Homeschool AI can make mistakes. Always verify important information",
-            bn: "হোমস্কুল এআই ভুল করতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করুন।",
-          })}
-        </p>
-
-      </Section>
-    </section>
-  );
-}
-
-function SubjectsSection({ t }: { t: Translate }) {
-  return (
-    <Section id="reviews" className="relative pb-14 sm:pb-16">
-      <span id="subjects" className="absolute -top-20" aria-hidden="true" />
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
-          {t({ en: "Coverage across core subjects", bn: "মূল বিষয়গুলোর কভারেজ" })}
-        </h2>
-        <p className="mt-2 text-sm text-black/70 sm:text-[15px] lg:text-base">
-          {t({
-            en: "Each subject includes lessons, practice, and assessments tailored to the official syllabus.",
-            bn: "প্রতিটি বিষয়ে সরকারি সিলেবাস অনুযায়ী লেসন, অনুশীলন ও মূল্যায়ন রয়েছে।",
-          })}
-        </p>
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
-        {subjectCards.map((card) => (
-          <div key={card.id} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100 sm:p-4">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-base font-semibold text-black sm:text-lg">{t(card.title)}</h3>
-              <span className="rounded-full bg-[#EEF2FF] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5A6CFD]">
-                {t(card.tag)}
-              </span>
-            </div>
-            <p className="mt-2.5 text-sm leading-5 text-slate-600 sm:text-[15px] sm:leading-6">
-              {t(subjectDescription)}
-            </p>
-          </div>
-        ))}
-      </div>
-    </Section>
-  );
-}
-
 function NctbAsk({ t }: { t: Translate }) {
   const { language } = useLanguage();
   const [question, setQuestion] = useState("");
@@ -344,6 +265,7 @@ function NctbAsk({ t }: { t: Translate }) {
   const [limitReached, setLimitReached] = useState(false);
   const [classLevel, setClassLevel] = useState("");
   const [subject, setSubject] = useState("");
+  const [hasInteracted, setHasInteracted] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -429,14 +351,49 @@ function NctbAsk({ t }: { t: Translate }) {
     setThinking(false);
   };
 
+  const guidanceCards = [
+    {
+      title: { en: "Solve Math Problem", bn: "গণিত সমস্যা" },
+      subtitle: { en: "Help me understand algebraic equations", bn: "বীজগণিত সমীকরণ বুঝাতে সাহায্য করুন" },
+    },
+    {
+      title: { en: "Science Concept", bn: "বিজ্ঞান ধারণা" },
+      subtitle: { en: "Explain photosynthesis step by step", bn: "ফটোসিন্থেসিস ধাপে ধাপে ব্যাখ্যা করুন" },
+    },
+    {
+      title: { en: "Grammar Help", bn: "ব্যাকরণ সহায়তা" },
+      subtitle: { en: "Teach me about verb tenses", bn: "ক্রিয়া কাল সম্পর্কে বলুন" },
+    },
+    {
+      title: { en: "Study Tips", bn: "পড়াই টিপস" },
+      subtitle: { en: "How to prepare for exams effectively", bn: "পরীক্ষার প্রস্তুতি কিভাবে নিবেন" },
+    },
+  ];
+
   return (
     <div>
       <div className="rounded-[18px] bg-white p-3.5 shadow-sm ring-1 ring-slate-100 sm:p-4">
-        <div className="mb-3">
-          <div className="text-sm font-semibold text-slate-900">Homeschool NCTB AI</div>
-          <div className="text-xs text-slate-500">Class & subject based answers with notes</div>
-        </div>
-        <div ref={chatScrollRef} className="max-h-72 space-y-3 overflow-y-auto pr-1 sm:max-h-80">
+        {!hasInteracted && (
+          <div className="mb-3 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Homeschool AI</p>
+            <h2 className="text-2xl font-bold text-slate-900">How can I help you today?</h2>
+            <p className="text-xs text-slate-500">Class & subject based answers with notes</p>
+          </div>
+        )}
+        <div ref={chatScrollRef} className="relative max-h-72 min-h-[180px] space-y-3 overflow-y-auto pr-1 sm:max-h-80">
+          {!hasInteracted && messages.length === 0 && !thinking && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-white/70 px-2 pb-2 backdrop-blur-sm transition-opacity">
+              <div className="grid w-full gap-2 sm:grid-cols-2">
+                {guidanceCards.map((card) => (
+                  <div key={card.title.en} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs shadow-sm">
+                    <div className="text-sm font-semibold text-slate-900">{t(card.title)}</div>
+                    <p className="text-[11px] text-slate-500">{t(card.subtitle)}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-400">Start typing to chat. Refresh to show tips again.</p>
+            </div>
+          )}
           {messages.length === 0 && !thinking && (
             <p className="text-xs text-slate-400">Ask a question and get notes in bullet points.</p>
           )}
@@ -465,10 +422,15 @@ function NctbAsk({ t }: { t: Translate }) {
             </div>
           )}
         </div>
-        <div className="mt-3 border-t border-slate-100 pt-3">
-          <textarea
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <textarea
+              value={question}
+              onChange={(event) => {
+                setQuestion(event.target.value);
+                if (event.target.value.trim().length > 0) {
+                  setHasInteracted(true);
+                }
+              }}
             placeholder={t({ en: "Ask a question about the NCTB syllabus...", bn: "Ask a question about the NCTB syllabus..." })}
             rows={3}
             className="min-h-24 max-h-40 w-full resize-none overflow-y-auto overflow-x-hidden rounded-xl border border-slate-200 px-3 py-2 text-sm leading-6 text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:max-h-48 sm:text-base"
@@ -519,7 +481,10 @@ function NctbAsk({ t }: { t: Translate }) {
             <button
               type="button"
               disabled={loading}
-              onClick={handleAsk}
+              onClick={() => {
+                setHasInteracted(true);
+                handleAsk();
+              }}
               className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(180deg,_#060BF7_0%,_#3B94DE_70%)] text-white shadow-sm transition hover:brightness-110 disabled:opacity-60 sm:h-11 sm:w-11"
               aria-label={t({ en: "Send message", bn: "Send message" })}
             >
@@ -541,6 +506,49 @@ function NctbAsk({ t }: { t: Translate }) {
         </div>
       )}
     </div>
+  );
+}
+
+function HomeschoolAISection({ t }: { t: Translate }) {
+  return (
+    <Section className="py-14 sm:py-16 lg:py-18">
+      <div className="mx-auto max-w-4xl">
+        <NctbAsk t={t} />
+      </div>
+    </Section>
+  );
+}
+
+function SubjectsSection({ t }: { t: Translate }) {
+  return (
+    <Section className="py-16 text-center text-white sm:py-20 lg:py-24">
+      <div className="mx-auto max-w-3xl space-y-3">
+        <p className="text-sm font-semibold uppercase tracking-[0.4em] text-white/70">Coverage</p>
+        <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+          {t({ en: "Coverage across core subjects", bn: "মূল বিষয়গুলোর কভারেজ" })}
+        </h2>
+        <p className="text-base text-white/80">
+          {t({
+            en: "Structured chapters, lesson notes, and quick checks, just like the Figma reference.",
+            bn: "গোছানো অধ্যায়, লেসন নোট এবং দ্রুত যাচাই—ঠিক Figma অনুসারে।",
+          })}
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {subjectCards.map((subject) => (
+          <div key={subject.id} className="rounded-2xl bg-white/90 p-5 shadow-lg ring-1 ring-white/40">
+            <div className="flex items-center justify-between">
+              <div className="text-lg font-semibold text-slate-900">{t(subject.title)}</div>
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                {t(subject.tag)}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-slate-600">{t(subjectDescription)}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 }
 
@@ -701,7 +709,7 @@ export default function Home() {
       <div className="bg-[#F8FAFF]">
         <HeroSection t={t} />
         <div className="bg-[linear-gradient(180deg,#E6F0FF_0%,#D6E5FF_45%,#8BB2F1_100%)]">
-          <AssistSection t={t} />
+          <HomeschoolAISection t={t} />
           <SubjectsSection t={t} />
           <ParentsSection t={t} />
         </div>
