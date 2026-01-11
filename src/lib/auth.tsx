@@ -9,6 +9,7 @@ type AuthContextValue = {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  signInDemo?: (email: string, password: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -59,7 +60,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           // ignore; we still clear local state below
         }
+        // clear demo flag if set
+        try {
+          localStorage.removeItem("homeschool_demo_user");
+        } catch {}
         setSession(null);
+        setLoading(false);
+      },
+      signInDemo: async (email: string, password: string) => {
+        // create a minimal fake session/user and store demo flag locally
+        const demoUser: User = {
+          id: "demo-user",
+          app_metadata: {},
+          user_metadata: { demo: true },
+          aud: "authenticated",
+          email: email,
+          phone: null,
+          created_at: new Date().toISOString(),
+          confirmed_at: new Date().toISOString(),
+          last_sign_in_at: new Date().toISOString(),
+          role: "authenticated",
+        } as unknown as User;
+
+        const fakeSession = {
+          provider_token: null,
+          provider_refresh_token: null,
+          access_token: "demo-token",
+          token_type: "bearer",
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          refresh_token: "",
+          user: demoUser,
+        } as unknown as Session;
+
+        try {
+          localStorage.setItem("homeschool_demo_user", JSON.stringify({ email }));
+        } catch {}
+
+        setSession(fakeSession);
         setLoading(false);
       },
     }),

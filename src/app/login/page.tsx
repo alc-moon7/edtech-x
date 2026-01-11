@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, signInDemo } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,6 +46,20 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     setMessage(null);
+    // If demo credentials are used, sign in locally without calling backend
+    if (email.trim().toLowerCase() === "admin@gmail.com" && password === "admin") {
+      if (signInDemo) {
+        try {
+          await signInDemo("admin@gmail.com", "admin");
+          navigate(redirectTo, { replace: true });
+          return;
+        } catch (err) {
+          setError(String(err || "Demo sign-in failed"));
+          setLoading(false);
+          return;
+        }
+      }
+    }
 
     const { error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -110,6 +124,8 @@ export default function LoginPage() {
                 {t({ en: "Continue with Facebook", bn: "ফেসবুক দিয়ে চালিয়ে যান" })}
               </Button>
             </div>
+
+            {/* demo button removed - demo login works via entering demo credentials in the form */}
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="h-px flex-1 bg-slate-200" />
