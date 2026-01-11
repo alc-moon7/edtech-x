@@ -520,13 +520,13 @@ function HomeschoolAISection({ t }: { t: Translate }) {
 
 function SubjectsSection({ t }: { t: Translate }) {
   return (
-    <Section className="py-16 text-center text-white sm:py-20 lg:py-24">
-      <div className="mx-auto max-w-3xl space-y-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.4em] text-white/70">Coverage</p>
-        <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+    <Section className="py-14 text-center sm:py-16 lg:py-20">
+      <div className="mx-auto max-w-3xl space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Coverage</p>
+        <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
           {t({ en: "Coverage across core subjects", bn: "মূল বিষয়গুলোর কভারেজ" })}
         </h2>
-        <p className="text-base text-white/80">
+        <p className="text-sm text-slate-600">
           {t({
             en: "Structured chapters, lesson notes, and quick checks, just like the Figma reference.",
             bn: "গোছানো অধ্যায়, লেসন নোট এবং দ্রুত যাচাই—ঠিক Figma অনুসারে।",
