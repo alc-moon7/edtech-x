@@ -186,17 +186,20 @@ function HeroSection({ t }: { t: Translate }) {
   );
 
   return (
-    <section id="home" className="relative overflow-hidden bg-white">
+    <section
+      id="home"
+      className="relative overflow-hidden bg-[#F8FAFF]"
+    >
       <img
         src="/figma/hero-wave.svg"
         alt=""
-        className="pointer-events-none absolute bottom-0 left-0 z-0 h-64 w-full object-cover sm:h-72 lg:h-80"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 h-44 w-full translate-y-12 object-cover object-bottom sm:h-52 sm:translate-y-14 lg:h-56 lg:translate-y-16"
         aria-hidden="true"
       />
       <div className="relative z-10">
-        <Section className="pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
-          <div className="flex flex-col items-center gap-10 md:flex-row md:items-center md:gap-12">
-            <div className="max-w-3xl text-center md:text-left">
+        <Section className="pt-20 pb-24 sm:pt-24 sm:pb-28 lg:pt-28 lg:pb-32">
+          <div className="flex flex-col items-center gap-12 md:flex-row md:items-center md:gap-14">
+            <div className="max-w-3xl text-center md:text-left -mt-30 sm:-mt-38 md:-mt-40 lg:-mt-42">
               <h1 className={heroTitleClass}>
                 {t({ en: "Learn Smarter,", bn: "আরও স্মার্টভাবে শিখুন," })}
                 <br />
@@ -241,7 +244,9 @@ function HeroSection({ t }: { t: Translate }) {
               </div>
             </div>
 
-            <HeroVisual t={t} />
+            <div className="mt-2 sm:mt-6 md:mt-10 lg:mt-12">
+              <HeroVisual t={t} />
+            </div>
           </div>
         </Section>
       </div>
