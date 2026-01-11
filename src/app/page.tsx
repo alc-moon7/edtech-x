@@ -546,127 +546,139 @@ function NctbAsk({ t }: { t: Translate }) {
 
 function ParentsSection({ t }: { t: Translate }) {
   return (
-    <section className="bg-gradient-to-b from-[#D7EEFF] to-[#BFE6FF]">
-      <Section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black">{t({ en: "Parents stay informed without pressure", bn: "অভিভাবকরা চাপমুক্তভাবে তথ্য পান" })}</h2>
-            <p className="mt-3 text-sm md:text-base text-black/70">{t({ en: "Track study time, quiz scores, and weekly trends. Know when to encourage and when to step in.", bn: "পড়াশোনা সময়, কুইজ স্কোর এবং সাপ্তাহিক প্রবণতা ট্র্যাক করুন। কখন উৎসাহ দেবেন এবং কখন হস্তক্ষেপ করবেন তা জানুন।" })}</p>
-          </div>
+    <section className="bg-[radial-gradient(circle_at_top,_#D7EEFF_0%,_#B9DDFE_45%,_#8BB2F1_100%)]">
+      <Section className="py-14 sm:py-16 lg:py-20">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-black sm:text-2xl lg:text-3xl">
+            {t({ en: "Parents stay informed without pressure", bn: "অভিভাবকরা চাপ ছাড়াই আপডেট পান" })}
+          </h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-black/70 sm:text-base">
+            {t({
+              en: "Track study time, quiz scores, and weekly trends. Know when to encourage and when to step in.",
+              bn: "পড়ার সময়, কুইজ স্কোর ও সাপ্তাহিক ট্রেন্ড দেখুন। কখন উৎসাহ দেবেন আর কখন সাহায্য করবেন—তা বুঝতে পারবেন।",
+            })}
+          </p>
+        </div>
 
-          {/* Main Grid */}
-          <div className="relative">
-            {/* Left: Features */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-              <div className="space-y-8">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 6L9 17l-5-5" stroke="#1570EF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold text-black">{t({ en: "Progress alerts for weak topics", bn: "দুর্বল টপিকগুলোর জন্য অগ্রগতি সতর্কতা" })}</h3>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 6L9 17l-5-5" stroke="#1570EF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold text-black">{t({ en: "Weekly summaries for time and scores", bn: "সময় ও স্কোরের জন্য সাপ্তাহিক সারসংক্ষেপ" })}</h3>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M20 6L9 17l-5-5" stroke="#1570EF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold text-black">{t({ en: "Clear goals for the next study session", bn: "পরবর্তী অধ্যয়নের জন্য স্পষ্ট লক্ষ্য" })}</h3>
-                  </div>
-                </div>
-
-                <div className="flex justify-center md:justify-start mt-6">
-                  <button className="rounded-full bg-gradient-to-r from-[#4EA0FC] to-[#2B6EF6] px-8 py-3 text-white shadow-lg font-medium">
-                    {t({ en: "View Parents Dashboard", bn: "প্যারেন্টস ড্যাশবোর্ড দেখুন" })}
-                  </button>
-                </div>
+        <div className="mt-10 flex flex-col items-center gap-8 lg:flex-row lg:items-start">
+          <div className="w-full max-w-md space-y-5 text-left">
+            {[
+              {
+                en: "Progress alerts for weak topics",
+                bn: "দুর্বল টপিকের জন্য প্রগ্রেস অ্যালার্ট",
+              },
+              {
+                en: "Weekly summaries for time and scores",
+                bn: "সময় ও স্কোরের সাপ্তাহিক সারসংক্ষেপ",
+              },
+              {
+                en: "Clear goals for the next study session",
+                bn: "পরের স্টাডি সেশনের জন্য পরিষ্কার লক্ষ্য",
+              },
+            ].map((item) => (
+              <div key={item.en} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#2B6EF6] shadow-sm">
+                  <svg width="16" height="14" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 8l4.5 4L18 2" stroke="#2B6EF6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <p className="text-base font-semibold text-black">{t(item)}</p>
               </div>
-
-              {/* Right: Overlapping cards (desktop only) */}
-              <div className="relative h-full hidden md:block">
-                <div className="absolute right-0 top-0 z-30 w-96 rounded-lg bg-yellow-50 p-5 shadow-lg border border-yellow-200">
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl">⊕</div>
-                    <div className="text-sm font-semibold text-yellow-800">Performance Alert</div>
-                  </div>
-                  <div className="mt-3 text-sm text-yellow-800">Quiz scores in Physics - Motion dropped by 10% this week. Suggested revision: "Equations of Motion".</div>
-                </div>
-
-                <div className="absolute right-16 top-40 z-20 w-72 rounded-xl bg-white p-4 shadow-lg border border-slate-100">
-                  <div className="text-sm font-semibold text-slate-700 mb-3">This week</div>
-                  <div className="text-sm text-slate-600 font-medium mb-3">82% quiz accuracy</div>
-                  <div className="space-y-2 mb-4">
-                    <div className="space-y-1">
-                      <div className="text-xs text-slate-500">Mathematics</div>
-                      <div className="h-2 bg-slate-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '72%'}}/></div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-xs text-slate-500">Physics</div>
-                      <div className="h-2 bg-slate-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '85%'}}/></div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-xs text-slate-500">English</div>
-                      <div className="h-2 bg-slate-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '60%'}}/></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center text-xs text-slate-400">
-                    <span>On track</span>
-                    <span>On track</span>
-                    <span>On track</span>
-                  </div>
-                  <div className="mt-4 text-xs text-slate-400">Next focus: revise equations of motion before Friday.</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonials */}
-            <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="rounded-2xl bg-white p-6 border-2 border-slate-200 relative z-10">
-                <div className="text-yellow-400 text-lg mb-3">★ ★ ★ ★ ★</div>
-                <p className="text-sm text-slate-700 mb-4">"The short lessons and quizzes keep me focused. I finally know what to study next."</p>
-                <div>
-                  <div className="font-semibold text-slate-900">Arian Ahmed</div>
-                  <div className="text-xs text-slate-500">Class 10 Student</div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white p-6 border-2 border-slate-200 relative z-10">
-                <div className="text-yellow-400 text-lg mb-3">★ ★ ★ ★ ★</div>
-                <p className="text-sm text-slate-700 mb-4">"The syllabus mapping makes class planning simple. Students revise the exact topics."</p>
-                <div>
-                  <div className="font-semibold text-slate-900">Imran Kabir</div>
-                  <div className="text-xs text-slate-500">Teacher</div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white p-6 border-2 border-slate-200 relative z-10">
-                <div className="text-yellow-400 text-lg mb-3">★ ★ ★ ★ ★</div>
-                <p className="text-sm text-slate-700 mb-4">"I can see my child is consistent every week. The parent view makes it easy to help."</p>
-                <div>
-                  <div className="font-semibold text-slate-900">Nusrat Jahan</div>
-                  <div className="text-xs text-slate-500">Parent</div>
-                </div>
-              </div>
+            ))}
+            <div className="mt-2 flex justify-center lg:justify-start">
+              <Link
+                to="/parent"
+                className="inline-flex items-center justify-center rounded-full bg-[#2B6EF6] px-8 py-3 text-sm font-semibold text-white shadow-xl transition hover:bg-[#1F59D4]"
+              >
+                {t({ en: "View Parents Dashboard", bn: "প্যারেন্টস ড্যাশবোর্ড দেখুন" })}
+              </Link>
             </div>
           </div>
+
+          <div className="relative lg:flex-1">
+            <div className="absolute -top-6 right-0 w-full max-w-sm rounded-lg border border-[#F4D58A] bg-[#FFF2C7] p-4 shadow-lg">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#FFFBF0] text-[#F59E0B]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8v5m0 4h.01" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                <span className="text-sm font-semibold text-[#A16207]">{t({ en: "Performance Alert", bn: "পারফরম্যান্স অ্যালার্ট" })}</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-[#9A6A0A] sm:text-sm">
+                {t({
+                  en: "Quiz scores in Physics - Motion dropped by 10% this week. Suggested revision: 'Equations of Motion'.",
+                  bn: "এই সপ্তাহে পদার্থবিজ্ঞান - গতি বিষয়ে কুইজ স্কোর ১০% কমেছে। পরামর্শ: 'গতি সমীকরণ' রিভিশন দিন।",
+                })}
+              </p>
+            </div>
+
+            <div className="mt-24 w-full rounded-2xl bg-white p-4 shadow-lg ring-1 ring-slate-100 lg:mt-12 lg:w-96">
+              <div className="text-xs font-semibold text-slate-700">{t({ en: "This week", bn: "এই সপ্তাহে" })}</div>
+              <div className="mt-2 text-sm font-semibold text-slate-700">{t({ en: "82% quiz accuracy", bn: "কুইজ এক্যুরেসি ৮২%" })}</div>
+              <div className="mt-3 space-y-3">
+                {[
+                  { label: t({ en: "Mathematics", bn: "গণিত" }), value: 72 },
+                  { label: t({ en: "Physics", bn: "পদার্থবিজ্ঞান" }), value: 85 },
+                  { label: t({ en: "English", bn: "ইংরেজি" }), value: 60 },
+                ].map((item) => (
+                  <div key={item.label} className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <span>{item.label}</span>
+                      <span>{t({ en: "On track", bn: "ভালো চলছে" })}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-200">
+                      <div className="h-2 rounded-full bg-[#4F6EF7]" style={{ width: `${item.value}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-[11px] text-slate-400">
+                {t({
+                  en: "Next focus: revise equations of motion before Friday.",
+                  bn: "পরের ফোকাস: শুক্রবারের আগে গতি সমীকরণ রিভিশন দিন।",
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              quote: {
+                en: "The short lessons and quizzes keep me focused. I finally know what to study next.",
+                bn: "ছোট ছোট লেসন আর কুইজ আমাকে ফোকাসড রাখে। এখন বুঝতে পারি পরেরটা কী পড়ব।",
+              },
+              name: "Arian Ahmed",
+              role: { en: "Class 10 Student", bn: "ক্লাস ১০ শিক্ষার্থী" },
+            },
+            {
+              quote: {
+                en: "The syllabus mapping makes class planning simple. Students revise the exact topics.",
+                bn: "সিলেবাস ম্যাপিংয়ের ফলে ক্লাস পরিকল্পনা সহজ হয়। ছাত্ররা ঠিক টপিকগুলোই রিভিশন করে।",
+              },
+              name: "Imran Kabir",
+              role: { en: "Teacher", bn: "শিক্ষক" },
+            },
+            {
+              quote: {
+                en: "I can see my child is consistent every week. The parent view makes it easy to help.",
+                bn: "আমি দেখি আমার সন্তান প্রতি সপ্তাহে নিয়মিত থাকে। প্যারেন্ট ভিউ-তে সাহায্য করা সহজ।",
+              },
+              name: "Nusrat Jahan",
+              role: { en: "Parent", bn: "অভিভাবক" },
+            },
+          ].map((item) => (
+            <div key={item.name} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <div className="text-yellow-400 text-sm">⭐⭐⭐⭐⭐</div>
+              <p className="mt-3 text-sm text-slate-700">{t(item.quote)}</p>
+              <div className="mt-4">
+                <div className="text-sm font-semibold text-slate-900">{item.name}</div>
+                <div className="text-xs text-slate-500">{t(item.role)}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </Section>
     </section>

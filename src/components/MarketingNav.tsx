@@ -50,11 +50,11 @@ export function MarketingNav() {
         </Link>
 
         <nav
-          className="hidden min-w-0 items-center justify-center gap-4 text-sm font-semibold text-black lg:flex lg:text-sm xl:gap-5 xl:text-base"
+          className="hidden min-w-0 items-center justify-center gap-4 text-sm font-semibold text-black lg:flex lg:translate-x-6 lg:text-sm xl:gap-5 xl:text-base"
           aria-label="Primary"
         >
           {navItems.map((item) => (
-            <Link key={item.href} to={item.href} className="transition-colors hover:text-[#060BF7]">
+            <Link key={item.href} to={item.href} className="whitespace-nowrap transition-colors hover:text-[#060BF7]">
               {t(item.label)}
             </Link>
           ))}
@@ -63,20 +63,20 @@ export function MarketingNav() {
         <div className="hidden items-center gap-3 lg:flex">
           <LanguageToggle
             variant="ghost"
-            className="h-auto gap-1 rounded-none px-0 py-0 text-xs font-semibold text-black hover:bg-transparent lg:text-sm"
+            className="h-auto min-w-[80px] justify-center gap-1 rounded-none px-0 py-0 text-xs font-semibold text-black hover:bg-transparent lg:text-sm"
           />
           {!user ? (
             <>
               <Link to="/login">
                 <Button
-                  className="h-9 rounded-xl bg-[#060BF7] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[#060BF7]/90 sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
+                  className="h-9 min-w-[96px] justify-center rounded-xl bg-[#060BF7] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[#060BF7]/90 sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:min-w-[110px] lg:text-base"
                 >
                   {t({ en: "Sign in", bn: "সাইন ইন" })}
                 </Button>
               </Link>
               <Link to="/pricing">
                 <Button
-                  className="h-9 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
+                  className="h-9 min-w-[120px] justify-center rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:min-w-[140px] lg:text-base"
                 >
                   {premiumLabel}
                 </Button>
@@ -86,7 +86,7 @@ export function MarketingNav() {
             <div className="flex items-center gap-2">
               <Link to="/pricing">
                 <Button
-                  className="h-9 rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:text-base"
+                  className="h-9 min-w-[120px] justify-center rounded-xl bg-[#F3AB36] px-4 text-xs font-semibold text-black shadow-sm hover:bg-[#f0a529] sm:h-10 sm:px-5 sm:text-sm lg:h-10 lg:min-w-[140px] lg:text-base"
                 >
                   {premiumLabel}
                 </Button>
