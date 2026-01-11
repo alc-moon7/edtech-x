@@ -544,6 +544,135 @@ function NctbAsk({ t }: { t: Translate }) {
   );
 }
 
+function ParentsSection({ t }: { t: Translate }) {
+  return (
+    <section className="bg-gradient-to-b from-[#D7EEFF] to-[#BFE6FF]">
+      <Section className="py-16 lg:py-24">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-black">{t({ en: "Parents stay informed without pressure", bn: "অভিভাবকরা চাপমুক্তভাবে তথ্য পান" })}</h2>
+            <p className="mt-3 text-sm md:text-base text-black/70">{t({ en: "Track study time, quiz scores, and weekly trends. Know when to encourage and when to step in.", bn: "পড়াশোনা সময়, কুইজ স্কোর এবং সাপ্তাহিক প্রবণতা ট্র্যাক করুন। কখন উৎসাহ দেবেন এবং কখন হস্তক্ষেপ করবেন তা জানুন।" })}</p>
+          </div>
+
+          {/* Main Grid */}
+          <div className="relative">
+            {/* Left: Features */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+              <div className="space-y-8">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17l-5-5" stroke="#1570EF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg md:text-xl font-semibold text-black">{t({ en: "Progress alerts for weak topics", bn: "দুর্বল টপিকগুলোর জন্য অগ্রগতি সতর্কতা" })}</h3>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17l-5-5" stroke="#1570EF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg md:text-xl font-semibold text-black">{t({ en: "Weekly summaries for time and scores", bn: "সময় ও স্কোরের জন্য সাপ্তাহিক সারসংক্ষেপ" })}</h3>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600 shadow-sm">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17l-5-5" stroke="#1570EF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg md:text-xl font-semibold text-black">{t({ en: "Clear goals for the next study session", bn: "পরবর্তী অধ্যয়নের জন্য স্পষ্ট লক্ষ্য" })}</h3>
+                  </div>
+                </div>
+
+                <div className="flex justify-center md:justify-start mt-6">
+                  <button className="rounded-full bg-gradient-to-r from-[#4EA0FC] to-[#2B6EF6] px-8 py-3 text-white shadow-lg font-medium">
+                    {t({ en: "View Parents Dashboard", bn: "প্যারেন্টস ড্যাশবোর্ড দেখুন" })}
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Overlapping cards (desktop only) */}
+              <div className="relative h-full hidden md:block">
+                <div className="absolute right-0 top-0 z-30 w-96 rounded-lg bg-yellow-50 p-5 shadow-lg border border-yellow-200">
+                  <div className="flex items-center gap-2">
+                    <div className="text-xl">⊕</div>
+                    <div className="text-sm font-semibold text-yellow-800">Performance Alert</div>
+                  </div>
+                  <div className="mt-3 text-sm text-yellow-800">Quiz scores in Physics - Motion dropped by 10% this week. Suggested revision: "Equations of Motion".</div>
+                </div>
+
+                <div className="absolute right-16 top-40 z-20 w-72 rounded-xl bg-white p-4 shadow-lg border border-slate-100">
+                  <div className="text-sm font-semibold text-slate-700 mb-3">This week</div>
+                  <div className="text-sm text-slate-600 font-medium mb-3">82% quiz accuracy</div>
+                  <div className="space-y-2 mb-4">
+                    <div className="space-y-1">
+                      <div className="text-xs text-slate-500">Mathematics</div>
+                      <div className="h-2 bg-slate-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '72%'}}/></div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-slate-500">Physics</div>
+                      <div className="h-2 bg-slate-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '85%'}}/></div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-slate-500">English</div>
+                      <div className="h-2 bg-slate-200 rounded-full"><div className="h-2 bg-blue-500 rounded-full" style={{width: '60%'}}/></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-slate-400">
+                    <span>On track</span>
+                    <span>On track</span>
+                    <span>On track</span>
+                  </div>
+                  <div className="mt-4 text-xs text-slate-400">Next focus: revise equations of motion before Friday.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonials */}
+            <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="rounded-2xl bg-white p-6 border-2 border-slate-200 relative z-10">
+                <div className="text-yellow-400 text-lg mb-3">★ ★ ★ ★ ★</div>
+                <p className="text-sm text-slate-700 mb-4">"The short lessons and quizzes keep me focused. I finally know what to study next."</p>
+                <div>
+                  <div className="font-semibold text-slate-900">Arian Ahmed</div>
+                  <div className="text-xs text-slate-500">Class 10 Student</div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white p-6 border-2 border-slate-200 relative z-10">
+                <div className="text-yellow-400 text-lg mb-3">★ ★ ★ ★ ★</div>
+                <p className="text-sm text-slate-700 mb-4">"The syllabus mapping makes class planning simple. Students revise the exact topics."</p>
+                <div>
+                  <div className="font-semibold text-slate-900">Imran Kabir</div>
+                  <div className="text-xs text-slate-500">Teacher</div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white p-6 border-2 border-slate-200 relative z-10">
+                <div className="text-yellow-400 text-lg mb-3">★ ★ ★ ★ ★</div>
+                <p className="text-sm text-slate-700 mb-4">"I can see my child is consistent every week. The parent view makes it easy to help."</p>
+                <div>
+                  <div className="font-semibold text-slate-900">Nusrat Jahan</div>
+                  <div className="text-xs text-slate-500">Parent</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+    </section>
+  );
+}
+
 export default function Home() {
   const t = useTranslate();
 
@@ -562,6 +691,7 @@ export default function Home() {
         <div className="bg-[linear-gradient(180deg,#E6F0FF_0%,#D6E5FF_45%,#8BB2F1_100%)]">
           <AssistSection t={t} />
           <SubjectsSection t={t} />
+          <ParentsSection t={t} />
         </div>
       </div>
     </MarketingShell>
