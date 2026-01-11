@@ -14,31 +14,36 @@ type HeroBadge = {
   title: TranslationValue;
   subtitle?: TranslationValue;
   className: string;
+  delay?: string;
 };
 
 const heroBadges: HeroBadge[] = [
   {
     id: "ai-tutor",
     title: { en: "AI Tutor", bn: "এআই টিউটর" },
-    className: "left-10 -top-10 sm:-top-6 md:-top-8 lg:-top-10",
+    className: "left-14 -top-12 sm:-top-8 md:-top-10 lg:-top-12",
+    delay: "0s",
   },
   {
     id: "coverage",
     title: { en: "Class 6-8", bn: "ক্লাস ৬-৮" },
     subtitle: { en: "Syllabus Coverage", bn: "সিলেবাস কভারেজ" },
-    className: "left-[42%] -top-14 sm:-top-10 md:-top-12 lg:-top-16",
+    className: "left-[44%] -top-20 sm:-top-14 md:-top-16 lg:-top-20",
+    delay: "0.4s",
   },
   {
     id: "roles",
     title: { en: "Student and Parent", bn: "শিক্ষার্থী ও অভিভাবক" },
     subtitle: { en: "Learning Roles", bn: "শেখার ভূমিকা" },
-    className: "-left-6 top-10 sm:top-6 md:top-8 lg:top-10",
+    className: "-left-6 top-14 sm:top-10 md:top-12 lg:top-14",
+    delay: "0.2s",
   },
   {
     id: "tracking",
     title: { en: "Weekly Tracking", bn: "সাপ্তাহিক ট্র্যাকিং" },
     subtitle: { en: "Progress insights", bn: "অগ্রগতির ইনসাইট" },
-    className: "right-6 -top-8 sm:-top-6 md:-top-8 lg:-top-10",
+    className: "right-6 top-6 sm:top-6 md:top-8 lg:top-10",
+    delay: "0.6s",
   },
 ];
 
@@ -121,9 +126,10 @@ function HeroBadgeItem({ badge, t }: { badge: HeroBadge; t: Translate }) {
   return (
     <div
       className={cn(
-        "absolute hidden items-center justify-center rounded-2xl bg-[#9FB7DD]/80 px-3 py-2 text-center text-sm font-semibold text-black shadow-md backdrop-blur-md lg:flex",
+        "absolute hidden items-center justify-center rounded-2xl bg-[#9FB7DD]/80 px-3 py-2 text-center text-sm font-semibold text-black shadow-md backdrop-blur-md lg:flex animate-hero-float will-change-transform",
         badge.className
       )}
+      style={{ animationDelay: badge.delay ?? "0s" }}
     >
       <div>
         <div>{t(badge.title)}</div>
@@ -151,7 +157,7 @@ function HeroBadgeStack({ t }: { t: Translate }) {
 
 function HeroVisual({ t }: { t: Translate }) {
   return (
-    <div className="animate-hero-up-delay-1 relative mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
+    <div className="animate-hero-up-delay-1 relative mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl -mt-6 sm:-mt-8 md:-mt-10 lg:-mt-12">
       <div className="relative">
         <img
           src="/figma/hero-illustration.png"
@@ -181,22 +187,22 @@ function HeroSection({ t }: { t: Translate }) {
 
   return (
     <section id="home" className="relative overflow-hidden">
+      {/* top decorative wave removed to keep navbar area clean per design request */}
       <img
         src="/figma/hero-wave.svg"
         alt=""
-        className="pointer-events-none absolute left-0 top-0 z-0 h-48 w-full -translate-y-14 object-cover sm:h-56 sm:-translate-y-16 lg:h-64 lg:-translate-y-18 rotate-180"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 h-72 w-full translate-y-6 object-cover sm:h-80 sm:translate-y-8 lg:h-96 lg:translate-y-10 opacity-95"
         aria-hidden="true"
       />
-      <img
-        src="/figma/hero-wave.svg"
-        alt=""
-        className="pointer-events-none absolute bottom-0 left-0 z-0 h-48 w-full translate-y-10 object-cover sm:h-56 sm:translate-y-12 lg:h-60 lg:translate-y-14"
+      {/* dark bottom band to match reference wave (gradient -> solid) */}
+      <div
         aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-0 w-full h-8 z-[5] bg-gradient-to-b from-transparent to-[#0b4a94] opacity-95"
       />
       <div className="relative z-10">
         <Section className="pt-32 pb-28 sm:pt-36 sm:pb-32 lg:pt-40 lg:pb-36">
           <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-8 lg:gap-10">
-            <div className="max-w-3xl text-center md:text-left">
+            <div className="max-w-3xl text-center md:text-left -mt-6 sm:-mt-8 md:-mt-10 lg:-mt-12">
               <h1 className={heroTitleClass}>
                 {t({ en: "Learn Smarter,", bn: "আরও স্মার্টভাবে শিখুন," })}
                 <br />
@@ -217,14 +223,19 @@ function HeroSection({ t }: { t: Translate }) {
                     {t({ en: "Start Learning Free", bn: "বিনামূল্যে শেখা শুরু করুন" })}
                   </Button>
                 </Link>
-                <Link to="/pricing" className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
+                <div className="w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window === "undefined") return;
+                      const el = document.getElementById("homeschool-ai");
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
                     className="h-10 w-full rounded-full bg-[#F3AB36] px-4 text-sm font-semibold text-black shadow-none hover:bg-[#f0a529] sm:w-auto md:h-11 md:px-5 md:text-base"
                   >
                     {t({ en: "Try Homeschool AI Tutor", bn: "হোমস্কুল এআই টিউটর চেষ্টা করুন" })}
-                  </Button>
-                </Link>
+                  </button>
+                </div>
               </div>
               <div className="animate-hero-up-delay-2 mt-5 flex flex-wrap justify-center gap-4 text-center md:justify-start md:text-left">
                 {heroStats.map((stat) => (
@@ -247,7 +258,7 @@ function HeroSection({ t }: { t: Translate }) {
 function AssistSection({ t }: { t: Translate }) {
   return (
     <section className="py-12 sm:py-16">
-      <Section className="max-w-5xl">
+      <Section id="homeschool-ai" className="max-w-5xl">
         <div className="mb-4 space-y-2 text-center">
           <h2 className="text-xl font-bold text-black sm:text-2xl lg:text-3xl">
             {t({ en: "How can I help you today?", bn: "আজ আমি কীভাবে সাহায্য করতে পারি?" })}
