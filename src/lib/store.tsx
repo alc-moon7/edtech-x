@@ -39,6 +39,7 @@ type StudentContextType = {
   studySessions: StudySessionRecord[];
   purchasedCourses: PurchasedCourseRecord[];
   refresh: () => Promise<void>;
+  markLessonStarted: (courseId: string, lessonId: string) => Promise<void>;
   markLessonComplete: (courseId: string, lessonId: string) => Promise<void>;
   saveQuizScore: (courseId: string, quizId: string, score: number) => Promise<void>;
 };
@@ -54,6 +55,7 @@ const EMPTY_STATS: DashboardStats = {
   weeklyActivity: Array(7).fill(false),
   weeklyStudyHours: [0, 0, 0, 0],
   totalPoints: 0,
+  lastActivity: null,
 };
 
 const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
@@ -161,34 +163,96 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   }, [user?.id, user?.user_metadata?.class]);
 
+  const markLessonStarted = async (courseId: string, lessonId: string) => {
+    if (!user || !isSupabaseConfigured) return;
+
+    const course = courses.find((item) => item.id === courseId);
+    const hasAccess = course?.isPurchased ?? false;
+
+    if (course && !hasAccess) {
+      setError("Course locked.");
+      return;
+    }
+
+    const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
+    if (alreadyCompleted) return;
+
+    const { error: courseError } = await supabase.from("student_courses").upsert(
+      {
+        user_id: user.id,
+        course_id: courseId,
+      },
+      { onConflict: "user_id,course_id" }
+    );
+
+    if (courseError) {
+      setError(courseError.message);
+      return;
+    }
+
+    const { error: lessonError } = await supabase.from("student_lessons").upsert(
+      {
+        user_id: user.id,
+        lesson_id: lessonId,
+        status: "started",
+        progress: 1,
+      },
+      { onConflict: "user_id,lesson_id", ignoreDuplicates: true }
+    );
+
+    if (lessonError) {
+      setError(lessonError.message);
+      return;
+    }
+
+    const { error: activityError } = await supabase.from("student_activity_log").insert({
+      user_id: user.id,
+      type: "lesson_started",
+      ref_id: lessonId,
+      meta: { course_id: courseId },
+    });
+
+    if (activityError) {
+      setError(activityError.message);
+    }
+
+    void refresh();
+  };
+
   const markLessonComplete = async (courseId: string, lessonId: string) => {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
     const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === lessonId);
-    const chapter = course?.chapters.find((item) => item.lessons.some((entry) => entry.id === lessonId));
-    const hasAccess = course?.isPurchased || course?.isFree || chapter?.isFree;
+    const hasAccess = course?.isPurchased ?? false;
 
     if (course && !hasAccess) {
-      setError("Chapter locked.");
+      setError("Course locked.");
       return;
     }
     const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
 
     if (alreadyCompleted) return;
 
-    const totalLessons = course?.chapters.reduce((acc, chapter) => acc + chapter.lessons.length, 0) ?? 0;
-    const nextCompletedCount = (progress[courseId]?.completedLessons.length ?? 0) + 1;
-    const nextStatus =
-      totalLessons > 0 && nextCompletedCount >= totalLessons ? "completed" : "ongoing";
+    const { error: courseError } = await supabase.from("student_courses").upsert(
+      {
+        user_id: user.id,
+        course_id: courseId,
+      },
+      { onConflict: "user_id,course_id" }
+    );
 
-    const { error: progressError } = await supabase.from("lesson_progress").upsert(
+    if (courseError) {
+      setError(courseError.message);
+      return;
+    }
+
+    const { error: progressError } = await supabase.from("student_lessons").upsert(
       {
         user_id: user.id,
         lesson_id: lessonId,
-        course_id: courseId,
-        completed: true,
-        progress_percent: 100,
+        status: "completed",
+        progress: 100,
       },
       { onConflict: "user_id,lesson_id" }
     );
@@ -198,19 +262,15 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (courseId) {
-      const { error: enrollmentError } = await supabase.from("enrollments").upsert(
-        {
-          user_id: user.id,
-          course_id: courseId,
-          status: nextStatus,
-        },
-        { onConflict: "user_id,course_id" }
-      );
+    const { error: activityError } = await supabase.from("student_activity_log").insert({
+      user_id: user.id,
+      type: "lesson_completed",
+      ref_id: lessonId,
+      meta: { course_id: courseId },
+    });
 
-      if (enrollmentError) {
-        setError(enrollmentError.message);
-      }
+    if (activityError) {
+      setError(activityError.message);
     }
 
     const durationMinutes =
@@ -247,19 +307,18 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
 
     const course = courses.find((item) => item.id === courseId);
     const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === quizId);
-    const chapter = course?.chapters.find((item) => item.lessons.some((entry) => entry.id === quizId));
-    const hasAccess = course?.isPurchased || course?.isFree || chapter?.isFree;
+    const hasAccess = course?.isPurchased ?? false;
 
     if (course && !hasAccess) {
-      setError("Chapter locked.");
+      setError("Course locked.");
       return;
     }
 
-    const { error: quizError } = await supabase.from("quiz_attempts").insert({
+    const { error: quizError } = await supabase.from("student_quiz_attempts").insert({
       user_id: user.id,
-      subject_id: course?.subjectId ?? null,
-      lesson_id: lesson?.id ?? null,
+      quiz_id: lesson?.id ?? quizId,
       score,
+      total: 100,
     });
 
     if (quizError) {
@@ -267,14 +326,71 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const resolvedLessonId = lesson?.id ?? quizId;
+    const alreadyCompleted = progress[courseId]?.completedLessons.includes(resolvedLessonId);
+
+    if (!alreadyCompleted) {
+      const { error: courseError } = await supabase.from("student_courses").upsert(
+        {
+          user_id: user.id,
+          course_id: courseId,
+        },
+        { onConflict: "user_id,course_id" }
+      );
+
+      if (courseError) {
+        setError(courseError.message);
+      }
+
+      const { error: progressError } = await supabase.from("student_lessons").upsert(
+        {
+          user_id: user.id,
+          lesson_id: resolvedLessonId,
+          status: "completed",
+          progress: 100,
+        },
+        { onConflict: "user_id,lesson_id" }
+      );
+
+      if (progressError) {
+        setError(progressError.message);
+      }
+
+      const { error: activityError } = await supabase.from("student_activity_log").insert({
+        user_id: user.id,
+        type: "lesson_completed",
+        ref_id: resolvedLessonId,
+        meta: { course_id: courseId },
+      });
+
+      if (activityError) {
+        setError(activityError.message);
+      }
+
+      const durationMinutes = lesson?.durationMinutes ?? 10;
+      const { error: sessionError } = await supabase.from("study_sessions").insert({
+        user_id: user.id,
+        subject_id: course?.subjectId ?? null,
+        duration_minutes: durationMinutes,
+        session_date: formatDateKey(getBangladeshToday()),
+      });
+
+      if (sessionError) {
+        setError(sessionError.message);
+      }
+    }
+
     setProgress((prev) => {
       const next = { ...prev };
       const courseProgress = next[courseId] || { completedLessons: [], quizScores: {} };
+      const updatedLessons = new Set(courseProgress.completedLessons);
+      updatedLessons.add(resolvedLessonId);
       next[courseId] = {
         ...courseProgress,
+        completedLessons: Array.from(updatedLessons),
         quizScores: {
           ...courseProgress.quizScores,
-          [quizId]: score,
+          [resolvedLessonId]: score,
         },
       };
       return next;
@@ -300,6 +416,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         studySessions,
         purchasedCourses,
         refresh,
+        markLessonStarted,
         markLessonComplete,
         saveQuizScore,
       }}

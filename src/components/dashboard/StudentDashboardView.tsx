@@ -164,6 +164,9 @@ export function StudentDashboardView() {
     score: `${dashboardStats.averageScore}%`,
     lessons: `${dashboardStats.lessonsDone}/${dashboardStats.lessonsTotal}`,
   };
+  const lastActivityNote = dashboardStats.lastActivity
+    ? `${t({ en: "Last activity", bn: "সর্বশেষ কার্যকলাপ" })}: ${formatShortDate(dashboardStats.lastActivity)}`
+    : null;
 
   const subjectCardsForRender = subjectCardsData.map((subject) => ({
     ...subject,
@@ -228,6 +231,7 @@ export function StudentDashboardView() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card) => {
           const Icon = card.icon;
+          const noteText = card.key === "lessons" && lastActivityNote ? lastActivityNote : t(card.note);
           return (
             <div key={card.key} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/60">
               <div className="flex items-center justify-between">
@@ -240,7 +244,7 @@ export function StudentDashboardView() {
                 {statValues[card.key] ?? card.value}
                 {card.suffix && <span className="ml-1">{t(card.suffix)}</span>}
               </div>
-              <p className={cn("mt-1 text-[11px] font-medium", card.noteClass)}>{t(card.note)}</p>
+              <p className={cn("mt-1 text-[11px] font-medium", card.noteClass)}>{noteText}</p>
             </div>
           );
         })}

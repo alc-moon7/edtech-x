@@ -100,6 +100,9 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     );
     const chapters = selectedCourse?.chapters ?? [];
     const selectedChapter = chapters.find((chapter) => chapter.id === chapterId) ?? chapters[0];
+    const quizLessonId =
+        selectedChapter?.lessons.find((lesson) => lesson.type === "quiz")?.id ??
+        selectedChapter?.lessons[0]?.id;
 
     useEffect(() => {
         if (!chapterId && selectedChapter?.id) {
@@ -277,7 +280,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
                 <div className="mt-6">
                     <QuizComponent
                         courseId={selectedCourse?.id ?? ""}
-                        quizId={`ai-${selectedCourse?.id ?? "course"}-${selectedChapter?.id ?? "chapter"}`}
+                        quizId={quizLessonId}
                         questions={questions ?? undefined}
                         onComplete={handleReset}
                     />

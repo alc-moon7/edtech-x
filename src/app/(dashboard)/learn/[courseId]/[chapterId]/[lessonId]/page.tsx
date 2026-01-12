@@ -26,7 +26,7 @@ const typeLabels: Record<string, { en: string; bn: string }> = {
 export default function LessonPlayerPage() {
     const params = useParams();
     const navigate = useNavigate();
-    const { courses, progress, markLessonComplete } = useStudent();
+    const { courses, progress, markLessonStarted, markLessonComplete } = useStudent();
     const { language } = useLanguage();
     const t = useTranslate();
     const [quizCompleted, setQuizCompleted] = useState(false);
@@ -38,12 +38,12 @@ export default function LessonPlayerPage() {
     const course = courses.find((c) => c.id === courseId);
     const chapter = course?.chapters.find((ch) => ch.id === chapterId);
     const lesson = chapter?.lessons.find((l) => l.id === lessonId);
-    const hasAccess = course?.isPurchased || course?.isFree || chapter?.isFree;
+    const hasAccess = course?.isPurchased ?? false;
 
     if (course && !hasAccess) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center">
-                <h2 className="text-2xl font-bold mb-3">{t({ en: "Chapter locked", bn: "কোর্স লক করা আছে" })}</h2>
+                <h2 className="text-2xl font-bold mb-3">{t({ en: "Course locked", bn: "কোর্স লক করা আছে" })}</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                     {t({
                         en: "Upgrade your plan to unlock the next chapter.",
@@ -75,6 +75,11 @@ export default function LessonPlayerPage() {
     useEffect(() => {
         setQuizCompleted(isCompleted);
     }, [isCompleted, lessonId]);
+
+    useEffect(() => {
+        if (!course || !lesson || !hasAccess) return;
+        void markLessonStarted(courseId, lessonId);
+    }, [courseId, lessonId, course?.id, lesson?.id, hasAccess]);
 
     const handleComplete = async () => {
         await markLessonComplete(courseId, lessonId);

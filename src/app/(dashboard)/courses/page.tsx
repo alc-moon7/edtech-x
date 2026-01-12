@@ -244,10 +244,8 @@ export default function CoursesPage() {
                         className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
                       >
                         {card.isPurchased
-                            ? t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })
-                          : card.isFree || card.hasFreeChapter
-                            ? t({ en: "Start Free", bn: "Start Free" })
-                            : t({ en: "Buy Course", bn: "কোর্স কিনুন" })}
+                          ? t({ en: "Continue Class", bn: "????? ??????? ???" })
+                          : t({ en: "Buy Course", bn: "????? ?????" })}
                       </Link>
                     ) : (
                       <button

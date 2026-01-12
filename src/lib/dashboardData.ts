@@ -46,6 +46,31 @@ export type EnrollmentRecord = {
   status: "ongoing" | "completed";
 };
 
+export type StudentCourseRecord = {
+  course_id: string;
+  started_at: string | null;
+};
+
+export type StudentLessonRecord = {
+  lesson_id: string;
+  status: "started" | "completed";
+  progress: number;
+  updated_at: string;
+};
+
+export type StudentQuizAttemptRecord = {
+  quiz_id: string;
+  score: number;
+  total: number;
+  created_at: string;
+};
+
+export type StudentActivityRecord = {
+  type: string;
+  ref_id: string | null;
+  created_at: string;
+};
+
 export type PurchasedCourseRecord = {
   course_id: string;
   purchased_at: string;
@@ -155,6 +180,7 @@ export type DashboardStats = {
   weeklyActivity: boolean[];
   weeklyStudyHours: number[];
   totalPoints: number;
+  lastActivity?: string | null;
 };
 
 export type DashboardData = {
@@ -362,6 +388,35 @@ function buildProgressMap(
   return progress;
 }
 
+function buildEnrollmentsFromProgress(
+  studentCourses: StudentCourseRecord[],
+  lessons: LessonRecord[],
+  lessonProgress: LessonProgressRecord[]
+) {
+  const lessonsByCourse = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
+    if (!acc[lesson.course_id]) acc[lesson.course_id] = [];
+    acc[lesson.course_id].push(lesson);
+    return acc;
+  }, {});
+  const completedByCourse = lessonProgress.reduce<Record<string, number>>((acc, item) => {
+    if (!item.completed) return acc;
+    acc[item.course_id] = (acc[item.course_id] ?? 0) + 1;
+    return acc;
+  }, {});
+  const courseIds = new Set<string>();
+  studentCourses.forEach((record) => courseIds.add(record.course_id));
+  lessonProgress.forEach((record) => courseIds.add(record.course_id));
+
+  return Array.from(courseIds).map((courseId) => {
+    const total = lessonsByCourse[courseId]?.length ?? 0;
+    const completed = completedByCourse[courseId] ?? 0;
+    return {
+      course_id: courseId,
+      status: total > 0 && completed >= total ? "completed" : "ongoing",
+    } satisfies EnrollmentRecord;
+  });
+}
+
 function buildCourses(
   courses: CourseRecord[],
   chapters: ChapterRecord[],
@@ -389,7 +444,7 @@ function buildCourses(
     const style = getSubjectStyle(subjectName || course.title);
     const courseChapters = (chaptersByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
     const isFree = course.is_free ?? false;
-    const isPurchased = purchasedSet.has(course.id) || isFree;
+    const isPurchased = purchasedSet.has(course.id);
     const resolvedChapters = courseChapters.length
       ? courseChapters
       : [
@@ -564,6 +619,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
         weeklyActivity: Array(7).fill(false),
         weeklyStudyHours: [0, 0, 0, 0],
         totalPoints: 0,
+        lastActivity: null,
       },
       subjectCards: [],
       performanceBars: [],
@@ -616,14 +672,6 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(lessonsError.message);
   }
 
-  const { data: enrollments, error: enrollmentError } = await supabase
-    .from("enrollments")
-    .select("course_id,status")
-    .eq("user_id", userId);
-  if (enrollmentError) {
-    throw new Error(enrollmentError.message);
-  }
-
   const { data: purchasedCourses, error: purchaseError } = await supabase
     .from("purchased_courses")
     .select("course_id,purchased_at,plan_id,expires_at")
@@ -632,22 +680,30 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(purchaseError.message);
   }
 
-  const { data: lessonProgress, error: progressError } = await supabase
-    .from("lesson_progress")
-    .select("lesson_id,course_id,completed,progress_percent")
+  const { data: studentCourses, error: studentCoursesError } = await supabase
+    .from("student_courses")
+    .select("course_id,started_at")
     .eq("user_id", userId);
-  if (progressError) {
-    throw new Error(progressError.message);
+  if (studentCoursesError) {
+    throw new Error(studentCoursesError.message);
+  }
+
+  const { data: studentLessons, error: studentLessonsError } = await supabase
+    .from("student_lessons")
+    .select("lesson_id,status,progress,updated_at")
+    .eq("user_id", userId);
+  if (studentLessonsError) {
+    throw new Error(studentLessonsError.message);
   }
 
   const ninetyDaysAgo = toDateKey(addDays(startOfDay(new Date()), -90));
-  const { data: quizAttempts, error: quizError } = await supabase
-    .from("quiz_attempts")
-    .select("lesson_id,subject_id,score,created_at")
+  const { data: studentQuizAttempts, error: studentQuizError } = await supabase
+    .from("student_quiz_attempts")
+    .select("quiz_id,score,total,created_at")
     .eq("user_id", userId)
     .gte("created_at", `${ninetyDaysAgo}T00:00:00Z`);
-  if (quizError) {
-    throw new Error(quizError.message);
+  if (studentQuizError) {
+    throw new Error(studentQuizError.message);
   }
 
   const sixtyDaysAgo = toDateKey(addDays(startOfDay(new Date()), -60));
@@ -683,25 +739,65 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(globalEventError.message);
   }
 
+  const { data: lastActivity, error: lastActivityError } = await supabase
+    .from("student_activity_log")
+    .select("type,ref_id,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (lastActivityError) {
+    throw new Error(lastActivityError.message);
+  }
+
   const calendarEvents = [...(classEvents ?? []), ...(globalEvents ?? [])];
-  const progress = buildProgressMap(lessons ?? [], lessonProgress ?? [], quizAttempts ?? []);
+  const lessonToCourse = new Map((lessons ?? []).map((lesson) => [lesson.id, lesson.course_id]));
+  const courseToSubject = new Map((courses ?? []).map((course) => [course.id, course.subject_id]));
+  const lessonProgress = (studentLessons ?? [])
+    .map((item) => {
+      const courseId = lessonToCourse.get(item.lesson_id);
+      if (!courseId) return null;
+      return {
+        lesson_id: item.lesson_id,
+        course_id: courseId,
+        completed: item.status === "completed",
+        progress_percent: item.progress,
+      } satisfies LessonProgressRecord;
+    })
+    .filter(Boolean) as LessonProgressRecord[];
+  const quizAttempts = (studentQuizAttempts ?? [])
+    .map((attempt) => {
+      const courseId = lessonToCourse.get(attempt.quiz_id);
+      const subjectId = courseId ? courseToSubject.get(courseId) ?? null : null;
+      const total = attempt.total || 0;
+      const percentScore = total > 0 ? Math.round((attempt.score / total) * 100) : attempt.score;
+      return {
+        lesson_id: attempt.quiz_id,
+        subject_id: subjectId,
+        score: percentScore,
+        created_at: attempt.created_at,
+      } satisfies QuizAttemptRecord;
+    })
+    .filter(Boolean) as QuizAttemptRecord[];
+  const enrollments = buildEnrollmentsFromProgress(studentCourses ?? [], lessons ?? [], lessonProgress);
+  const progress = buildProgressMap(lessons ?? [], lessonProgress ?? [], quizAttempts);
   const coursesData = buildCourses(
     courses ?? [],
     chapters ?? [],
     lessons ?? [],
-    enrollments ?? [],
+    enrollments,
     purchasedCourses ?? []
   );
-  const subjectCards = buildSubjectCards(subjects ?? [], courses ?? [], lessons ?? [], lessonProgress ?? []);
-  const performanceBars = buildPerformanceBars(subjects ?? [], quizAttempts ?? []);
+  const subjectCards = buildSubjectCards(subjects ?? [], courses ?? [], lessons ?? [], lessonProgress);
+  const performanceBars = buildPerformanceBars(subjects ?? [], quizAttempts);
   const weeklyActivity = calculateWeeklyActivity(studySessions ?? []);
   const weeklyStudyHours = calculateWeeklyStudyHours(studySessions ?? []);
   const streakDays = calculateStreakDays(studySessions ?? []);
   const totalHours = calculateTotalHours(studySessions ?? []);
-  const averageScore = calculateAverageScore(quizAttempts ?? []);
-  const totalPoints = calculateTotalPoints(quizAttempts ?? []);
-  const lessonsTotal = getLessonsTotal(courses ?? [], lessons ?? [], enrollments ?? []);
-  const lessonsDone = getLessonsDone(lessonProgress ?? [], enrollments ?? []);
+  const averageScore = calculateAverageScore(quizAttempts);
+  const totalPoints = calculateTotalPoints(quizAttempts);
+  const lessonsTotal = getLessonsTotal(courses ?? [], lessons ?? [], enrollments);
+  const lessonsDone = getLessonsDone(lessonProgress, enrollments);
   const upcomingTests = buildUpcomingTests(calendarEvents);
 
   return {
@@ -718,14 +814,15 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
       weeklyActivity,
       weeklyStudyHours,
       totalPoints,
+      lastActivity: lastActivity?.created_at ?? null,
     },
     subjectCards,
     performanceBars,
     upcomingTests,
     calendarEvents,
     studySessions: studySessions ?? [],
-    enrollments: enrollments ?? [],
-    quizAttempts: quizAttempts ?? [],
+    enrollments,
+    quizAttempts,
     purchasedCourses: purchasedCourses ?? [],
   };
 }

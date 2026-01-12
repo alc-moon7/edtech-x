@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
 import { invokeEdgeFunction } from "@/lib/supabaseClient";
 import { startCourseCheckout } from "@/lib/payments";
+import type { CourseChapter } from "@/lib/dashboardData";
 
 type TabKey = "brainbite" | "lesson" | "quiz";
 
@@ -178,17 +179,21 @@ type LessonMessage = {
 };
 
 function LessonGeneratorPanel({
+  courseId,
+  lessonId,
   classLevel,
   subject,
   chapter,
   disabled,
 }: {
   courseId: string;
+  lessonId?: string;
   classLevel: string;
   subject: string;
   chapter: string;
   disabled: boolean;
 }) {
+  const { markLessonStarted } = useStudent();
   const t = useTranslate();
   const [messages, setMessages] = useState<LessonMessage[]>([]);
   const [input, setInput] = useState("");
@@ -231,6 +236,9 @@ function LessonGeneratorPanel({
     }
 
     setMessages((prev) => [...prev, { role: "assistant", content: data.reply as string }]);
+    if (lessonId) {
+      void markLessonStarted(courseId, lessonId);
+    }
     setLoading(false);
   };
 
@@ -291,7 +299,7 @@ function QuizGeneratorPanel({
   courseId: string;
   classLevel: string;
   subject: string;
-  chapters: { id: string; title: string }[];
+  chapters: CourseChapter[];
   activeChapterId: string;
   disabled: boolean;
 }) {
@@ -303,6 +311,9 @@ function QuizGeneratorPanel({
   const [questions, setQuestions] = useState<QuizQuestion[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const selectedChapter = chapters.find((chapter) => chapter.id === chapterId) ?? chapters[0];
+  const quizLessonId =
+    selectedChapter?.lessons.find((lesson) => lesson.type === "quiz")?.id ??
+    selectedChapter?.lessons[0]?.id;
 
   useEffect(() => {
     setChapterId(activeChapterId);
@@ -411,7 +422,7 @@ function QuizGeneratorPanel({
         {questions ? (
           <QuizComponent
             courseId={courseId}
-            quizId={`ai-${selectedChapter?.id ?? "chapter"}`}
+            quizId={quizLessonId}
             questions={questions ?? undefined}
             onComplete={handleReset}
           />
@@ -462,14 +473,15 @@ export default function CourseDetailPage() {
 
   const chapters = course.chapters ?? [];
   const selectedChapter = chapters.find((chapter) => chapter.id === selectedChapterId) ?? chapters[0];
-  const hasCourseAccess = course.isPurchased || course.isFree;
-  const isChapterLocked = !hasCourseAccess && selectedChapter && !selectedChapter.isFree;
+  const hasCourseAccess = course.isPurchased ?? false;
+  const isChapterLocked = !hasCourseAccess;
   const chapterLabel = selectedChapter?.order ? `Chapter ${selectedChapter.order}` : "Chapter";
   const chapterTitle = selectedChapter ? `${chapterLabel}: ${selectedChapter.title}` : "Chapter";
   const chapterDuration = selectedChapter
     ? getChapterDurationMinutes(selectedChapter.lessons, selectedChapter.durationMinutes ?? 40)
     : 40;
   const userProgress = progress[course.id as keyof typeof progress] || { completedLessons: [] };
+  const defaultLessonId = selectedChapter?.lessons[0]?.id;
 
   const handleBuyCourse = async () => {
     setPaymentError(null);
@@ -525,8 +537,7 @@ export default function CourseDetailPage() {
           <div className="mt-3 space-y-3">
             {chapters.map((chapter) => {
               const isActive = chapter.id === selectedChapter?.id;
-              const isFree = chapter.isFree || course.isFree;
-              const isLocked = !course.isPurchased && !isFree;
+              const isLocked = !course.isPurchased;
               const completedCount = chapter.lessons.filter((lesson) =>
                 userProgress.completedLessons.includes(lesson.id)
               ).length;
@@ -574,7 +585,7 @@ export default function CourseDetailPage() {
               <BookOpen className="h-4 w-4" /> {course.title}
             </span>
           </div>
-          {!course.isPurchased && !course.isFree && (
+          {!course.isPurchased && (
             <div className="mt-4">
               <Button onClick={handleBuyCourse} disabled={isPaying} variant="secondary">
                 {isPaying ? "Redirecting..." : "Upgrade plan"}
@@ -613,6 +624,7 @@ export default function CourseDetailPage() {
               <>
                 {activeTab === "brainbite" && selectedChapter && (
                   <BrainBitePanel
+                    courseId={course.id}
                     classLevel={course.class}
                     subject={course.title}
                     chapter={selectedChapter.title}
@@ -621,6 +633,8 @@ export default function CourseDetailPage() {
                 )}
                 {activeTab === "lesson" && selectedChapter && (
                   <LessonGeneratorPanel
+                    courseId={course.id}
+                    lessonId={defaultLessonId}
                     classLevel={course.class}
                     subject={course.title}
                     chapter={selectedChapter.title}
@@ -632,7 +646,7 @@ export default function CourseDetailPage() {
                     courseId={course.id}
                     classLevel={course.class}
                     subject={course.title}
-                    chapters={chapters.map((chapter) => ({ id: chapter.id, title: chapter.title }))}
+                    chapters={chapters}
                     activeChapterId={selectedChapter.id}
                     disabled={false}
                   />
