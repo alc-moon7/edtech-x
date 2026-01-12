@@ -330,6 +330,13 @@ export function slugify(value: string) {
 function normalizeClassLevel(value?: string | null) {
   if (!value) return null;
   const trimmed = value.trim();
+  const numericMatch = trimmed.match(/^class\s*(\d{1,2})$/i) || trimmed.match(/^(\d{1,2})$/);
+  if (numericMatch) {
+    const level = numericMatch[1];
+    if (level === "9" || level === "10") return "Class 9-10";
+    if (level === "11" || level === "12") return "Class 11-12";
+    return `Class ${level}`;
+  }
   if (trimmed === "Class 9" || trimmed === "Class 10") return "Class 9-10";
   if (trimmed === "Class 11" || trimmed === "Class 12") return "Class 11-12";
   return trimmed;
