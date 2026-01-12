@@ -94,18 +94,20 @@ function LockedChapterNotice({
 
 function BrainBitePanel({
   courseId,
+  lessonId,
   classLevel,
   subject,
   chapter,
   disabled,
 }: {
   courseId: string;
+  lessonId?: string;
   classLevel: string;
   subject: string;
   chapter: string;
   disabled: boolean;
 }) {
-  const { logActivity } = useStudent();
+  const { logActivity, markLessonStarted } = useStudent();
   const t = useTranslate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -143,10 +145,14 @@ function BrainBitePanel({
     }
 
     setEntries((prev) => [...prev, data.reply as string]);
-    void logActivity("brainbite_generated", {
-      courseId,
-      meta: { class_level: classLevel, subject, chapter },
-    });
+    if (lessonId) {
+      void markLessonStarted(courseId, lessonId);
+    } else {
+      void logActivity("brainbite_generated", {
+        courseId,
+        meta: { class_level: classLevel, subject, chapter },
+      });
+    }
     setLoading(false);
   };
 
@@ -631,6 +637,7 @@ export default function CourseDetailPage() {
                 {activeTab === "brainbite" && selectedChapter && (
                   <BrainBitePanel
                     courseId={course.id}
+                    lessonId={defaultLessonId}
                     classLevel={course.class}
                     subject={course.title}
                     chapter={selectedChapter.title}

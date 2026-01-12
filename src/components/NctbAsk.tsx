@@ -8,7 +8,7 @@ import { invokeEdgeFunction } from "@/lib/supabaseClient";
 export function NctbAsk() {
   const { language } = useLanguage();
   const t = useTranslate();
-  const { logActivity } = useStudent();
+  const { courses, markLessonStarted, logActivity } = useStudent();
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([]);
   const [thinking, setThinking] = useState(false);
@@ -98,6 +98,22 @@ export function NctbAsk() {
         ...prev,
         { id: `${Date.now()}-assistant`, role: "assistant", content: data.reply as string },
       ]);
+      const subjectKey = subject.trim().toLowerCase();
+      const matchedCourse =
+        courses.find(
+          (course) =>
+            course.class === classLevel &&
+            course.title.trim().toLowerCase() === subjectKey
+        ) ??
+        courses.find(
+          (course) =>
+            course.class === classLevel &&
+            course.subjectName?.trim().toLowerCase() === subjectKey
+        );
+      const lessonId = matchedCourse?.chapters?.[0]?.lessons?.[0]?.id;
+      if (matchedCourse && lessonId) {
+        void markLessonStarted(matchedCourse.id, lessonId);
+      }
       void logActivity("homeschool_ai", { meta: { class_level: classLevel, subject } });
     }
 

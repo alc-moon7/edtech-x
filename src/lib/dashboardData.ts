@@ -623,9 +623,10 @@ function getLessonsTotal(courses: CourseRecord[], lessons: LessonRecord[], enrol
 
 function getLessonsDone(lessonProgress: LessonProgressRecord[], enrollments: EnrollmentRecord[]) {
   if (!lessonProgress.length) return 0;
-  if (!enrollments.length) return lessonProgress.filter((item) => item.completed).length;
+  const isStarted = (item: LessonProgressRecord) => item.progress_percent > 0;
+  if (!enrollments.length) return lessonProgress.filter(isStarted).length;
   const enrolledCourses = new Set(enrollments.map((item) => item.course_id));
-  return lessonProgress.filter((item) => item.completed && enrolledCourses.has(item.course_id)).length;
+  return lessonProgress.filter((item) => isStarted(item) && enrolledCourses.has(item.course_id)).length;
 }
 
 export async function fetchDashboardData(userId: string, classLevel?: string | null): Promise<DashboardData> {
