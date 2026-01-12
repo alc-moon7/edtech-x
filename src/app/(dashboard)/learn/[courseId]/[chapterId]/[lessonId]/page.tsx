@@ -38,7 +38,8 @@ export default function LessonPlayerPage() {
     const course = courses.find((c) => c.id === courseId);
     const chapter = course?.chapters.find((ch) => ch.id === chapterId);
     const lesson = chapter?.lessons.find((l) => l.id === lessonId);
-    const hasAccess = course?.isPurchased ?? false;
+    const hasAccess =
+        course?.isPurchased === true || course?.isFree === true || chapter?.isFree === true;
 
     if (course && !hasAccess) {
         return (

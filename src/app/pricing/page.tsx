@@ -14,10 +14,8 @@ const CLASS_OPTIONS = [
   "Class 6",
   "Class 7",
   "Class 8",
-  "Class 9",
-  "Class 10",
-  "Class 11",
-  "Class 12",
+  "Class 9-10",
+  "Class 11-12",
 ];
 
 const plans = [
@@ -121,6 +119,10 @@ export default function PricingPage() {
   );
   const selectedPurchase = selectedCourseId ? activePurchaseByCourse.get(selectedCourseId) : null;
   const courseTitleMap = new Map(courses.map((course) => [course.id, course.title]));
+  const selectedCourse = selectedCourseId
+    ? courses.find((course) => course.id === selectedCourseId)
+    : null;
+  const selectedCoursePrice = selectedCourse?.priceFull ?? null;
 
   const openCheckout = (planId: string) => {
     if (!user) {
@@ -183,6 +185,7 @@ export default function PricingPage() {
     try {
       await startCourseCheckout(selectedCourseId, {
         planId: selectedPlan.id === "plan-standard" ? "standard" : "premium",
+        amount: selectedCoursePrice ?? undefined,
       });
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
@@ -413,7 +416,9 @@ export default function PricingPage() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-slate-500">
                 {t({ en: "Plan price", bn: "প্ল্যান মূল্য" })}:{" "}
-                <span className="font-semibold text-slate-800">BDT {selectedPlan.price}</span>
+                <span className="font-semibold text-slate-800">
+                  BDT {selectedCoursePrice ?? selectedPlan.price}
+                </span>
               </div>
               <Button
                 onClick={handleCheckout}

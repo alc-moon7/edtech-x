@@ -5,21 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
-import { invokeEdgeFunction } from "@/lib/supabaseClient";
+import { invokeEdgeFunction, supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
 
-const HOME_CLASS_OPTIONS = [
-    "Class 6",
-    "Class 7",
-    "Class 8",
-    "Class 9",
-    "Class 10",
-    "Class 11",
-    "Class 12",
-];
-const DEFAULT_HOME_CLASS = "Class 10";
+const DEFAULT_HOME_CLASS = "Class 9-10";
 
 type AiQuizCardProps = {
     context?: "dashboard" | "home";
@@ -32,6 +23,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     const { language } = useLanguage();
     const t = useTranslate();
     const isHome = context === "home";
+    const [availableClasses, setAvailableClasses] = useState<string[]>([]);
     const nowMs = Date.now();
     const hasActiveSubscription = purchasedCourses.some((purchase) => {
         if (!purchase.expires_at) return true;
@@ -55,9 +47,44 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
         return Array.from(unique);
     }, [courses]);
 
+    useEffect(() => {
+        if (!isHome) return;
+        let isActive = true;
+
+        const loadClasses = async () => {
+            const classOrder = ["Class 6", "Class 7", "Class 8", "Class 9-10", "Class 11-12"];
+            const { data } = await supabase
+                .from("classes")
+                .select("name,level")
+                .in("level", ["school", "college"])
+                .order("name", { ascending: true });
+            if (!isActive) return;
+            const sorted = (data ?? []).sort((a, b) => {
+                const aIndex = classOrder.indexOf(a.name);
+                const bIndex = classOrder.indexOf(b.name);
+                if (aIndex === -1 && bIndex === -1) {
+                    return a.name.localeCompare(b.name);
+                }
+                if (aIndex === -1) return 1;
+                if (bIndex === -1) return -1;
+                return aIndex - bIndex;
+            });
+            setAvailableClasses(sorted.map((item) => item.name));
+        };
+
+        void loadClasses();
+
+        return () => {
+            isActive = false;
+        };
+    }, [isHome]);
+
     const classOptions = useMemo(
-        () => (isHome ? HOME_CLASS_OPTIONS : derivedClasses),
-        [isHome, derivedClasses]
+        () =>
+            isHome
+                ? (derivedClasses.length ? derivedClasses : availableClasses)
+                : derivedClasses,
+        [isHome, availableClasses, derivedClasses]
     );
 
     const [classLevel, setClassLevel] = useState(() =>

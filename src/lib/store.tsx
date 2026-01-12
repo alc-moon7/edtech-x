@@ -41,7 +41,7 @@ type StudentContextType = {
   studySessions: StudySessionRecord[];
   purchasedCourses: PurchasedCourseRecord[];
   refresh: () => Promise<void>;
-  markLessonStarted: (courseId: string, lessonId: string) => Promise<void>;
+  markLessonStarted: (courseId: string, lessonId?: string | null) => Promise<void>;
   markLessonComplete: (courseId: string, lessonId: string) => Promise<void>;
   saveQuizScore: (courseId: string, quizId: string, score: number) => Promise<void>;
   logActivity: (
@@ -65,6 +65,40 @@ const EMPTY_STATS: DashboardStats = {
 };
 
 const EMPTY_LEADERBOARD: LeaderboardEntry[] = [];
+
+function normalizeClassLevel(value?: string | null) {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (trimmed === "Class 9" || trimmed === "Class 10") return "Class 9-10";
+  if (trimmed === "Class 11" || trimmed === "Class 12") return "Class 11-12";
+  return trimmed;
+}
+
+function findLessonById(course: CourseData | undefined, lessonId?: string | null) {
+  if (!course || !lessonId) return { lesson: undefined, chapter: undefined };
+  for (const chapter of course.chapters ?? []) {
+    const lesson = chapter.lessons.find((item) => item.id === lessonId);
+    if (lesson) return { lesson, chapter };
+  }
+  return { lesson: undefined, chapter: undefined };
+}
+
+function isLessonUnlocked(course: CourseData | undefined, lessonId?: string | null) {
+  if (!course || !lessonId) return false;
+  if (course.isFree || course.isPurchased) return true;
+  const { chapter } = findLessonById(course, lessonId);
+  return chapter?.isFree ?? false;
+}
+
+function getFirstLessonId(course: CourseData | undefined) {
+  if (!course) return null;
+  for (const chapter of course.chapters ?? []) {
+    if (chapter.lessons.length) {
+      return chapter.lessons[0].id;
+    }
+  }
+  return null;
+}
 
 function getLeaderboardAvatar(rank: number, highlight: boolean) {
   if (highlight) return "bg-primary";
@@ -138,7 +172,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    const classLevel = user.user_metadata?.class ?? null;
+    const classLevel = normalizeClassLevel(user.user_metadata?.class ?? null);
 
     if (classLevel) {
       const { error: profileError } = await supabase
@@ -223,18 +257,24 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   };
 
-  const markLessonStarted = async (courseId: string, lessonId: string) => {
+  const markLessonStarted = async (courseId: string, lessonId?: string | null) => {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
-    const hasAccess = course?.isPurchased ?? false;
+    const resolvedLessonId = lessonId ?? getFirstLessonId(course);
+    const hasAccess = isLessonUnlocked(course, resolvedLessonId);
 
-    if (course && !hasAccess) {
-      setError("Course locked.");
+    if (!resolvedLessonId) {
+      setError("Lesson not found.");
       return;
     }
 
-    const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
+    if (course && !hasAccess) {
+      setError("Chapter locked.");
+      return;
+    }
+
+    const alreadyCompleted = progress[courseId]?.completedLessons.includes(resolvedLessonId);
     if (alreadyCompleted) return;
 
     const { error: courseError } = await supabase.from("student_courses").upsert(
@@ -253,7 +293,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     const { error: lessonError } = await supabase.from("student_lessons").upsert(
       {
         user_id: user.id,
-        lesson_id: lessonId,
+        lesson_id: resolvedLessonId,
         status: "started",
         progress: 1,
       },
@@ -268,7 +308,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     const { error: activityError } = await supabase.from("student_activity_log").insert({
       user_id: user.id,
       type: "lesson_started",
-      ref_id: lessonId,
+      ref_id: resolvedLessonId,
       meta: { course_id: courseId },
     });
 
@@ -283,11 +323,11 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
-    const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === lessonId);
-    const hasAccess = course?.isPurchased ?? false;
+    const { lesson } = findLessonById(course, lessonId);
+    const hasAccess = isLessonUnlocked(course, lessonId);
 
     if (course && !hasAccess) {
-      setError("Course locked.");
+      setError("Chapter locked.");
       return;
     }
     const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
@@ -366,17 +406,18 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
-    const lesson = course?.chapters.flatMap((chapter) => chapter.lessons).find((item) => item.id === quizId);
-    const hasAccess = course?.isPurchased ?? false;
+    const { lesson } = findLessonById(course, quizId);
+    const resolvedLessonId = lesson?.id ?? quizId;
+    const hasAccess = isLessonUnlocked(course, resolvedLessonId);
 
     if (course && !hasAccess) {
-      setError("Course locked.");
+      setError("Chapter locked.");
       return;
     }
 
     const { error: quizError } = await supabase.from("student_quiz_attempts").insert({
       user_id: user.id,
-      quiz_id: lesson?.id ?? quizId,
+      quiz_id: resolvedLessonId,
       score,
       total: 100,
     });
@@ -386,7 +427,6 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const resolvedLessonId = lesson?.id ?? quizId;
     const alreadyCompleted = progress[courseId]?.completedLessons.includes(resolvedLessonId);
 
     if (!alreadyCompleted) {

@@ -14,118 +14,6 @@ const tabs = [
   { key: "ended", label: { en: "Ended Class", bn: "Ended Class" } },
 ];
 
-const classCards = [
-  {
-    key: "bangla",
-    title: { en: "Bangla", bn: "Bangla" },
-    status: "ongoing",
-    cover: "from-emerald-600 via-emerald-500 to-emerald-700",
-  },
-  {
-    key: "social",
-    title: { en: "Social Science", bn: "Social Science" },
-    status: "ongoing",
-    cover: "from-teal-600 via-cyan-500 to-emerald-600",
-  },
-  {
-    key: "english-1",
-    title: { en: "English 1st Paper", bn: "English 1st Paper" },
-    status: "ongoing",
-    cover: "from-amber-600 via-orange-500 to-amber-700",
-  },
-  {
-    key: "english-2",
-    title: { en: "English 2nd Paper", bn: "English 2nd Paper" },
-    status: "ongoing",
-    cover: "from-emerald-600 via-lime-500 to-emerald-700",
-  },
-  {
-    key: "math",
-    title: { en: "Mathematics", bn: "Mathematics" },
-    status: "ongoing",
-    cover: "from-indigo-600 via-blue-500 to-indigo-700",
-  },
-  {
-    key: "ict",
-    title: { en: "ICT", bn: "ICT" },
-    status: "ongoing",
-    cover: "from-slate-600 via-slate-500 to-slate-700",
-  },
-  {
-    key: "science",
-    title: { en: "Science", bn: "Science" },
-    status: "ongoing",
-    cover: "from-emerald-700 via-emerald-600 to-emerald-800",
-  },
-  {
-    key: "religion",
-    title: { en: "Religion & Ethics", bn: "Religion & Ethics" },
-    status: "ongoing",
-    cover: "from-rose-600 via-rose-500 to-rose-700",
-  },
-  {
-    key: "agriculture",
-    title: { en: "Agriculture Studies", bn: "Agriculture Studies" },
-    status: "ongoing",
-    cover: "from-green-700 via-green-600 to-emerald-700",
-  },
-  {
-    key: "arts",
-    title: { en: "Fine Arts", bn: "Fine Arts" },
-    status: "ended",
-    cover: "from-purple-600 via-purple-500 to-indigo-600",
-  },
-  {
-    key: "civics",
-    title: { en: "Civics & Citizenship", bn: "Civics & Citizenship" },
-    status: "ended",
-    cover: "from-yellow-700 via-yellow-600 to-orange-600",
-  },
-  {
-    key: "geography",
-    title: { en: "Geography", bn: "Geography" },
-    status: "ended",
-    cover: "from-sky-600 via-sky-500 to-blue-600",
-  },
-  {
-    key: "health",
-    title: { en: "Health & Sports", bn: "Health & Sports" },
-    status: "ended",
-    cover: "from-red-600 via-red-500 to-orange-600",
-  },
-  {
-    key: "music",
-    title: { en: "Music", bn: "Music" },
-    status: "ended",
-    cover: "from-amber-700 via-amber-600 to-yellow-600",
-  },
-  {
-    key: "drawing",
-    title: { en: "Drawing", bn: "Drawing" },
-    status: "ended",
-    cover: "from-lime-600 via-lime-500 to-green-600",
-  },
-  {
-    key: "science-lab",
-    title: { en: "Science Lab", bn: "Science Lab" },
-    status: "ended",
-    cover: "from-blue-700 via-blue-600 to-indigo-700",
-  },
-  {
-    key: "history",
-    title: { en: "History", bn: "History" },
-    status: "ended",
-    cover: "from-emerald-700 via-emerald-600 to-teal-700",
-  },
-  {
-    key: "economics",
-    title: { en: "Economics", bn: "Economics" },
-    status: "ended",
-    cover: "from-orange-700 via-orange-600 to-amber-700",
-  },
-];
-
-
 export default function CoursesPage() {
   const { user } = useAuth();
   const { courses } = useStudent();
@@ -137,12 +25,7 @@ export default function CoursesPage() {
 
   const resolvedCards = useMemo(() => {
     if (!courses.length) {
-      return classCards.map((card) => ({
-        ...card,
-        courseId: undefined,
-        isPurchased: false,
-        classLabel: displayClass,
-      }));
+      return [];
     }
     return courses.map((course) => ({
       key: course.id,

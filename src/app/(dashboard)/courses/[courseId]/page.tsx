@@ -37,9 +37,11 @@ const tabs: { key: TabKey; label: { en: string; bn: string }; icon: React.Elemen
 function getSubjectIcon(subject: string) {
   const key = subject.toLowerCase();
   if (key.includes("math")) return Calculator;
+  if (key.includes("higher")) return Calculator;
   if (key.includes("science")) return FlaskConical;
+  if (key.includes("physics") || key.includes("chemistry") || key.includes("biology")) return FlaskConical;
   if (key.includes("english")) return PenLine;
-  if (key.includes("social")) return Globe2;
+  if (key.includes("social") || key.includes("bangladesh") || key.includes("global")) return Globe2;
   if (key.includes("ict")) return Monitor;
   return BookOpen;
 }
@@ -485,8 +487,9 @@ export default function CourseDetailPage() {
 
   const chapters = course.chapters ?? [];
   const selectedChapter = chapters.find((chapter) => chapter.id === selectedChapterId) ?? chapters[0];
-  const hasCourseAccess = course.isPurchased ?? false;
-  const isChapterLocked = !hasCourseAccess;
+  const hasCourseAccess = course.isPurchased === true || course.isFree === true;
+  const hasLockedChapters = chapters.some((chapter) => !chapter.isFree);
+  const isChapterLocked = !hasCourseAccess && !(selectedChapter?.isFree ?? false);
   const chapterLabel = selectedChapter?.order ? `Chapter ${selectedChapter.order}` : "Chapter";
   const chapterTitle = selectedChapter ? `${chapterLabel}: ${selectedChapter.title}` : "Chapter";
   const chapterDuration = selectedChapter
@@ -499,7 +502,10 @@ export default function CourseDetailPage() {
     setPaymentError(null);
     setIsPaying(true);
     try {
-      await startCourseCheckout(course.id, { planId: "premium" });
+      await startCourseCheckout(course.id, {
+        planId: "premium",
+        amount: course.priceFull ?? undefined,
+      });
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
       setIsPaying(false);
@@ -549,7 +555,7 @@ export default function CourseDetailPage() {
           <div className="mt-3 space-y-3">
             {chapters.map((chapter) => {
               const isActive = chapter.id === selectedChapter?.id;
-              const isLocked = !course.isPurchased;
+              const isLocked = !hasCourseAccess && !chapter.isFree;
               const completedCount = chapter.lessons.filter((lesson) =>
                 userProgress.completedLessons.includes(lesson.id)
               ).length;
@@ -597,7 +603,7 @@ export default function CourseDetailPage() {
               <BookOpen className="h-4 w-4" /> {course.title}
             </span>
           </div>
-          {!course.isPurchased && (
+          {!hasCourseAccess && hasLockedChapters && (
             <div className="mt-4">
               <Button onClick={handleBuyCourse} disabled={isPaying} variant="secondary">
                 {isPaying ? "Redirecting..." : "Upgrade plan"}

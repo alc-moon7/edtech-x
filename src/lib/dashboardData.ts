@@ -9,6 +9,8 @@ export type SubjectRecord = {
   id: string;
   name: string;
   class_level: string;
+  price_full: number | null;
+  free_first_chapter: boolean | null;
 };
 
 export type CourseRecord = {
@@ -18,7 +20,12 @@ export type CourseRecord = {
   description: string | null;
   is_free: boolean;
   subject_id: string;
-  subject?: { id: string; name: string } | null;
+  subject?: {
+    id: string;
+    name: string;
+    price_full: number | null;
+    free_first_chapter: boolean | null;
+  } | null;
 };
 
 export type ChapterRecord = {
@@ -28,12 +35,13 @@ export type ChapterRecord = {
   order_no: number;
   is_free: boolean;
   duration_minutes: number | null;
+  price: number | null;
 };
 
 export type LessonRecord = {
   id: string;
   course_id: string;
-  chapter_id: string;
+  chapter_id: string | null;
   title: string;
   order_no: number;
   type: "video" | "article" | "quiz";
@@ -128,6 +136,7 @@ export type CourseChapter = {
   order?: number;
   isFree?: boolean;
   durationMinutes?: number;
+  price?: number | null;
   lessons: CourseLesson[];
 };
 
@@ -141,6 +150,8 @@ export type CourseData = {
   image: string;
   color: string;
   cover: string;
+  priceFull?: number | null;
+  freeFirstChapter?: boolean;
   status?: "ongoing" | "completed";
   isPurchased?: boolean;
   isFree?: boolean;
@@ -252,6 +263,36 @@ const SUBJECT_STYLES: Record<
     color: "secondary",
     image: "bg-emerald-100",
   },
+  physics: {
+    accent: "bg-sky-500",
+    cover: "from-sky-600 via-blue-500 to-sky-700",
+    color: "secondary",
+    image: "bg-sky-100",
+  },
+  chemistry: {
+    accent: "bg-amber-500",
+    cover: "from-amber-600 via-orange-500 to-amber-700",
+    color: "secondary",
+    image: "bg-amber-100",
+  },
+  biology: {
+    accent: "bg-lime-500",
+    cover: "from-lime-600 via-emerald-500 to-lime-700",
+    color: "secondary",
+    image: "bg-lime-100",
+  },
+  "higher math": {
+    accent: "bg-indigo-500",
+    cover: "from-indigo-600 via-blue-500 to-indigo-700",
+    color: "secondary",
+    image: "bg-indigo-100",
+  },
+  "bangladesh and global studies": {
+    accent: "bg-orange-500",
+    cover: "from-orange-600 via-amber-500 to-orange-700",
+    color: "secondary",
+    image: "bg-orange-100",
+  },
 };
 
 const DEFAULT_STYLE = {
@@ -263,7 +304,19 @@ const DEFAULT_STYLE = {
 
 export function getSubjectStyle(name?: string | null) {
   if (!name) return DEFAULT_STYLE;
-  const key = name.trim().toLowerCase();
+  const key = name
+    .trim()
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, "")
+    .replace(/&/g, "and")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (key.includes("bangladesh") || key.includes("global studies") || key === "bgs") {
+    return SUBJECT_STYLES["bangladesh and global studies"] ?? DEFAULT_STYLE;
+  }
+  if (key.includes("higher math") || key.includes("higher mathematics")) {
+    return SUBJECT_STYLES["higher math"] ?? DEFAULT_STYLE;
+  }
   return SUBJECT_STYLES[key] ?? DEFAULT_STYLE;
 }
 
@@ -272,6 +325,14 @@ export function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function normalizeClassLevel(value?: string | null) {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (trimmed === "Class 9" || trimmed === "Class 10") return "Class 9-10";
+  if (trimmed === "Class 11" || trimmed === "Class 12") return "Class 11-12";
+  return trimmed;
 }
 
 function addDays(date: Date, days: number) {
@@ -456,8 +517,14 @@ function buildCourses(
   purchasedCourses: PurchasedCourseRecord[]
 ) {
   const lessonsByChapter = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
+    if (!lesson.chapter_id) return acc;
     if (!acc[lesson.chapter_id]) acc[lesson.chapter_id] = [];
     acc[lesson.chapter_id].push(lesson);
+    return acc;
+  }, {});
+  const lessonsByCourse = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
+    if (!acc[lesson.course_id]) acc[lesson.course_id] = [];
+    acc[lesson.course_id].push(lesson);
     return acc;
   }, {});
   const chaptersByCourse = chapters.reduce<Record<string, ChapterRecord[]>>((acc, chapter) => {
@@ -473,9 +540,17 @@ function buildCourses(
   return courses.map((course) => {
     const subjectName = course.subject?.name ?? "";
     const style = getSubjectStyle(subjectName || course.title);
+    const priceFull = course.subject?.price_full ?? null;
+    const freeFirstChapter = course.subject?.free_first_chapter ?? false;
     const courseChapters = (chaptersByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
+    const courseLessons = lessonsByCourse[course.id] ?? [];
+    const chapterIds = new Set(courseChapters.map((chapter) => chapter.id));
+    const looseLessons = courseLessons.filter(
+      (lesson) => !lesson.chapter_id || !chapterIds.has(lesson.chapter_id)
+    );
     const isFree = course.is_free ?? false;
     const isPurchased = purchasedSet.has(course.id);
+    const usingFallbackChapter = courseChapters.length === 0;
     const resolvedChapters = courseChapters.length
       ? courseChapters
       : [
@@ -486,17 +561,25 @@ function buildCourses(
             order_no: 1,
             is_free: true,
             duration_minutes: null,
+            price: null,
           } satisfies ChapterRecord,
         ];
     const chapterData: CourseChapter[] = resolvedChapters.map((chapter) => {
       const chapterLessons = (lessonsByChapter[chapter.id] ?? []).sort((a, b) => a.order_no - b.order_no);
+      const fallbackLessons = usingFallbackChapter
+        ? courseLessons
+        : chapterLessons.length === 0 && looseLessons.length
+          ? looseLessons
+          : [];
+      const resolvedLessons = chapterLessons.length ? chapterLessons : fallbackLessons;
       return {
         id: chapter.id,
         title: chapter.title,
         order: chapter.order_no,
         isFree: chapter.is_free ?? false,
         durationMinutes: chapter.duration_minutes ?? undefined,
-        lessons: chapterLessons.map((lesson) => ({
+        price: chapter.price ?? null,
+        lessons: resolvedLessons.map((lesson) => ({
           id: lesson.id,
           title: lesson.title,
           type: lesson.type,
@@ -517,6 +600,8 @@ function buildCourses(
       image: style.image,
       color: style.color,
       cover: style.cover,
+      priceFull,
+      freeFirstChapter,
       status: enrollmentMap.get(course.id),
       isPurchased,
       isFree,
@@ -642,7 +727,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(profileError.message);
   }
 
-  resolvedClassLevel = resolvedClassLevel ?? profileData?.class_level ?? null;
+  resolvedClassLevel = normalizeClassLevel(resolvedClassLevel ?? profileData?.class_level ?? null);
 
   if (!resolvedClassLevel) {
     return {
@@ -675,7 +760,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const { data: subjects, error: subjectsError } = await supabase
     .from("subjects")
-    .select("id,name,class_level")
+    .select("id,name,class_level,price_full,free_first_chapter")
     .eq("class_level", resolvedClassLevel);
   if (subjectsError) {
     throw new Error(subjectsError.message);
@@ -683,7 +768,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const { data: courses, error: coursesError } = await supabase
     .from("courses")
-    .select("id,title,class_level,description,is_free,subject_id,subject:subjects(id,name)")
+    .select("id,title,class_level,description,is_free,subject_id,subject:subjects(id,name,price_full,free_first_chapter)")
     .eq("class_level", resolvedClassLevel);
   if (coursesError) {
     throw new Error(coursesError.message);
@@ -694,7 +779,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
   const { data: chapters, error: chapterError } = courseIds.length
     ? await supabase
         .from("chapters")
-        .select("id,course_id,title,order_no,is_free,duration_minutes")
+        .select("id,course_id,title,order_no,is_free,duration_minutes,price")
         .in("course_id", courseIds)
         .order("order_no", { ascending: true })
     : { data: [], error: null };

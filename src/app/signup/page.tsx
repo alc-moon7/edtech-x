@@ -247,10 +247,8 @@ export default function SignupPage() {
                 <option value="Class 6">{t({ en: "Class 6", bn: "ক্লাস ৬" })}</option>
                 <option value="Class 7">{t({ en: "Class 7", bn: "ক্লাস ৭" })}</option>
                 <option value="Class 8">{t({ en: "Class 8", bn: "ক্লাস ৮" })}</option>
-                <option value="Class 9">{t({ en: "Class 9", bn: "ক্লাস ৯" })}</option>
-                <option value="Class 10">{t({ en: "Class 10", bn: "ক্লাস ১০" })}</option>
-                <option value="Class 11">{t({ en: "Class 11", bn: "ক্লাস ১১" })}</option>
-                <option value="Class 12">{t({ en: "Class 12", bn: "ক্লাস ১২" })}</option>
+                <option value="Class 9-10">{t({ en: "Class 9-10", bn: "Class 9-10" })}</option>
+                <option value="Class 11-12">{t({ en: "Class 11-12", bn: "Class 11-12" })}</option>
               </select>
               {errors.class_name && <p className="text-xs text-red-600">{errors.class_name}</p>}
             </div>

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useLanguage, useTranslate } from "@/lib/i18n";
 import { useStudent } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { invokeEdgeFunction } from "@/lib/supabaseClient";
+import { invokeEdgeFunction, supabase } from "@/lib/supabaseClient";
 
 export function NctbAsk() {
   const { language } = useLanguage();
@@ -17,6 +17,8 @@ export function NctbAsk() {
   const [limitReached, setLimitReached] = useState(false);
   const [classLevel, setClassLevel] = useState("");
   const [subject, setSubject] = useState("");
+  const [availableClasses, setAvailableClasses] = useState<Array<{ name: string; level: string }>>([]);
+  const [availableSubjects, setAvailableSubjects] = useState<Array<{ name: string; class_level: string }>>([]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -28,24 +30,55 @@ export function NctbAsk() {
     scrollEl.scrollTo({ top: scrollEl.scrollHeight, behavior: "smooth" });
   }, [messages, thinking]);
 
-  const classOptions = [
-    { value: "Class 6", label: t({ en: "Class 6", bn: "Class 6" }) },
-    { value: "Class 7", label: t({ en: "Class 7", bn: "Class 7" }) },
-    { value: "Class 8", label: t({ en: "Class 8", bn: "Class 8" }) },
-    { value: "Class 9", label: t({ en: "Class 9", bn: "Class 9" }) },
-    { value: "Class 10", label: t({ en: "Class 10", bn: "Class 10" }) },
-    { value: "Class 11", label: t({ en: "Class 11", bn: "Class 11" }) },
-    { value: "Class 12", label: t({ en: "Class 12", bn: "Class 12" }) },
-  ];
+  useEffect(() => {
+    let isActive = true;
 
-  const subjectOptions = [
-    { value: "Bangla", label: t({ en: "Bangla", bn: "Bangla" }) },
-    { value: "English", label: t({ en: "English", bn: "English" }) },
-    { value: "Mathematics", label: t({ en: "Mathematics", bn: "Mathematics" }) },
-    { value: "Science", label: t({ en: "Science", bn: "Science" }) },
-    { value: "ICT", label: t({ en: "ICT", bn: "ICT" }) },
-    { value: "Agriculture Studies", label: t({ en: "Agriculture Studies", bn: "Agriculture Studies" }) },
-  ];
+    const loadAcademicData = async () => {
+      const classOrder = ["Class 6", "Class 7", "Class 8", "Class 9-10", "Class 11-12"];
+      const { data: classesData } = await supabase
+        .from("classes")
+        .select("name,level")
+        .in("level", ["school", "college"])
+        .order("name", { ascending: true });
+
+      const { data: subjectsData } = await supabase
+        .from("subjects")
+        .select("name,class_level")
+        .order("name", { ascending: true });
+
+      if (!isActive) return;
+      const sortedClasses = (classesData ?? []).sort((a, b) => {
+        const aIndex = classOrder.indexOf(a.name);
+        const bIndex = classOrder.indexOf(b.name);
+        if (aIndex === -1 && bIndex === -1) {
+          return a.name.localeCompare(b.name);
+        }
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      });
+      setAvailableClasses(sortedClasses);
+      setAvailableSubjects(subjectsData ?? []);
+    };
+
+    void loadAcademicData();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const classOptions = availableClasses.map((item) => ({
+    value: item.name,
+    label: t({ en: item.name, bn: item.name }),
+  }));
+
+  const subjectOptions = availableSubjects
+    .filter((item) => !classLevel || item.class_level === classLevel)
+    .map((item) => ({
+      value: item.name,
+      label: t({ en: item.name, bn: item.name }),
+    }));
 
   const parseFunctionError = async (fnError: unknown) => {
     if (fnError && typeof fnError === "object" && "error" in fnError) {
@@ -111,7 +144,7 @@ export function NctbAsk() {
             course.subjectName?.trim().toLowerCase() === subjectKey
         );
       const lessonId = matchedCourse?.chapters?.[0]?.lessons?.[0]?.id;
-      if (matchedCourse && lessonId) {
+      if (matchedCourse) {
         void markLessonStarted(matchedCourse.id, lessonId);
       }
       void logActivity("homeschool_ai", { meta: { class_level: classLevel, subject } });
@@ -218,6 +251,7 @@ export function NctbAsk() {
                   value={classLevel}
                   onChange={(event) => {
                     setClassLevel(event.target.value);
+                    setSubject("");
                     setError(null);
                   }}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
