@@ -9,6 +9,7 @@ import {
   type CalendarEventRecord,
   type CourseData,
   type DashboardStats,
+  type LeaderboardRecord,
   type PerformanceBar,
   type ProgressMap,
   type PurchasedCourseRecord,
@@ -22,6 +23,7 @@ type LeaderboardEntry = {
   name: string;
   points: number;
   avatar: string;
+  userId?: string;
 };
 
 type StudentContextType = {
@@ -42,6 +44,10 @@ type StudentContextType = {
   markLessonStarted: (courseId: string, lessonId: string) => Promise<void>;
   markLessonComplete: (courseId: string, lessonId: string) => Promise<void>;
   saveQuizScore: (courseId: string, quizId: string, score: number) => Promise<void>;
+  logActivity: (
+    type: string,
+    options?: { refId?: string | null; meta?: Record<string, unknown>; courseId?: string }
+  ) => Promise<void>;
 };
 
 const StudentContext = createContext<StudentContextType | undefined>(undefined);
@@ -58,13 +64,34 @@ const EMPTY_STATS: DashboardStats = {
   lastActivity: null,
 };
 
-const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, name: "Arian Ahmed", points: 2450, avatar: "bg-blue-500" },
-  { rank: 2, name: "Sumaiya Islam", points: 2320, avatar: "bg-teal-500" },
-  { rank: 3, name: "Rahim Uddin", points: 2100, avatar: "bg-purple-500" },
-  { rank: 4, name: "You", points: 1850, avatar: "bg-primary" },
-  { rank: 5, name: "Nusrat Jahan", points: 1780, avatar: "bg-orange-500" },
-];
+const EMPTY_LEADERBOARD: LeaderboardEntry[] = [];
+
+function getLeaderboardAvatar(rank: number, highlight: boolean) {
+  if (highlight) return "bg-primary";
+  if (rank === 1) return "bg-yellow-500";
+  if (rank === 2) return "bg-slate-400";
+  if (rank === 3) return "bg-orange-400";
+  return "bg-slate-300";
+}
+
+function buildLeaderboardEntries(
+  rows: LeaderboardRecord[] | null | undefined,
+  currentUserId?: string
+) {
+  const safeRows = rows ?? [];
+  return safeRows.map((row, index) => {
+    const rank = row.rank || index + 1;
+    const isCurrentUser = Boolean(currentUserId && row.user_id === currentUserId);
+    const name = row.full_name?.trim() || `Student ${rank}`;
+    return {
+      rank,
+      name: isCurrentUser ? "You" : name,
+      points: row.total_points ?? 0,
+      avatar: getLeaderboardAvatar(rank, isCurrentUser),
+      userId: row.user_id,
+    } satisfies LeaderboardEntry;
+  });
+}
 
 export function StudentProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -72,7 +99,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [progress, setProgress] = useState<ProgressMap>({});
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(DEFAULT_LEADERBOARD);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(EMPTY_LEADERBOARD);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>(EMPTY_STATS);
   const [subjectCards, setSubjectCards] = useState<SubjectCard[]>([]);
   const [performanceBars, setPerformanceBars] = useState<PerformanceBar[]>([]);
@@ -85,7 +112,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const resetState = () => {
     setCourses([]);
     setProgress({});
-    setLeaderboard(DEFAULT_LEADERBOARD);
+    setLeaderboard(EMPTY_LEADERBOARD);
     setDashboardStats(EMPTY_STATS);
     setSubjectCards([]);
     setPerformanceBars([]);
@@ -142,11 +169,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       setCalendarEvents(data.calendarEvents);
       setStudySessions(data.studySessions);
       setPurchasedCourses(data.purchasedCourses);
-
-      const updatedLeaderboard = DEFAULT_LEADERBOARD.map((entry) =>
-        entry.name === "You" ? { ...entry, points: data.stats.totalPoints } : entry
-      );
-      setLeaderboard(updatedLeaderboard);
+      setLeaderboard(buildLeaderboardEntries(data.leaderboard, user.id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
     } finally {
@@ -162,6 +185,43 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     }
     void refresh();
   }, [user?.id, user?.user_metadata?.class]);
+
+  const logActivity = async (
+    type: string,
+    options: { refId?: string | null; meta?: Record<string, unknown>; courseId?: string } = {}
+  ) => {
+    if (!user || !isSupabaseConfigured) return;
+    const { refId = null, meta = {}, courseId } = options;
+
+    if (courseId) {
+      const { error: courseError } = await supabase.from("student_courses").upsert(
+        {
+          user_id: user.id,
+          course_id: courseId,
+        },
+        { onConflict: "user_id,course_id" }
+      );
+
+      if (courseError) {
+        setError(courseError.message);
+        return;
+      }
+    }
+
+    const { error: activityError } = await supabase.from("student_activity_log").insert({
+      user_id: user.id,
+      type,
+      ref_id: refId,
+      meta,
+    });
+
+    if (activityError) {
+      setError(activityError.message);
+      return;
+    }
+
+    void refresh();
+  };
 
   const markLessonStarted = async (courseId: string, lessonId: string) => {
     if (!user || !isSupabaseConfigured) return;
@@ -419,6 +479,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         markLessonStarted,
         markLessonComplete,
         saveQuizScore,
+        logActivity,
       }}
     >
       {children}

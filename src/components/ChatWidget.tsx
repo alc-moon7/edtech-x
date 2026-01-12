@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { invokeEdgeFunction } from "@/lib/supabaseClient";
+import { useStudent } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -19,6 +20,7 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { logActivity } = useStudent();
 
   const handleAsk = useCallback(
     async (question?: string) => {
@@ -41,13 +43,14 @@ export function ChatWidget() {
         }
 
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply as string }]);
+        void logActivity("site_chat", { meta: { channel: "chat_widget" } });
       } catch {
         setError(ERROR_MESSAGE);
       } finally {
         setLoading(false);
       }
     },
-    [input, messages]
+    [input, messages, logActivity]
   );
 
   const shortMessages = useMemo(() => messages.slice(-12), [messages]);

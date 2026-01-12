@@ -190,6 +190,9 @@ export function StudentDashboardView() {
 
   const resolvedStudyHours = studyHoursData;
   const maxHour = Math.max(...resolvedStudyHours, 1);
+  const streakActivity = dashboardStats.weeklyActivity.length
+    ? dashboardStats.weeklyActivity
+    : Array(7).fill(false);
   const points = resolvedStudyHours
     .map((value, index) => {
       const x = (index / (resolvedStudyHours.length - 1)) * 220 + 20;
@@ -303,7 +306,7 @@ export function StudentDashboardView() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-lg font-semibold text-slate-900">
-                5 {t({ en: "Days", bn: "দিন" })}
+                {dashboardStats.streakDays} {t({ en: "Days", bn: "দিন" })}
               </div>
               <p className="text-xs text-slate-500">{t({ en: "Current streak", bn: "চলতি স্ট্রিক" })}</p>
             </div>
@@ -312,24 +315,31 @@ export function StudentDashboardView() {
             </span>
           </div>
           <div className="mt-4 flex items-end justify-between gap-2">
-            {[40, 65, 55, 70, 45, 80, 60].map((height, index) => (
+            {streakActivity.map((active, index) => (
               <div key={index} className="h-16 w-2 rounded-full bg-slate-100">
-                <div className="w-2 rounded-full bg-orange-400" style={{ height: `${height}%` }} />
+                <div
+                  className={cn("w-2 rounded-full", active ? "bg-orange-400" : "bg-slate-200")}
+                  style={{ height: active ? "85%" : "35%" }}
+                />
               </div>
             ))}
           </div>
 
           <div className="mt-5 text-xs font-semibold text-slate-700">{t({ en: "Leaderboard", bn: "লিডারবোর্ড" })}</div>
           <ul className="mt-3 space-y-3 text-xs text-slate-600">
-            {leaderboard.slice(0, 5).map((item) => (
-              <li key={item.rank} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={cn("h-6 w-6 rounded-full", item.avatar)} />
-                  <span className="font-medium text-slate-700">{item.name}</span>
-                </div>
-                <span className="font-semibold text-slate-500">{item.points} pts</span>
-              </li>
-            ))}
+            {leaderboard.length ? (
+              leaderboard.slice(0, 5).map((item) => (
+                <li key={item.rank} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={cn("h-6 w-6 rounded-full", item.avatar)} />
+                    <span className="font-medium text-slate-700">{item.name}</span>
+                  </div>
+                  <span className="font-semibold text-slate-500">{item.points} pts</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-xs text-slate-400">{t({ en: "No scores yet.", bn: "কোন স্কোর নেই" })}</li>
+            )}
           </ul>
         </div>
       </div>

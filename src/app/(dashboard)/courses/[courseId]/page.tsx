@@ -93,6 +93,7 @@ function LockedChapterNotice({
 }
 
 function BrainBitePanel({
+  courseId,
   classLevel,
   subject,
   chapter,
@@ -104,6 +105,7 @@ function BrainBitePanel({
   chapter: string;
   disabled: boolean;
 }) {
+  const { logActivity } = useStudent();
   const t = useTranslate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +143,10 @@ function BrainBitePanel({
     }
 
     setEntries((prev) => [...prev, data.reply as string]);
+    void logActivity("brainbite_generated", {
+      courseId,
+      meta: { class_level: classLevel, subject, chapter },
+    });
     setLoading(false);
   };
 

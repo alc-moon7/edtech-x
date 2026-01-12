@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage, useTranslate } from "@/lib/i18n";
+import { useStudent } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { invokeEdgeFunction } from "@/lib/supabaseClient";
 
 export function NctbAsk() {
   const { language } = useLanguage();
   const t = useTranslate();
+  const { logActivity } = useStudent();
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([]);
   const [thinking, setThinking] = useState(false);
@@ -96,6 +98,7 @@ export function NctbAsk() {
         ...prev,
         { id: `${Date.now()}-assistant`, role: "assistant", content: data.reply as string },
       ]);
+      void logActivity("homeschool_ai", { meta: { class_level: classLevel, subject } });
     }
 
     setLoading(false);

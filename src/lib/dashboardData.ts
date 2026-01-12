@@ -71,6 +71,13 @@ export type StudentActivityRecord = {
   created_at: string;
 };
 
+export type LeaderboardRecord = {
+  user_id: string;
+  full_name: string | null;
+  total_points: number;
+  rank: number;
+};
+
 export type PurchasedCourseRecord = {
   course_id: string;
   purchased_at: string;
@@ -189,6 +196,7 @@ export type DashboardData = {
   courses: CourseData[];
   progress: ProgressMap;
   stats: DashboardStats;
+  leaderboard: LeaderboardRecord[];
   subjectCards: SubjectCard[];
   performanceBars: PerformanceBar[];
   upcomingTests: UpcomingTest[];
@@ -289,33 +297,56 @@ function isPurchaseActive(purchase: PurchasedCourseRecord) {
   return Number.isFinite(expiry) && expiry > Date.now();
 }
 
-function calculateWeeklyActivity(sessions: StudySessionRecord[]) {
+function buildActivityDateSet(activityLog: StudentActivityRecord[]) {
+  const dates = new Set<string>();
+  activityLog.forEach((item) => {
+    dates.add(formatDateKey(new Date(item.created_at)));
+  });
+  return dates;
+}
+
+function calculateWeeklyActivity(activityDates: Set<string>) {
   const activity = Array(7).fill(false);
   const now = startOfDay(new Date());
   const weekStart = addDays(now, -now.getUTCDay());
-  const sessionDates = new Set(sessions.map((item) => item.session_date));
 
   for (let i = 0; i < 7; i += 1) {
     const dateKey = toDateKey(addDays(weekStart, i));
-    activity[i] = sessionDates.has(dateKey);
+    activity[i] = activityDates.has(dateKey);
   }
   return activity;
 }
 
-function calculateStreakDays(sessions: StudySessionRecord[]) {
-  const sessionDates = new Set(sessions.map((item) => item.session_date));
+function calculateStreakDays(activityDates: Set<string>) {
+  if (!activityDates.size) return 0;
   const today = startOfDay(new Date());
   let streak = 0;
 
   for (let i = 0; i < 365; i += 1) {
     const dateKey = toDateKey(addDays(today, -i));
-    if (sessionDates.has(dateKey)) {
+    if (activityDates.has(dateKey)) {
       streak += 1;
     } else {
       break;
     }
   }
   return streak;
+}
+
+function mergeActivityIntoStudySessions(
+  sessions: StudySessionRecord[],
+  activityDates: Set<string>
+) {
+  const sessionDates = new Set(sessions.map((item) => item.session_date));
+  const merged = [...sessions];
+
+  activityDates.forEach((date) => {
+    if (!sessionDates.has(date)) {
+      merged.push({ subject_id: null, duration_minutes: 0, session_date: date });
+    }
+  });
+
+  return merged;
 }
 
 function calculateWeeklyStudyHours(sessions: StudySessionRecord[]) {
@@ -503,6 +534,9 @@ function buildSubjectCards(
   const lessonCompleted = new Set(
     lessonProgress.filter((item) => item.completed).map((item) => item.lesson_id)
   );
+  const progressByLesson = new Map(
+    lessonProgress.map((item) => [item.lesson_id, item.progress_percent])
+  );
   const lessonsByCourse = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
     if (!acc[lesson.course_id]) acc[lesson.course_id] = [];
     acc[lesson.course_id].push(lesson);
@@ -514,14 +548,19 @@ function buildSubjectCards(
     const allLessons = subjectCourses.flatMap((course) => lessonsByCourse[course.id] ?? []);
     const total = allLessons.length;
     const completed = allLessons.filter((lesson) => lessonCompleted.has(lesson.id)).length;
-    const progress = total ? Math.round((completed / total) * 100) : 0;
+    const totalProgress = allLessons.reduce(
+      (acc, lesson) => acc + (progressByLesson.get(lesson.id) ?? 0),
+      0
+    );
+    const progress = total ? Math.round(totalProgress / total) : 0;
+    const clampedProgress = Math.min(progress, 100);
     const style = getSubjectStyle(subject.name);
 
     return {
       key: slugify(subject.name),
       title: subject.name,
       lessons: `${completed}/${total || 0}`,
-      progress,
+      progress: clampedProgress,
       accent: style.accent,
     } satisfies SubjectCard;
   });
@@ -621,6 +660,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
         totalPoints: 0,
         lastActivity: null,
       },
+      leaderboard: [],
       subjectCards: [],
       performanceBars: [],
       upcomingTests: [],
@@ -706,6 +746,17 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(studentQuizError.message);
   }
 
+  const activityStart = toDateKey(addDays(startOfDay(new Date()), -365));
+  const { data: activityLog, error: activityError } = await supabase
+    .from("student_activity_log")
+    .select("type,ref_id,created_at")
+    .eq("user_id", userId)
+    .gte("created_at", `${activityStart}T00:00:00Z`)
+    .order("created_at", { ascending: false });
+  if (activityError) {
+    throw new Error(activityError.message);
+  }
+
   const sixtyDaysAgo = toDateKey(addDays(startOfDay(new Date()), -60));
   const { data: studySessions, error: sessionsError } = await supabase
     .from("study_sessions")
@@ -739,18 +790,14 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     throw new Error(globalEventError.message);
   }
 
-  const { data: lastActivity, error: lastActivityError } = await supabase
-    .from("student_activity_log")
-    .select("type,ref_id,created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (lastActivityError) {
-    throw new Error(lastActivityError.message);
-  }
+  const { data: leaderboardRows, error: leaderboardError } = await supabase.rpc("get_leaderboard", {
+    limit_count: 5,
+  });
+  const leaderboard = leaderboardError ? [] : (leaderboardRows as LeaderboardRecord[] | null) ?? [];
 
   const calendarEvents = [...(classEvents ?? []), ...(globalEvents ?? [])];
+  const activityDateSet = buildActivityDateSet(activityLog ?? []);
+  const mergedStudySessions = mergeActivityIntoStudySessions(studySessions ?? [], activityDateSet);
   const lessonToCourse = new Map((lessons ?? []).map((lesson) => [lesson.id, lesson.course_id]));
   const courseToSubject = new Map((courses ?? []).map((course) => [course.id, course.subject_id]));
   const lessonProgress = (studentLessons ?? [])
@@ -790,15 +837,16 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
   );
   const subjectCards = buildSubjectCards(subjects ?? [], courses ?? [], lessons ?? [], lessonProgress);
   const performanceBars = buildPerformanceBars(subjects ?? [], quizAttempts);
-  const weeklyActivity = calculateWeeklyActivity(studySessions ?? []);
-  const weeklyStudyHours = calculateWeeklyStudyHours(studySessions ?? []);
-  const streakDays = calculateStreakDays(studySessions ?? []);
-  const totalHours = calculateTotalHours(studySessions ?? []);
+  const weeklyActivity = calculateWeeklyActivity(activityDateSet);
+  const weeklyStudyHours = calculateWeeklyStudyHours(mergedStudySessions);
+  const streakDays = calculateStreakDays(activityDateSet);
+  const totalHours = calculateTotalHours(mergedStudySessions);
   const averageScore = calculateAverageScore(quizAttempts);
   const totalPoints = calculateTotalPoints(quizAttempts);
   const lessonsTotal = getLessonsTotal(courses ?? [], lessons ?? [], enrollments);
   const lessonsDone = getLessonsDone(lessonProgress, enrollments);
   const upcomingTests = buildUpcomingTests(calendarEvents);
+  const lastActivity = activityLog?.[0]?.created_at ?? null;
 
   return {
     classLevel: resolvedClassLevel,
@@ -814,13 +862,14 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
       weeklyActivity,
       weeklyStudyHours,
       totalPoints,
-      lastActivity: lastActivity?.created_at ?? null,
+      lastActivity,
     },
+    leaderboard,
     subjectCards,
     performanceBars,
     upcomingTests,
     calendarEvents,
-    studySessions: studySessions ?? [],
+    studySessions: mergedStudySessions,
     enrollments,
     quizAttempts,
     purchasedCourses: purchasedCourses ?? [],
