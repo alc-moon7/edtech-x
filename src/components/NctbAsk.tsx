@@ -4,21 +4,42 @@ import { useLanguage, useTranslate } from "@/lib/i18n";
 import { useStudent } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { invokeEdgeFunction, supabase } from "@/lib/supabaseClient";
+import { startChapterCheckout, startCourseCheckout } from "@/lib/payments";
+import { useAuth } from "@/lib/auth";
 
 export function NctbAsk() {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const t = useTranslate();
-  const { courses, markLessonStarted, logActivity } = useStudent();
+  const { purchasedCourses, purchasedChapters, markLessonComplete, logActivity } = useStudent();
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([]);
   const [thinking, setThinking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [classId, setClassId] = useState("");
   const [classLevel, setClassLevel] = useState("");
-  const [subject, setSubject] = useState("");
-  const [availableClasses, setAvailableClasses] = useState<Array<{ name: string; level: string }>>([]);
-  const [availableSubjects, setAvailableSubjects] = useState<Array<{ name: string; class_level: string }>>([]);
+  const [subjectId, setSubjectId] = useState("");
+  const [chapterId, setChapterId] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [availableClasses, setAvailableClasses] = useState<Array<{ id: string; name: string; level: string }>>([]);
+  const [availableSubjects, setAvailableSubjects] = useState<
+    Array<{
+      id: string;
+      name: string;
+      class_id: string | null;
+      class_level: string | null;
+      price_full?: number | null;
+      first_chapter_free: boolean | null;
+      free_first_chapter?: boolean | null;
+    }>
+  >([]);
+  const [availableChapters, setAvailableChapters] = useState<
+    Array<{ id: string; title: string; order_no: number; is_free: boolean; price: number | null }>
+  >([]);
   const [hasInteracted, setHasInteracted] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -37,13 +58,13 @@ export function NctbAsk() {
       const classOrder = ["Class 6", "Class 7", "Class 8", "Class 9-10", "Class 11-12"];
       const { data: classesData } = await supabase
         .from("classes")
-        .select("name,level")
+        .select("id,name,level")
         .in("level", ["school", "ssc", "hsc"])
         .order("name", { ascending: true });
 
       const { data: subjectsData } = await supabase
         .from("subjects")
-        .select("name,class_level")
+        .select("id,name,class_id,class_level,price_full,first_chapter_free,free_first_chapter")
         .order("name", { ascending: true });
 
       if (!isActive) return;
@@ -69,16 +90,39 @@ export function NctbAsk() {
   }, []);
 
   const classOptions = availableClasses.map((item) => ({
-    value: item.name,
+    value: item.id,
     label: t({ en: item.name, bn: item.name }),
+    name: item.name,
   }));
 
+  const selectedClass = availableClasses.find((item) => item.id === classId) ?? null;
+  const resolvedClassLevel = selectedClass?.name ?? classLevel;
   const subjectOptions = availableSubjects
-    .filter((item) => !classLevel || item.class_level === classLevel)
+    .filter((item) =>
+      classId ? item.class_id === classId || item.class_level === resolvedClassLevel : true
+    )
     .map((item) => ({
-      value: item.name,
+      value: item.id,
       label: t({ en: item.name, bn: item.name }),
     }));
+  const selectedSubject = availableSubjects.find((item) => item.id === subjectId) ?? null;
+  const resolvedSubjectName = selectedSubject?.name ?? "";
+  const firstChapterFree =
+    selectedSubject?.first_chapter_free ?? selectedSubject?.free_first_chapter ?? false;
+  const selectedChapter = availableChapters.find((chapter) => chapter.id === chapterId) ?? availableChapters[0] ?? null;
+  const resolvedChapterName = selectedChapter?.title ?? "";
+  const isChapterFree =
+    Boolean(selectedChapter?.is_free) || (Boolean(firstChapterFree) && selectedChapter?.order_no === 1);
+  const hasActiveCoursePurchase = purchasedCourses.some((purchase) => {
+    if (!selectedCourseId || purchase.course_id !== selectedCourseId) return false;
+    if (!purchase.expires_at) return true;
+    const expiry = new Date(purchase.expires_at).getTime();
+    return Number.isFinite(expiry) && expiry > Date.now();
+  });
+  const hasChapterPurchase = purchasedChapters.some(
+    (purchase) => Boolean(chapterId) && purchase.chapter_id === chapterId
+  );
+  const isUnlocked = isChapterFree || hasActiveCoursePurchase || hasChapterPurchase;
 
   const parseFunctionError = async (fnError: unknown) => {
     if (fnError && typeof fnError === "object" && "error" in fnError) {
@@ -90,11 +134,74 @@ export function NctbAsk() {
     return response.json().catch(() => null);
   };
 
+  useEffect(() => {
+    let isActive = true;
+
+    const loadSubjectDetails = async () => {
+      if (!subjectId || !resolvedClassLevel) {
+        setAvailableChapters([]);
+        setChapterId("");
+        setSelectedCourseId(null);
+        return;
+      }
+
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("id,title,class_level,subject_id")
+        .eq("subject_id", subjectId)
+        .eq("class_level", resolvedClassLevel)
+        .maybeSingle();
+
+      const { data: chaptersData } = await supabase
+        .from("chapters")
+        .select("id,subject_id,name,title,order_no,is_free,price")
+        .eq("subject_id", subjectId)
+        .order("order_no", { ascending: true });
+
+      if (!isActive) return;
+      const formattedChapters = (chaptersData ?? []).map((chapter) => ({
+        id: chapter.id,
+        title: chapter.name ?? chapter.title ?? "Chapter",
+        order_no: chapter.order_no,
+        is_free: chapter.is_free ?? false,
+        price: chapter.price ?? null,
+      }));
+      setSelectedCourseId(courseData?.id ?? null);
+      setAvailableChapters(formattedChapters);
+      if (!chapterId || !formattedChapters.some((chapter) => chapter.id === chapterId)) {
+        setChapterId(formattedChapters[0]?.id ?? "");
+      }
+    };
+
+    void loadSubjectDetails();
+
+    return () => {
+      isActive = false;
+    };
+  }, [subjectId, resolvedClassLevel]);
+
+  useEffect(() => {
+    setMessages([]);
+    setQuestion("");
+    setError(null);
+    setLimitReached(false);
+    setThinking(false);
+    setHasInteracted(false);
+  }, [classId, subjectId, chapterId]);
+
   const handleAsk = async () => {
     const trimmed = question.trim();
     if (!trimmed) return;
-    if (!classLevel || !subject) {
-      setError(t({ en: "Select class and subject first.", bn: "Select class and subject first." }));
+    if (!resolvedClassLevel || !subjectId || !chapterId) {
+      setError(t({ en: "Select class, subject, and chapter first.", bn: "প্রথমে ক্লাস, বিষয় ও অধ্যায় নির্বাচন করুন।" }));
+      return;
+    }
+    if (!selectedCourseId || !resolvedSubjectName || !resolvedChapterName) {
+      setError(t({ en: "Missing course details. Please reselect.", bn: "কোর্স তথ্য পাওয়া যায়নি। আবার নির্বাচন করুন।" }));
+      return;
+    }
+    if (!isUnlocked) {
+      setError(t({ en: "Chapter locked. Buy to continue.", bn: "চ্যাপ্টার লক করা আছে। কিনে চালু করুন।" }));
       return;
     }
     const userMessage = { id: `${Date.now()}-user`, role: "user" as const, content: trimmed };
@@ -106,10 +213,11 @@ export function NctbAsk() {
     setLimitReached(false);
 
     const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("nctb-qa", {
-      question: trimmed,
-      classLevel,
-      subject,
+      question: `Class: ${resolvedClassLevel}\nSubject: ${resolvedSubjectName}\nChapter: ${resolvedChapterName}\nQuestion: ${trimmed}`,
+      classLevel: resolvedClassLevel,
+      subject: resolvedSubjectName,
       language,
+      chapter: resolvedChapterName,
     });
 
     if (fnError || !data?.reply) {
@@ -120,10 +228,29 @@ export function NctbAsk() {
       } else if (payload?.error === "Unauthorized") {
         setError(t({ en: "Please sign in to use AI.", bn: "Please sign in to use AI." }));
       } else {
+        const { data: fallbackData } = user && chapterId
+          ? await supabase
+              .from("student_activity_log")
+              .select("meta,created_at")
+              .eq("user_id", user.id)
+              .eq("type", "homeschool_ai")
+              .filter("meta->>chapter_id", "eq", chapterId)
+              .order("created_at", { ascending: false })
+              .limit(1)
+          : { data: null };
+        const meta = (fallbackData?.[0]?.meta ?? {}) as Record<string, unknown>;
+        const fallbackContent =
+          typeof meta.content === "string"
+            ? meta.content
+            : `Answer: ${resolvedChapterName}.\nNotes:\n• Review the key ideas of ${resolvedChapterName}.\n• Focus on definitions and important terms.\n• Practice short questions to reinforce learning.`;
+        setMessages((prev) => [
+          ...prev,
+          { id: `${Date.now()}-assistant`, role: "assistant", content: fallbackContent },
+        ]);
         setError(
           payload?.error ||
             fnError?.message ||
-            t({ en: "AI reply failed. Please try again.", bn: "AI reply failed. Please try again." })
+            t({ en: "AI reply failed. Showing saved notes instead.", bn: "AI reply failed. Showing saved notes instead." })
         );
       }
     } else {
@@ -131,27 +258,62 @@ export function NctbAsk() {
         ...prev,
         { id: `${Date.now()}-assistant`, role: "assistant", content: data.reply as string },
       ]);
-      const subjectKey = subject.trim().toLowerCase();
-      const matchedCourse =
-        courses.find(
-          (course) =>
-            course.class === classLevel &&
-            course.title.trim().toLowerCase() === subjectKey
-        ) ??
-        courses.find(
-          (course) =>
-            course.class === classLevel &&
-            course.subjectName?.trim().toLowerCase() === subjectKey
-        );
-      const lessonId = matchedCourse?.chapters?.[0]?.lessons?.[0]?.id;
-      if (matchedCourse) {
-        void markLessonStarted(matchedCourse.id, lessonId);
+      const { data: lessonRows } = await supabase
+        .from("lessons")
+        .select("id")
+        .eq("chapter_id", chapterId)
+        .order("order_no", { ascending: true })
+        .limit(1);
+      const lessonId = lessonRows?.[0]?.id ?? null;
+      if (lessonId) {
+        void markLessonComplete(selectedCourseId, lessonId, data.reply as string);
       }
-      void logActivity("homeschool_ai", { meta: { class_level: classLevel, subject } });
+      void logActivity("homeschool_ai", {
+        courseId: selectedCourseId,
+        refId: chapterId,
+        meta: {
+          class_level: resolvedClassLevel,
+          subject: resolvedSubjectName,
+          chapter: resolvedChapterName,
+          class_id: classId || null,
+          subject_id: subjectId || null,
+          chapter_id: chapterId,
+          content: data.reply as string,
+        },
+      });
     }
 
     setLoading(false);
     setThinking(false);
+  };
+
+  const handleBuyChapter = async () => {
+    if (!chapterId || isChapterFree) return;
+    setIsPaying(true);
+    setPaymentError(null);
+    try {
+      await startChapterCheckout(chapterId, {
+        amount: selectedChapter?.price ?? undefined,
+      });
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+      setIsPaying(false);
+    }
+  };
+
+  const handleBuySubject = async () => {
+    if (!selectedCourseId) return;
+    setIsPaying(true);
+    setPaymentError(null);
+    try {
+      await startCourseCheckout(selectedCourseId, {
+        planId: "premium",
+        amount: selectedSubject?.price_full ?? undefined,
+      });
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+      setIsPaying(false);
+    }
   };
 
   const guidanceCards = [
@@ -245,13 +407,18 @@ export function NctbAsk() {
             }}
           />
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="grid flex-1 gap-3 sm:grid-cols-2">
+            <div className="grid flex-1 gap-3 sm:grid-cols-3">
               <div className="space-y-1">
                 <select
-                  value={classLevel}
+                  value={classId}
                   onChange={(event) => {
-                    setClassLevel(event.target.value);
-                    setSubject("");
+                    const nextId = event.target.value;
+                    const nextClass = availableClasses.find((item) => item.id === nextId);
+                    setClassId(nextId);
+                    setClassLevel(nextClass?.name ?? "");
+                    setSubjectId("");
+                    setChapterId("");
+                    setSelectedCourseId(null);
                     setError(null);
                   }}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -266,9 +433,10 @@ export function NctbAsk() {
               </div>
               <div className="space-y-1">
                 <select
-                  value={subject}
+                  value={subjectId}
                   onChange={(event) => {
-                    setSubject(event.target.value);
+                    setSubjectId(event.target.value);
+                    setChapterId("");
                     setError(null);
                   }}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -281,10 +449,27 @@ export function NctbAsk() {
                   ))}
                 </select>
               </div>
+              <div className="space-y-1">
+                <select
+                  value={chapterId}
+                  onChange={(event) => {
+                    setChapterId(event.target.value);
+                    setError(null);
+                  }}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm text-black shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">{t({ en: "Select chapter", bn: "Select chapter" })}</option>
+                  {availableChapters.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <button
               type="button"
-              disabled={loading}
+              disabled={loading || !isUnlocked || !chapterId || !subjectId || !resolvedClassLevel}
               onClick={() => {
                 setHasInteracted(true);
                 handleAsk();
@@ -297,6 +482,33 @@ export function NctbAsk() {
               </svg>
             </button>
           </div>
+          {!isUnlocked && chapterId && (
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+              <div className="font-semibold">{t({ en: "Chapter locked", bn: "চ্যাপ্টার লক করা" })}</div>
+              <p className="mt-1 text-amber-700">
+                {t({ en: "Buy this chapter or the full subject to unlock Homeschool AI.", bn: "Homeschool AI আনলক করতে চ্যাপ্টার বা পুরো বিষয় কিনুন।" })}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleBuyChapter}
+                  disabled={isPaying}
+                  className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {isPaying ? t({ en: "Redirecting...", bn: "রিডাইরেক্ট হচ্ছে..." }) : t({ en: "Buy Chapter", bn: "চ্যাপ্টার কিনুন" })}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBuySubject}
+                  disabled={isPaying}
+                  className="rounded-lg border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 disabled:opacity-60"
+                >
+                  {t({ en: "Buy Subject", bn: "বিষয় কিনুন" })}
+                </button>
+                {paymentError && <span className="text-xs text-red-600">{paymentError}</span>}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {error && (

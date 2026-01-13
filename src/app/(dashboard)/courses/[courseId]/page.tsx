@@ -22,9 +22,10 @@ import { useLanguage, useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
-import { invokeEdgeFunction } from "@/lib/supabaseClient";
+import { invokeEdgeFunction, supabase } from "@/lib/supabaseClient";
 import { startChapterCheckout, startCourseCheckout } from "@/lib/payments";
 import type { CourseChapter } from "@/lib/dashboardData";
+import { useAuth } from "@/lib/auth";
 
 type TabKey = "brainbite" | "lesson" | "quiz";
 
@@ -102,6 +103,8 @@ function BrainBitePanel({
   classLevel,
   subject,
   chapter,
+  subjectId,
+  chapterId,
   disabled,
 }: {
   courseId: string;
@@ -109,27 +112,74 @@ function BrainBitePanel({
   classLevel: string;
   subject: string;
   chapter: string;
+  subjectId?: string;
+  chapterId?: string;
   disabled: boolean;
 }) {
-  const { logActivity, markLessonStarted } = useStudent();
+  const { user } = useAuth();
+  const { logActivity, markLessonComplete } = useStudent();
   const t = useTranslate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entries, setEntries] = useState<string[]>([]);
+  const [resolvedLessonId, setResolvedLessonId] = useState<string | null>(lessonId ?? null);
 
   useEffect(() => {
     setEntries([]);
     setError(null);
   }, [classLevel, subject, chapter]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const resolveLessonId = async () => {
+      if (lessonId) {
+        setResolvedLessonId(lessonId);
+        return;
+      }
+      if (!chapterId) {
+        setResolvedLessonId(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("lessons")
+        .select("id")
+        .eq("chapter_id", chapterId)
+        .order("order_no", { ascending: true })
+        .limit(1);
+      if (!isActive) return;
+      setResolvedLessonId(data?.[0]?.id ?? null);
+    };
+
+    void resolveLessonId();
+
+    return () => {
+      isActive = false;
+    };
+  }, [lessonId, chapterId]);
+
+  const loadFallbackEntry = async () => {
+    if (!user || !chapterId) return null;
+    const { data } = await supabase
+      .from("student_activity_log")
+      .select("meta,created_at")
+      .eq("user_id", user.id)
+      .eq("type", "brainbite_generated")
+      .filter("meta->>chapter_id", "eq", chapterId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const meta = (data?.[0]?.meta ?? {}) as Record<string, unknown>;
+    const content = typeof meta.content === "string" ? meta.content : null;
+    return content;
+  };
+
   const handleGenerate = async () => {
     if (disabled || loading) return;
     setLoading(true);
     setError(null);
     const prompt = [
-      `Create a short, fun BrainBite for ${subject}.`,
-      `Topic: ${chapter}.`,
-      `Class level: ${classLevel}.`,
+      `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+      "Create a short, fun BrainBite for kids.",
       "Use 2-3 short sentences, add a friendly emoji, and keep it simple.",
       "End with a gentle prompt question.",
     ].join(" ");
@@ -143,20 +193,33 @@ function BrainBitePanel({
     });
 
     if (fnError || !data?.reply) {
-      setError(t({ en: "BrainBite failed. Please try again.", bn: "BrainBite failed. Please try again." }));
+      const fallback = entries.length ? entries[entries.length - 1] : await loadFallbackEntry();
+      if (fallback) {
+        setEntries((prev) => (prev.length ? prev : [fallback]));
+        setError(t({ en: "Showing your last BrainBite instead.", bn: "Showing your last BrainBite instead." }));
+      } else {
+        setError(t({ en: "BrainBite failed. Please try again.", bn: "BrainBite failed. Please try again." }));
+      }
       setLoading(false);
       return;
     }
 
     setEntries((prev) => [...prev, data.reply as string]);
-    if (lessonId) {
-      void markLessonStarted(courseId, lessonId);
-    } else {
-      void logActivity("brainbite_generated", {
-        courseId,
-        meta: { class_level: classLevel, subject, chapter },
-      });
+    if (resolvedLessonId) {
+      void markLessonComplete(courseId, resolvedLessonId, data.reply as string);
     }
+    void logActivity("brainbite_generated", {
+      courseId,
+      refId: chapterId ?? null,
+      meta: {
+        class_level: classLevel,
+        subject,
+        chapter,
+        subject_id: subjectId ?? null,
+        chapter_id: chapterId ?? null,
+        content: data.reply as string,
+      },
+    });
     setLoading(false);
   };
 
@@ -200,6 +263,8 @@ function LessonGeneratorPanel({
   classLevel,
   subject,
   chapter,
+  subjectId,
+  chapterId,
   disabled,
 }: {
   courseId: string;
@@ -207,14 +272,18 @@ function LessonGeneratorPanel({
   classLevel: string;
   subject: string;
   chapter: string;
+  subjectId?: string;
+  chapterId?: string;
   disabled: boolean;
 }) {
-  const { markLessonStarted } = useStudent();
+  const { user } = useAuth();
+  const { logActivity, markLessonComplete } = useStudent();
   const t = useTranslate();
   const [messages, setMessages] = useState<LessonMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedLessonId, setResolvedLessonId] = useState<string | null>(lessonId ?? null);
 
   useEffect(() => {
     setMessages([
@@ -227,6 +296,50 @@ function LessonGeneratorPanel({
     setError(null);
   }, [subject, chapter]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const resolveLessonId = async () => {
+      if (lessonId) {
+        setResolvedLessonId(lessonId);
+        return;
+      }
+      if (!chapterId) {
+        setResolvedLessonId(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("lessons")
+        .select("id")
+        .eq("chapter_id", chapterId)
+        .order("order_no", { ascending: true })
+        .limit(1);
+      if (!isActive) return;
+      setResolvedLessonId(data?.[0]?.id ?? null);
+    };
+
+    void resolveLessonId();
+
+    return () => {
+      isActive = false;
+    };
+  }, [lessonId, chapterId]);
+
+  const loadFallbackMessage = async () => {
+    if (!user || !chapterId) return null;
+    const { data } = await supabase
+      .from("student_activity_log")
+      .select("meta,created_at")
+      .eq("user_id", user.id)
+      .eq("type", "lesson_ai")
+      .filter("meta->>chapter_id", "eq", chapterId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const meta = (data?.[0]?.meta ?? {}) as Record<string, unknown>;
+    const content = typeof meta.content === "string" ? meta.content : null;
+    return content;
+  };
+
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || loading || disabled) return;
@@ -236,8 +349,15 @@ function LessonGeneratorPanel({
     setMessages(nextHistory);
     setInput("");
 
+    const prompt = [
+      `Class: ${classLevel}.`,
+      `Subject: ${subject}.`,
+      `Chapter: ${chapter}.`,
+      `Question: ${trimmed}`,
+    ].join(" ");
+
     const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
-      message: trimmed,
+      message: prompt,
       history: nextHistory,
       mode: "lesson",
       subject,
@@ -246,15 +366,33 @@ function LessonGeneratorPanel({
     });
 
     if (fnError || !data?.reply) {
-      setError(t({ en: "AI reply failed. Please try again.", bn: "AI reply failed. Please try again." }));
+      const fallback = await loadFallbackMessage();
+      if (fallback) {
+        setMessages((prev) => [...prev, { role: "assistant", content: fallback }]);
+        setError(t({ en: "Showing your last saved answer.", bn: "Showing your last saved answer." }));
+      } else {
+        setError(t({ en: "AI reply failed. Please try again.", bn: "AI reply failed. Please try again." }));
+      }
       setLoading(false);
       return;
     }
 
     setMessages((prev) => [...prev, { role: "assistant", content: data.reply as string }]);
-    if (lessonId) {
-      void markLessonStarted(courseId, lessonId);
+    if (resolvedLessonId) {
+      void markLessonComplete(courseId, resolvedLessonId, data.reply as string);
     }
+    void logActivity("lesson_ai", {
+      courseId,
+      refId: chapterId ?? null,
+      meta: {
+        class_level: classLevel,
+        subject,
+        chapter,
+        subject_id: subjectId ?? null,
+        chapter_id: chapterId ?? null,
+        content: data.reply as string,
+      },
+    });
     setLoading(false);
   };
 
@@ -694,6 +832,8 @@ export default function CourseDetailPage() {
                     classLevel={course.class}
                     subject={course.title}
                     chapter={selectedChapter.title}
+                    subjectId={course.subjectId}
+                    chapterId={selectedChapter.id}
                     disabled={false}
                   />
                 )}
@@ -704,6 +844,8 @@ export default function CourseDetailPage() {
                     classLevel={course.class}
                     subject={course.title}
                     chapter={selectedChapter.title}
+                    subjectId={course.subjectId}
+                    chapterId={selectedChapter.id}
                     disabled={false}
                   />
                 )}

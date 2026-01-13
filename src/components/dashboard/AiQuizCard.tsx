@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
 import { invokeEdgeFunction, supabase } from "@/lib/supabaseClient";
-import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
+import { startChapterCheckout, startCourseCheckout } from "@/lib/payments";
 
 const DEFAULT_HOME_CLASS = "Class 9-10";
 
@@ -17,25 +16,11 @@ type AiQuizCardProps = {
 };
 
 export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
-    const navigate = useNavigate();
-    const { user } = useAuth();
-    const { courses, purchasedCourses } = useStudent();
+    const { courses } = useStudent();
     const { language } = useLanguage();
     const t = useTranslate();
     const isHome = context === "home";
     const [availableClasses, setAvailableClasses] = useState<string[]>([]);
-    const nowMs = Date.now();
-    const hasActiveSubscription = purchasedCourses.some((purchase) => {
-        if (!purchase.expires_at) return true;
-        const expiry = new Date(purchase.expires_at).getTime();
-        return Number.isFinite(expiry) && expiry > nowMs;
-    });
-    const isPremium =
-        hasActiveSubscription ||
-        user?.user_metadata?.is_premium === true ||
-        user?.user_metadata?.premium === true ||
-        user?.user_metadata?.plan === "premium" ||
-        (user as any)?.app_metadata?.plan === "premium";
 
     const derivedClasses = useMemo(() => {
         const unique = new Set<string>();
@@ -95,6 +80,8 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     const [loading, setLoading] = useState(false);
     const [questions, setQuestions] = useState<QuizQuestion[] | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
+    const [isPaying, setIsPaying] = useState(false);
 
     useEffect(() => {
         if (classOptions.length && (!classLevel || !classOptions.includes(classLevel))) {
@@ -130,6 +117,11 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     const quizLessonId =
         selectedChapter?.lessons.find((lesson) => lesson.type === "quiz")?.id ??
         selectedChapter?.lessons[0]?.id;
+    const isChapterUnlocked =
+        Boolean(selectedChapter?.isFree) ||
+        Boolean(selectedChapter?.isPurchased) ||
+        Boolean(selectedCourse?.isPurchased) ||
+        Boolean(selectedCourse?.isFree);
 
     useEffect(() => {
         if (!chapterId && selectedChapter?.id) {
@@ -142,16 +134,17 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
     }, [language]);
 
     const handleGenerate = async () => {
-        if (!isPremium) {
-            navigate("/pricing");
-            return;
-        }
         if (!selectedCourse || !selectedChapter) {
             setError(t({ en: "Select a class, subject, and chapter first.", bn: "প্রথমে ক্লাস, বিষয় ও অধ্যায় নির্বাচন করুন।" }));
             return;
         }
+        if (!isChapterUnlocked) {
+            setError(t({ en: "Chapter locked. Buy to continue.", bn: "চ্যাপ্টার লক করা আছে। কিনে চালু করুন।" }));
+            return;
+        }
         setLoading(true);
         setError(null);
+        setPaymentError(null);
 
         const resolvedClassLevel = isHome ? classLevel : selectedCourse.class ?? classLevel;
         const { data, error: fnError } = await invokeEdgeFunction<{ questions?: QuizQuestion[] }>("generate-quiz", {
@@ -184,6 +177,35 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
 
     const handleReset = () => {
         setQuestions(null);
+    };
+
+    const handleBuyChapter = async () => {
+        if (!selectedChapter || selectedChapter.isFree) return;
+        setIsPaying(true);
+        setPaymentError(null);
+        try {
+            await startChapterCheckout(selectedChapter.id, {
+                amount: selectedChapter.price ?? undefined,
+            });
+        } catch (err) {
+            setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+            setIsPaying(false);
+        }
+    };
+
+    const handleBuySubject = async () => {
+        if (!selectedCourse) return;
+        setIsPaying(true);
+        setPaymentError(null);
+        try {
+            await startCourseCheckout(selectedCourse.id, {
+                planId: "premium",
+                amount: selectedCourse.priceFull ?? undefined,
+            });
+        } catch (err) {
+            setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+            setIsPaying(false);
+        }
     };
 
     const selectionGridClass = isHome
@@ -291,6 +313,23 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
             {error && (
                 <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                     {error}
+                </div>
+            )}
+            {!isChapterUnlocked && selectedChapter && (
+                <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-800">
+                    <div className="font-semibold">{t({ en: "Chapter locked", bn: "চ্যাপ্টার লক করা" })}</div>
+                    <p className="mt-1 text-xs text-amber-700">
+                        {t({ en: "Buy this chapter or the full subject to unlock quizzes.", bn: "কুইজ আনলক করতে চ্যাপ্টার বা পুরো বিষয় কিনুন।" })}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <Button onClick={handleBuyChapter} disabled={isPaying}>
+                            {isPaying ? t({ en: "Redirecting...", bn: "রিডাইরেক্ট হচ্ছে..." }) : t({ en: "Buy Chapter", bn: "চ্যাপ্টার কিনুন" })}
+                        </Button>
+                        <Button onClick={handleBuySubject} variant="outline" disabled={isPaying}>
+                            {t({ en: "Buy Subject", bn: "বিষয় কিনুন" })}
+                        </Button>
+                        {paymentError && <span className="text-xs text-red-600">{paymentError}</span>}
+                    </div>
                 </div>
             )}
 

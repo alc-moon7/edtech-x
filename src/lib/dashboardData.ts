@@ -376,7 +376,9 @@ function isPurchaseActive(purchase: PurchasedCourseRecord) {
 
 function buildActivityDateSet(activityLog: StudentActivityRecord[]) {
   const dates = new Set<string>();
+  const streakTypes = new Set(["lesson_completed"]);
   activityLog.forEach((item) => {
+    if (!streakTypes.has(item.type)) return;
     dates.add(formatDateKey(new Date(item.created_at)));
   });
   return dates;

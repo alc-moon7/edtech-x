@@ -44,7 +44,7 @@ type StudentContextType = {
   purchasedChapters: PurchasedChapterRecord[];
   refresh: () => Promise<void>;
   markLessonStarted: (courseId: string, lessonId?: string | null) => Promise<void>;
-  markLessonComplete: (courseId: string, lessonId: string) => Promise<void>;
+  markLessonComplete: (courseId: string, lessonId: string, content?: string) => Promise<void>;
   saveQuizScore: (courseId: string, quizId: string, score: number) => Promise<void>;
   logActivity: (
     type: string,
@@ -333,7 +333,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   };
 
-  const markLessonComplete = async (courseId: string, lessonId: string) => {
+  const markLessonComplete = async (courseId: string, lessonId: string, content?: string) => {
     if (!user || !isSupabaseConfigured) return;
 
     const course = courses.find((item) => item.id === courseId);
@@ -346,7 +346,19 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     }
     const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
 
-    if (alreadyCompleted) return;
+    if (alreadyCompleted && !content) return;
+    if (alreadyCompleted && content) {
+      const { error: contentError } = await supabase
+        .from("student_lessons")
+        .update({ content })
+        .eq("user_id", user.id)
+        .eq("lesson_id", lessonId);
+
+      if (contentError) {
+        setError(contentError.message);
+      }
+      return;
+    }
 
     const { error: courseError } = await supabase.from("student_courses").upsert(
       {
@@ -361,17 +373,18 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const { error: progressError } = await supabase.from("student_lessons").upsert(
-      {
-        user_id: user.id,
-        lesson_id: lessonId,
-        chapter_id: findLessonById(course, lessonId).chapter?.id ?? course?.chapters?.[0]?.id ?? null,
-        status: "completed",
-        progress: 100,
-        completed: true,
-      },
-      { onConflict: "user_id,lesson_id" }
-    );
+    const lessonPayload = {
+      user_id: user.id,
+      lesson_id: lessonId,
+      chapter_id: findLessonById(course, lessonId).chapter?.id ?? course?.chapters?.[0]?.id ?? null,
+      status: "completed",
+      progress: 100,
+      completed: true,
+      ...(content ? { content } : {}),
+    };
+    const { error: progressError } = await supabase
+      .from("student_lessons")
+      .upsert(lessonPayload, { onConflict: "user_id,lesson_id" });
 
     if (progressError) {
       setError(progressError.message);
