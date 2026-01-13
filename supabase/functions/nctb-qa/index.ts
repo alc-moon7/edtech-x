@@ -6,6 +6,7 @@ type QaPayload = {
   question?: string;
   classLevel?: string;
   subject?: string;
+  chapter?: string;
   language?: "en" | "bn";
 };
 
@@ -86,22 +87,23 @@ async function checkAndIncrementUsage(
   return { allowed: true, count: current + 1 };
 }
 
-function buildSystemPrompt(language: "en" | "bn", classLevel: string, subject: string) {
-  const languageLine = language === "bn" ? "Respond in Bangla." : "Respond in English.";
-  const base = [
-    `You are Homeschool AI for Bangladesh NCTB ${classLevel} ${subject}.`,
-    "Answer ONLY from the NCTB curriculum for the given class and subject.",
-    "If the question is outside the syllabus, say it is outside the NCTB syllabus.",
-    "Format your reply as: Answer: <short answer> then Notes: with 3-5 bullet points.",
+function buildSystemPrompt(
+  language: "en" | "bn",
+  classLevel: string,
+  subject: string,
+  chapter: string
+) {
+  const languageLine = language === "bn" ? "Use Bangla only." : "Use English only.";
+  return [
+    "You are a private tutor for Bangladeshi students.",
+    `Student is studying: Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+    "You must explain concepts, give examples, ask follow-up questions, and prepare for exams.",
+    "Never answer beyond this chapter.",
+    `If the question is outside the chapter, say: \"This topic is not covered in ${chapter}.\"`,
+    "Never guess or hallucinate.",
+    "If you do not know from the chapter, say: \"This topic is not covered in the chapter.\"",
     languageLine,
-    "Keep answers short, clear, and student-friendly.",
   ].join(" ");
-
-  if (language === "bn") {
-    return base;
-  }
-
-  return base;
 }
 
 serve(async (req) => {
@@ -129,6 +131,7 @@ serve(async (req) => {
     const question = (payload.question ?? "").trim();
     const classLevel = (payload.classLevel ?? "").trim();
     const subject = (payload.subject ?? "").trim();
+    const chapter = (payload.chapter ?? "").trim();
     const language = payload.language === "bn" ? "bn" : "en";
 
     if (!question) {
@@ -137,8 +140,8 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!classLevel || !subject) {
-      return new Response(JSON.stringify({ error: "Class and subject are required." }), {
+    if (!classLevel || !subject || !chapter) {
+      return new Response(JSON.stringify({ error: "Class, subject, and chapter are required." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -247,11 +250,12 @@ serve(async (req) => {
       .join("\n\n")
       .slice(0, 6000);
 
-    const system = buildSystemPrompt(language, classLevel, subject);
+    const system = buildSystemPrompt(language, classLevel, subject, chapter);
     const userPrompt = [
       `Question: ${question}`,
       `Class level: ${classLevel}`,
       `Subject: ${subject}`,
+      `Chapter: ${chapter}`,
       `Context:\n${context || "(none)"}`,
       "Answer:",
     ].join("\n\n");

@@ -127,29 +127,29 @@ function buildOpenAiMessages(
   count: number,
   difficulty: string
 ): OpenAiMessages {
-  const languageLabel = language === "bn" ? "Bangla (bn)" : "English (en)";
+  const languageLabel = language === "bn" ? "bn" : "en";
   const classLevel = payload.classLevel ?? "Unknown class level";
   const subject = payload.subject ?? "General subject";
   const chapter = payload.chapter ?? "General chapter";
 
   const system = [
-    "You are an expert NCTB curriculum quiz writer.",
-    "Return only valid JSON with no extra text.",
-    "Use the schema: {\"questions\":[{\"question\":\"...\",\"options\":[\"...\"],\"correctAnswer\":0,\"explanation\":\"...\"}]}",
+    "You are creating SSC/HSC standard MCQs for Bangladesh board exams.",
+    "Use only the given class, subject, and chapter. Do not add outside topics.",
+    "Exactly 4 options, only one correct answer, no trick wording.",
+    "Board-style questions only. No markdown. No extra text.",
+    "Return ONLY valid JSON in this exact schema:",
+    "{\"questions\":[{\"question\":\"\",\"options\":[\"\",\"\",\"\",\"\"],\"correctAnswer\":0,\"explanation\":\"\"}]}",
     "correctAnswer must be a 0-based index into options.",
-    "Each question must have exactly 4 options and exactly one correct answer.",
-    "Avoid meta-questions like matching titles; create real MCQs.",
-    "Keep content strictly within the given class, subject, and chapter.",
+    "Use Bangla if language=bn, English if language=en.",
   ].join(" ");
 
   const user = [
-    `Language: ${languageLabel}.`,
-    `Class level: ${classLevel}.`,
-    `Subject: ${subject}.`,
-    `Chapter: ${chapter}.`,
-    `Difficulty: ${difficulty}.`,
-    `Count: ${count}.`,
-    "Do not include numbering or markdown.",
+    `Class: ${classLevel}`,
+    `Subject: ${subject}`,
+    `Chapter: ${chapter}`,
+    `Difficulty: ${difficulty}`,
+    `Count: ${count}`,
+    `Language: ${languageLabel}`,
   ].join(" ");
 
   return { system, user };

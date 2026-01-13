@@ -116,6 +116,7 @@ function BrainBitePanel({
   chapterId?: string;
   disabled: boolean;
 }) {
+  const { language } = useLanguage();
   const { user } = useAuth();
   const { logActivity, markLessonComplete } = useStudent();
   const t = useTranslate();
@@ -179,9 +180,9 @@ function BrainBitePanel({
     setError(null);
     const prompt = [
       `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
-      "Create a short, fun BrainBite for kids.",
-      "Use 2-3 short sentences, add a friendly emoji, and keep it simple.",
-      "End with a gentle prompt question.",
+      "Create a short, exam-focused BrainBite recap.",
+      "Use 2-4 short sentences. No emojis.",
+      "End with one short check question.",
     ].join(" ");
 
     const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
@@ -190,6 +191,7 @@ function BrainBitePanel({
       subject,
       chapter,
       classLevel,
+      language,
     });
 
     if (fnError || !data?.reply) {
@@ -276,6 +278,7 @@ function LessonGeneratorPanel({
   chapterId?: string;
   disabled: boolean;
 }) {
+  const { language } = useLanguage();
   const { user } = useAuth();
   const { logActivity, markLessonComplete } = useStudent();
   const t = useTranslate();
@@ -363,6 +366,7 @@ function LessonGeneratorPanel({
       subject,
       chapter,
       classLevel,
+      language,
     });
 
     if (fnError || !data?.reply) {

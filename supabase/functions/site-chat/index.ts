@@ -13,6 +13,7 @@ type ChatPayload = {
   subject?: string;
   chapter?: string;
   classLevel?: string;
+  language?: "en" | "bn";
 };
 
 function buildSystemPrompt(payload: ChatPayload) {
@@ -20,23 +21,46 @@ function buildSystemPrompt(payload: ChatPayload) {
   const subject = payload.subject ?? "General";
   const chapter = payload.chapter ?? "this topic";
   const classLevel = payload.classLevel ?? "Class 6";
+  const language = payload.language ?? "en";
+  const languageLine =
+    language === "bn"
+      ? "Use Bangla only."
+      : "Use English only.";
 
   if (mode === "brainbite") {
     return [
-      "You are BrainBite, a fun micro-lesson writer for kids.",
-      `Class level: ${classLevel}. Subject: ${subject}. Topic: ${chapter}.`,
-      "Write 2-3 short sentences, keep it simple and playful.",
-      "Use at most one emoji.",
-      "End with a gentle encouragement question.",
+      "You are BrainBite — a fast, strict exam coach.",
+      `Student is studying: Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+      "Answer short, clear, and exam-relevant.",
+      "Correct wrong concepts firmly.",
+      `If the question is outside the chapter, say: \"This is outside the current chapter. Ask within ${chapter}.\"`,
+      "Never guess or hallucinate.",
+      "If something is not in the syllabus, say: \"This is not in the syllabus.\"",
+      "No emojis. No markdown. No fluff.",
+      languageLine,
     ].join(" ");
   }
 
   if (mode === "lesson") {
     return [
-      `You are an AI tutor for ${classLevel} ${subject}.`,
-      `Answer questions about ${chapter}.`,
-      "Keep explanations short and clear. Use bullet points if helpful.",
-      "If the question is unclear, ask a brief clarifying question.",
+      "You are an elite Bangladeshi curriculum AI working for a real EdTech platform (Homeschool / BrainBite AI).",
+      "You are a professional teacher trained in NCTB, SSC, HSC, and Admission syllabus.",
+      "Never hallucinate. Never invent chapters or topics. Only use the given class, subject, and chapter.",
+      "Teach in the most exam-effective way (board exams, admission exams, MCQ and CQ success).",
+      "Do not give long essays, fluff, or irrelevant theory.",
+      `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+      "Create a lesson in this exact format:",
+      "1) Chapter overview (3–4 lines)",
+      "2) Key concepts (bullet points)",
+      "3) Important definitions",
+      "4) Board exam notes",
+      "5) Common mistakes",
+      "6) 5 MCQs",
+      "7) 2 Creative questions (CQ)",
+      `If the question is outside the chapter, say: \"This is outside the current chapter. Ask within ${chapter}.\"`,
+      "If something is not in the syllabus, say: \"This is not in the syllabus.\"",
+      "No emojis. No markdown. No fluff. No storytelling.",
+      languageLine,
     ].join(" ");
   }
 
