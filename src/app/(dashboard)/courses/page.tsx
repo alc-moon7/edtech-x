@@ -37,6 +37,7 @@ export default function CoursesPage() {
       isPurchased: course.isPurchased === true,
       isFree: course.isFree === true,
       hasFreeChapter: course.chapters?.some((chapter) => chapter.isFree) ?? false,
+      priceFull: course.priceFull ?? null,
     }));
   }, [courses, displayClass]);
 
@@ -114,8 +115,20 @@ export default function CoursesPage() {
                     card.cover
                   )}
                 >
-                  <div className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
-                    {t({ en: card.classLabel ?? "Class", bn: card.classLabel ?? "Class" })}
+                  <div className="absolute left-3 top-3 flex flex-col gap-1">
+                    <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
+                      {t({ en: card.classLabel ?? "Class", bn: card.classLabel ?? "Class" })}
+                    </span>
+                    {card.priceFull !== null && (
+                      <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                        BDT {card.priceFull}
+                      </span>
+                    )}
+                    {card.hasFreeChapter && (
+                      <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">
+                        {t({ en: "Free chapter", bn: "Free chapter" })}
+                      </span>
+                    )}
                   </div>
                   <div className="flex min-h-[160px] flex-col items-center justify-center px-3 text-center">
                     <div className="text-sm font-semibold">{t(card.title)}</div>
@@ -127,8 +140,8 @@ export default function CoursesPage() {
                         className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
                       >
                         {card.isPurchased
-                          ? t({ en: "Continue Class", bn: "????? ??????? ???" })
-                          : t({ en: "Buy Course", bn: "????? ?????" })}
+                          ? t({ en: "Continue Subject", bn: "Continue Subject" })
+                          : t({ en: "Buy Subject", bn: "Buy Subject" })}
                       </Link>
                     ) : (
                       <button

@@ -186,7 +186,7 @@ export default function PricingPage() {
 
   const handleCheckout = async () => {
     if (!selectedPlan || !selectedCourseId) {
-      setPaymentError(t({ en: "Please select a course.", bn: "একটি কোর্স নির্বাচন করুন।" }));
+      setPaymentError(t({ en: "Please select a subject.", bn: "একটি কোর্স নির্বাচন করুন।" }));
       return;
     }
 
@@ -199,12 +199,17 @@ export default function PricingPage() {
       return;
     }
 
+    if (selectedCoursePrice === null || selectedCoursePrice === undefined) {
+      setPaymentError(t({ en: "Subject price is missing.", bn: "Subject price is missing." }));
+      return;
+    }
+
     setIsPaying(true);
     setPaymentError(null);
     try {
       await startCourseCheckout(selectedCourseId, {
         planId: selectedPlan.id === "plan-standard" ? "standard" : "premium",
-        amount: selectedCoursePrice ?? undefined,
+        amount: selectedCoursePrice,
       });
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
@@ -335,11 +340,11 @@ export default function PricingPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">
-                  {t({ en: "Choose a course", bn: "কোর্স নির্বাচন করুন" })}
+                  {t({ en: "Choose a subject", bn: "কোর্স নির্বাচন করুন" })}
                 </h3>
                 <p className="text-sm text-slate-500">
                   {t({
-                    en: "Select which course to unlock with this plan.",
+                    en: "Select which subject to unlock with this plan.",
                     bn: "এই প্ল্যান দিয়ে কোন কোর্স আনলক করবেন তা নির্বাচন করুন।",
                   })}
                 </p>
@@ -404,14 +409,14 @@ export default function PricingPage() {
                 )
               ) : (
                 <>
-                  <label className="text-sm font-medium text-slate-700">{t({ en: "Course", bn: "কোর্স" })}</label>
+                  <label className="text-sm font-medium text-slate-700">{t({ en: "Subject", bn: "Subject" })}</label>
                   <select
                     value={selectedCourseId}
                     onChange={(event) => setSelectedCourseId(event.target.value)}
                     className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="" disabled>
-                      {t({ en: "Select a course", bn: "কোর্স নির্বাচন করুন" })}
+                      {t({ en: "Select a subject", bn: "কোর্স নির্বাচন করুন" })}
                     </option>
                     {paidCourses.map((course) => (
                       <option key={course.id} value={course.id}>
@@ -459,7 +464,7 @@ export default function PricingPage() {
                 <div>
                   {t({ en: "Subject price", bn: "Subject price" })}:{" "}
                   <span className="font-semibold text-slate-800">
-                    BDT {selectedCoursePrice ?? selectedPlan.price}
+                    BDT {selectedCoursePrice ?? 0}
                   </span>
                 </div>
                 {selectedChapter && (

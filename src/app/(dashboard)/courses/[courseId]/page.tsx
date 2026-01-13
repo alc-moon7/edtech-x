@@ -82,7 +82,7 @@ function LockedChapterNotice({
         <div>
           <div className="text-lg font-semibold">Chapter locked</div>
           <div className="text-sm text-amber-800/80">
-            Upgrade your plan to unlock this chapter and continue learning.
+            Buy this chapter to unlock it and continue learning.
           </div>
         </div>
       </div>
@@ -500,16 +500,23 @@ export default function CourseDetailPage() {
   const chapterDuration = selectedChapter
     ? getChapterDurationMinutes(selectedChapter.lessons, selectedChapter.durationMinutes ?? 40)
     : 40;
+  const subjectPriceLabel = course.priceFull ? `BDT ${course.priceFull}` : "BDT 0";
+  const chapterPriceLabel =
+    selectedChapter?.isFree ? t({ en: "FREE", bn: "FREE" }) : `BDT ${selectedChapter?.price ?? 0}`;
   const userProgress = progress[course.id as keyof typeof progress] || { completedLessons: [] };
   const defaultLessonId = selectedChapter?.lessons[0]?.id;
 
   const handleBuyCourse = async () => {
     setPaymentError(null);
+    if (course.priceFull === null || course.priceFull === undefined) {
+      setPaymentError(t({ en: "Subject price is missing.", bn: "Subject price is missing." }));
+      return;
+    }
     setIsPaying(true);
     try {
       await startCourseCheckout(course.id, {
         planId: "premium",
-        amount: course.priceFull ?? undefined,
+        amount: course.priceFull,
       });
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
@@ -580,6 +587,9 @@ export default function CourseDetailPage() {
               ).length;
               const isCompleted = completedCount === chapter.lessons.length && chapter.lessons.length > 0;
               const duration = getChapterDurationMinutes(chapter.lessons, chapter.durationMinutes ?? 40);
+              const priceLabel = chapter.isFree
+                ? t({ en: "FREE", bn: "FREE" })
+                : `BDT ${chapter.price ?? 0}`;
               return (
                 <button
                   key={chapter.id}
@@ -600,7 +610,12 @@ export default function CourseDetailPage() {
                       <span className="text-xs text-emerald-500">{isCompleted ? "Done" : ""}</span>
                     )}
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">{duration} min</div>
+                  <div className="mt-1 flex items-center justify-between text-xs text-slate-500">
+                    <span>{duration} min</span>
+                    <span className={chapter.isFree ? "font-semibold text-emerald-600" : ""}>
+                      {priceLabel}
+                    </span>
+                  </div>
                 </button>
               );
             })}
@@ -623,11 +638,17 @@ export default function CourseDetailPage() {
             <span className="inline-flex items-center gap-1">
               <BookOpen className="h-4 w-4" /> {course.title}
             </span>
+            <span className="inline-flex items-center gap-1">
+              {t({ en: "Subject", bn: "Subject" })} {t({ en: "price", bn: "price" })}: {subjectPriceLabel}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              {t({ en: "Chapter", bn: "Chapter" })} {t({ en: "price", bn: "price" })}: {chapterPriceLabel}
+            </span>
           </div>
           {!hasCourseAccess && hasLockedChapters && (
             <div className="mt-4">
               <Button onClick={handleBuyCourse} disabled={isPaying} variant="secondary">
-                {isPaying ? "Redirecting..." : "Upgrade plan"}
+                {isPaying ? "Redirecting..." : t({ en: "Buy Subject", bn: "Buy Subject" })}
               </Button>
               {paymentError && <div className="mt-2 text-sm text-amber-100">{paymentError}</div>}
             </div>
@@ -662,7 +683,7 @@ export default function CourseDetailPage() {
                 onUpgrade={handleBuyChapter}
                 isPaying={isChapterPaying}
                 errorMessage={chapterPaymentError}
-                ctaLabel={t({ en: "Unlock chapter", bn: "Unlock chapter" })}
+                ctaLabel={t({ en: "Buy Chapter", bn: "Buy Chapter" })}
               />
             ) : (
               <>
