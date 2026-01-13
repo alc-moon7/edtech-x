@@ -218,6 +218,9 @@ export function NctbAsk() {
       subject: resolvedSubjectName,
       language,
       chapter: resolvedChapterName,
+      chapterId,
+      subjectId,
+      courseId: selectedCourseId ?? undefined,
     });
 
     if (fnError || !data?.reply) {
@@ -240,18 +243,31 @@ export function NctbAsk() {
           : { data: null };
         const meta = (fallbackData?.[0]?.meta ?? {}) as Record<string, unknown>;
         const fallbackContent =
-          typeof meta.content === "string"
-            ? meta.content
-            : `Answer: ${resolvedChapterName}.\nNotes:\n• Review the key ideas of ${resolvedChapterName}.\n• Focus on definitions and important terms.\n• Practice short questions to reinforce learning.`;
-        setMessages((prev) => [
-          ...prev,
-          { id: `${Date.now()}-assistant`, role: "assistant", content: fallbackContent },
-        ]);
-        setError(
-          payload?.error ||
-            fnError?.message ||
-            t({ en: "AI reply failed. Showing saved notes instead.", bn: "AI reply failed. Showing saved notes instead." })
-        );
+          typeof meta.content === "string" ? meta.content : null;
+        if (fallbackContent) {
+          setMessages((prev) => [
+            ...prev,
+            { id: `${Date.now()}-assistant`, role: "assistant", content: fallbackContent },
+          ]);
+          setError(
+            payload?.error ||
+              fnError?.message ||
+              t({ en: "AI reply failed. Showing saved notes instead.", bn: "AI reply failed. Showing saved notes instead." })
+          );
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `${Date.now()}-assistant`,
+              role: "assistant",
+              content: t({
+                en: "AI reply failed. Please try again.",
+                bn: "AI reply failed. Please try again.",
+              }),
+            },
+          ]);
+          setError(payload?.error || fnError?.message || t({ en: "AI reply failed.", bn: "AI reply failed." }));
+        }
       }
     } else {
       setMessages((prev) => [
@@ -266,7 +282,9 @@ export function NctbAsk() {
         .limit(1);
       const lessonId = lessonRows?.[0]?.id ?? null;
       if (lessonId) {
-        void markLessonComplete(selectedCourseId, lessonId, data.reply as string);
+        void markLessonComplete(selectedCourseId, lessonId, data.reply as string, {
+          chapterId,
+        });
       }
       void logActivity("homeschool_ai", {
         courseId: selectedCourseId,

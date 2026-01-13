@@ -154,6 +154,8 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
             language,
             count: 10,
             difficulty: "medium",
+            chapterId: selectedChapter.id,
+            courseId: selectedCourse.id,
         });
 
         if (fnError) {

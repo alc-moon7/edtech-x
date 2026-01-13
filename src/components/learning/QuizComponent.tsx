@@ -28,11 +28,7 @@ export function QuizComponent({
     const { saveQuizScore } = useStudent();
     const t = useTranslate();
 
-    // Support generic fallback if no mock questions found
-    const activeQuestions = useMemo<QuizQuestion[]>(() => {
-        if (questions && questions.length) return questions;
-        return [{ id: 1, question: "Sample Question 1?", options: ["A", "B", "C", "D"], correctAnswer: 0 }];
-    }, [questions]);
+    const activeQuestions = useMemo<QuizQuestion[]>(() => questions ?? [], [questions]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -99,6 +95,14 @@ export function QuizComponent({
         setAnswerState('idle');
         setAnswers(Array(activeQuestions.length).fill(null));
     };
+
+    if (!activeQuestions.length) {
+        return (
+            <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+                {t({ en: "No quiz questions available yet.", bn: "এখনও কোনো কুইজ প্রশ্ন নেই।" })}
+            </div>
+        );
+    }
 
     if (showResult) {
         return (

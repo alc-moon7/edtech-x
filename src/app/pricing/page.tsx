@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { CheckCircle2, HelpCircle, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { CheckCircle2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MarketingShell } from "@/components/MarketingShell";
 import { useAuth } from "@/lib/auth";
@@ -8,491 +8,402 @@ import { useStudent } from "@/lib/store";
 import { supabase } from "@/lib/supabaseClient";
 import { usePageMeta } from "@/lib/usePageMeta";
 import { useTranslate } from "@/lib/i18n";
-import { startCourseCheckout } from "@/lib/payments";
+import { startChapterCheckout, startCourseCheckout } from "@/lib/payments";
+import { cn } from "@/lib/utils";
 
-const CLASS_OPTIONS = [
-  "Class 6",
-  "Class 7",
-  "Class 8",
-  "Class 9-10",
-  "Class 11-12",
-];
+const CLASS_ORDER = ["Class 6", "Class 7", "Class 8", "Class 9-10", "Class 11-12", "Admission"];
 
-const plans = [
-  {
-    id: "plan-free",
-    name: { en: "Free", bn: "ফ্রি" },
-    price: "0",
-    period: { en: "Always free", bn: "সবসময় ফ্রি" },
-    description: { en: "Explore the platform with core lessons and basic practice.", bn: "মূল লেসন ও বেসিক অনুশীলন দিয়ে প্ল্যাটফর্ম ঘুরে দেখুন।" },
-    features: [
-      { en: "Intro lessons for each subject", bn: "প্রতিটি বিষয়ে ইন্ট্রো লেসন" },
-      { en: "Basic quizzes", bn: "বেসিক কুইজ" },
-      { en: "Limited analytics", bn: "সীমিত অ্যানালিটিক্স" },
-    ],
-    cta: { en: "Choose Free", bn: "ফ্রি নির্বাচন করুন" },
-  },
-  {
-    id: "plan-standard",
-    name: { en: "Standard", bn: "স্ট্যান্ডার্ড" },
-    price: "299",
-    period: { en: "per month", bn: "প্রতি মাসে" },
-    description: { en: "Full syllabus access with weekly progress tracking.", bn: "সাপ্তাহিক অগ্রগতি ট্র্যাকিংসহ পূর্ণ সিলেবাস অ্যাক্সেস।" },
-    features: [
-      { en: "Full lesson library", bn: "পূর্ণ লেসন লাইব্রেরি" },
-      { en: "Chapter quizzes", bn: "অধ্যায়ভিত্তিক কুইজ" },
-      { en: "Weekly progress reports", bn: "সাপ্তাহিক অগ্রগতি রিপোর্ট" },
-      { en: "Basic parent view", bn: "বেসিক অভিভাবক ভিউ" },
-    ],
-    highlight: true,
-    cta: { en: "Choose Standard", bn: "স্ট্যান্ডার্ড নির্বাচন করুন" },
-  },
-  {
-    id: "plan-premium",
-    name: { en: "Premium", bn: "প্রিমিয়াম" },
-    price: "499",
-    period: { en: "per month", bn: "প্রতি মাসে" },
-    description: { en: "Advanced analytics and dedicated parent tools.", bn: "অ্যাডভান্সড অ্যানালিটিক্স ও বিশেষ অভিভাবক টুলস।" },
-    features: [
-      { en: "Everything in Standard", bn: "স্ট্যান্ডার্ডের সবকিছু" },
-      { en: "Advanced analytics", bn: "অ্যাডভান্সড অ্যানালিটিক্স" },
-      { en: "Parent alerts and insights", bn: "অভিভাবক অ্যালার্ট ও ইনসাইটস" },
-      { en: "Priority support", bn: "প্রায়োরিটি সাপোর্ট" },
-    ],
-    cta: { en: "Choose Premium", bn: "প্রিমিয়াম নির্বাচন করুন" },
-  },
-];
+type ClassRecord = {
+  id: string;
+  name: string;
+  level: string;
+};
 
-const faqs = [
-  {
-    id: "faq-1",
-    question: { en: "Can I upgrade later?", bn: "পরে কি আপগ্রেড করতে পারি?" },
-    answer: { en: "Yes, you can upgrade at any time from the settings page.", bn: "হ্যাঁ, আপনি সেটিংস পেজ থেকে যেকোনো সময় আপগ্রেড করতে পারেন।" },
-  },
-  {
-    id: "faq-2",
-    question: { en: "Do you offer yearly discounts?", bn: "বার্ষিক ছাড় কি আছে?" },
-    answer: { en: "Yearly plans are available on request for schools and institutions.", bn: "স্কুল ও প্রতিষ্ঠানের জন্য অনুরোধে বার্ষিক প্ল্যান পাওয়া যায়।" },
-  },
-  {
-    id: "faq-3",
-    question: { en: "Is there a plan for parents?", bn: "অভিভাবকদের জন্য আলাদা প্ল্যান আছে?" },
-    answer: { en: "Parent access is included in Standard and Premium plans.", bn: "স্ট্যান্ডার্ড ও প্রিমিয়াম প্ল্যানে অভিভাবক অ্যাক্সেস অন্তর্ভুক্ত।" },
-  },
-];
+type SubjectRecord = {
+  id: string;
+  name: string;
+  class_id: string | null;
+  class_level: string | null;
+  price_full: number | null;
+  first_chapter_free: boolean | null;
+  free_first_chapter?: boolean | null;
+};
 
-function formatExpiryLabel(value?: string | null) {
-  if (!value) return "No expiry";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "No expiry";
-  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+type ChapterRecord = {
+  id: string;
+  subject_id: string | null;
+  title: string | null;
+  name?: string | null;
+  order_no: number;
+  is_free: boolean | null;
+  price: number | null;
+};
+
+type CourseRecord = {
+  id: string;
+  subject_id: string;
+  title: string;
+  class_level: string;
+};
+
+function formatPrice(price: number | null | undefined) {
+  if (!price || price <= 0) return "BDT 0";
+  return `BDT ${price}`;
 }
 
-function resolvePlanLabel(planId?: string | null) {
-  if (planId === "standard") return "Standard";
-  if (planId === "premium") return "Premium";
-  return "Premium";
+function isCoursePurchaseActive(expiresAt?: string | null) {
+  if (!expiresAt) return true;
+  const expiry = new Date(expiresAt).getTime();
+  return Number.isFinite(expiry) && expiry > Date.now();
 }
 
 export default function PricingPage() {
   const { user } = useAuth();
-  const { courses, refresh, purchasedCourses } = useStudent();
-  const paidCourses = courses.filter((course) => course.isFree !== true);
+  const { purchasedCourses, purchasedChapters } = useStudent();
   const navigate = useNavigate();
   const t = useTranslate();
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
-  const [selectedClassLevel, setSelectedClassLevel] = useState("");
-  const [isUpdatingClass, setIsUpdatingClass] = useState(false);
+  const [classes, setClasses] = useState<ClassRecord[]>([]);
+  const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
+  const [chapters, setChapters] = useState<ChapterRecord[]>([]);
+  const [courses, setCourses] = useState<CourseRecord[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? null;
-  const nowMs = Date.now();
-  const activePurchases = purchasedCourses.filter((purchase) => {
-    if (!purchase.expires_at) return true;
-    const expiry = new Date(purchase.expires_at).getTime();
-    return Number.isFinite(expiry) && expiry > nowMs;
+  usePageMeta({
+    title: t({ en: "Pricing", bn: "Pricing" }),
+    description: t({ en: "Buy subjects or chapters. First chapter is free.", bn: "Buy subjects or chapters. First chapter is free." }),
   });
-  const activePurchaseByCourse = new Map(
-    activePurchases.map((purchase) => [purchase.course_id, purchase])
-  );
-  const selectedPurchase = selectedCourseId ? activePurchaseByCourse.get(selectedCourseId) : null;
-  const courseTitleMap = new Map(courses.map((course) => [course.id, course.title]));
-  const selectedCourse = selectedCourseId
-    ? courses.find((course) => course.id === selectedCourseId)
-    : null;
-  const selectedCoursePrice = selectedCourse?.priceFull ?? null;
-  const selectedCourseChapters = selectedCourse?.chapters ?? [];
-  const selectedChapter =
-    selectedCourseChapters.find((chapter) => chapter.id === selectedChapterId) ??
-    selectedCourseChapters[0] ??
-    null;
 
   useEffect(() => {
-    if (!selectedCourse) {
-      setSelectedChapterId("");
-      return;
-    }
-    if (!selectedChapterId || !selectedCourseChapters.some((chapter) => chapter.id === selectedChapterId)) {
-      setSelectedChapterId(selectedCourseChapters[0]?.id ?? "");
-    }
-  }, [selectedCourseId, selectedCourse, selectedCourseChapters, selectedChapterId]);
+    let isActive = true;
 
-  const openCheckout = (planId: string) => {
+    const loadCatalog = async () => {
+      setLoading(true);
+      setError(null);
+
+      const { data: classRows, error: classError } = await supabase
+        .from("classes")
+        .select("id,name,level")
+        .order("name", { ascending: true });
+
+      if (classError) {
+        if (isActive) {
+          setError(classError.message);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const { data: subjectRows, error: subjectError } = await supabase
+        .from("subjects")
+        .select("id,name,class_id,class_level,price_full,first_chapter_free,free_first_chapter")
+        .order("name", { ascending: true });
+
+      if (subjectError) {
+        if (isActive) {
+          setError(subjectError.message);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const { data: chapterRows, error: chapterError } = await supabase
+        .from("chapters")
+        .select("id,subject_id,title,name,order_no,is_free,price")
+        .order("order_no", { ascending: true });
+
+      if (chapterError) {
+        if (isActive) {
+          setError(chapterError.message);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const { data: courseRows, error: courseError } = await supabase
+        .from("courses")
+        .select("id,subject_id,title,class_level")
+        .order("title", { ascending: true });
+
+      if (courseError) {
+        if (isActive) {
+          setError(courseError.message);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (!isActive) return;
+
+      const sortedClasses = (classRows ?? []).sort((a, b) => {
+        const aIndex = CLASS_ORDER.indexOf(a.name);
+        const bIndex = CLASS_ORDER.indexOf(b.name);
+        if (aIndex === -1 && bIndex === -1) return a.name.localeCompare(b.name);
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      });
+
+      setClasses(sortedClasses);
+      setSubjects(subjectRows ?? []);
+      setChapters(chapterRows ?? []);
+      setCourses(courseRows ?? []);
+      setSelectedClassId((prev) => prev || sortedClasses[0]?.id || "");
+      setLoading(false);
+    };
+
+    void loadCatalog();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const classMap = useMemo(() => new Map(classes.map((item) => [item.id, item])), [classes]);
+  const courseBySubject = useMemo(() => {
+    const map = new Map<string, CourseRecord>();
+    courses.forEach((course) => {
+      if (!map.has(course.subject_id)) {
+        map.set(course.subject_id, course);
+      }
+    });
+    return map;
+  }, [courses]);
+
+  const selectedClass = selectedClassId ? classMap.get(selectedClassId) ?? null : null;
+  const filteredSubjects = useMemo(() => {
+    if (!selectedClass) return subjects;
+    return subjects.filter(
+      (subject) => subject.class_id === selectedClass.id || subject.class_level === selectedClass.name
+    );
+  }, [subjects, selectedClass]);
+
+  const chaptersBySubject = useMemo(() => {
+    const map = new Map<string, ChapterRecord[]>();
+    chapters.forEach((chapter) => {
+      if (!chapter.subject_id) return;
+      const list = map.get(chapter.subject_id) ?? [];
+      list.push(chapter);
+      map.set(chapter.subject_id, list);
+    });
+    map.forEach((list) => list.sort((a, b) => a.order_no - b.order_no));
+    return map;
+  }, [chapters]);
+
+  const activePurchases = purchasedCourses.filter((purchase) => isCoursePurchaseActive(purchase.expires_at));
+  const purchasedChapterSet = new Set(purchasedChapters.map((item) => item.chapter_id));
+  const purchasedCourseSet = new Set(activePurchases.map((item) => item.course_id));
+
+  const handleBuySubject = async (courseId: string, amount: number | null | undefined) => {
+    if (!courseId) return;
     if (!user) {
       navigate("/login");
       return;
     }
-    setSelectedPlanId(planId);
-    setPaymentError(null);
-    const firstCourseId = paidCourses[0]?.id ?? "";
-    setSelectedCourseId(firstCourseId);
-    const initialCourse = courses.find((course) => course.id === firstCourseId);
-    setSelectedChapterId(initialCourse?.chapters?.[0]?.id ?? "");
-    if (!firstCourseId) {
-      setSelectedClassLevel(user?.user_metadata?.class ?? "");
-    }
-  };
-
-  const closeCheckout = () => {
-    if (isPaying) return;
-    setSelectedPlanId(null);
-    setPaymentError(null);
-    setSelectedChapterId("");
-  };
-
-  const handleClassUpdate = async () => {
-    if (!user || !selectedClassLevel) {
-      setPaymentError(t({ en: "Please select a class.", bn: "একটি ক্লাস নির্বাচন করুন।" }));
-      return;
-    }
-    setIsUpdatingClass(true);
-    setPaymentError(null);
-    const { error } = await supabase
-      .from("user_profiles")
-      .upsert({ user_id: user.id, class_level: selectedClassLevel }, { onConflict: "user_id" });
-    if (error) {
-      setPaymentError(error.message);
-      setIsUpdatingClass(false);
-      return;
-    }
-    await refresh();
-    setIsUpdatingClass(false);
-    setSelectedCourseId("");
-    setSelectedClassLevel(user?.user_metadata?.class ?? "");
-  };
-
-  const handleCheckout = async () => {
-    if (!selectedPlan || !selectedCourseId) {
-      setPaymentError(t({ en: "Please select a subject.", bn: "একটি কোর্স নির্বাচন করুন।" }));
-      return;
-    }
-
-    if (selectedPurchase) {
-      setPaymentError(
-        `You already have an active ${resolvePlanLabel(selectedPurchase.plan_id)} plan until ${formatExpiryLabel(
-          selectedPurchase.expires_at
-        )}.`
-      );
-      return;
-    }
-
-    if (selectedCoursePrice === null || selectedCoursePrice === undefined) {
+    if (!amount || amount <= 0) {
       setPaymentError(t({ en: "Subject price is missing.", bn: "Subject price is missing." }));
       return;
     }
-
-    setIsPaying(true);
     setPaymentError(null);
+    setIsPaying(true);
     try {
-      await startCourseCheckout(selectedCourseId, {
-        planId: selectedPlan.id === "plan-standard" ? "standard" : "premium",
-        amount: selectedCoursePrice,
-      });
-    } catch (error) {
-      setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
+      await startCourseCheckout(courseId, { planId: "premium", amount });
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
       setIsPaying(false);
     }
   };
 
-  usePageMeta({
-    title: t({ en: "Pricing", bn: "মূল্য" }),
-    description: t({ en: "Compare HomeSchool plans for Class 6-12 learning and parent visibility.", bn: "ক্লাস ৬-১২ শেখা ও অভিভাবক ভিজিবিলিটির জন্য HomeSchool প্ল্যান তুলনা করুন।" }),
-  });
+  const handleBuyChapter = async (chapterId: string, amount: number | null | undefined) => {
+    if (!chapterId) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (!amount || amount <= 0) {
+      setPaymentError(t({ en: "Chapter price is missing.", bn: "Chapter price is missing." }));
+      return;
+    }
+    setPaymentError(null);
+    setIsPaying(true);
+    try {
+      await startChapterCheckout(chapterId, { amount });
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+      setIsPaying(false);
+    }
+  };
 
   return (
     <MarketingShell>
       <section className="bg-gradient-to-b from-background via-primary/5 to-background py-16 sm:py-20">
         <div className="mx-auto max-w-5xl px-4 text-center">
-          <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "Pricing", bn: "মূল্য" })}</div>
+          <div className="text-sm font-semibold uppercase tracking-wider text-primary">
+            {t({ en: "Pricing", bn: "Pricing" })}
+          </div>
           <h1 className="mt-4 text-4xl font-bold font-heading sm:text-5xl">
-            {t({ en: "Plans built for learners and families", bn: "শিক্ষার্থী ও পরিবারের জন্য তৈরি প্ল্যান" })}
+            {t({ en: "Choose a class, then unlock subjects or chapters", bn: "Choose a class, then unlock subjects or chapters" })}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            {t({ en: "Start free, then upgrade when you need full access and analytics.", bn: "ফ্রি দিয়ে শুরু করুন, তারপর পূর্ণ অ্যাক্সেস ও অ্যানালিটিক্স দরকার হলে আপগ্রেড করুন।" })}
+            {t({ en: "First chapter is free. Buy a full subject or unlock chapters one by one.", bn: "First chapter is free. Buy a full subject or unlock chapters one by one." })}
           </p>
         </div>
       </section>
 
-      <section className="py-16 sm:py-20">
+      <section className="py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4">
-          {user && activePurchases.length > 0 && (
-            <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 text-left shadow-sm">
-              <div className="text-sm font-semibold uppercase tracking-wider text-emerald-700">
-                Active plan
-              </div>
-              <div className="mt-3 space-y-2 text-sm text-emerald-700">
-                {activePurchases.map((purchase) => {
-                  const courseTitle = courseTitleMap.get(purchase.course_id) ?? "Course";
-                  return (
-                    <div key={purchase.course_id} className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold text-emerald-900">{courseTitle}</span>
-                      <span>
-                        {resolvePlanLabel(purchase.plan_id)} • expires{" "}
-                        {formatExpiryLabel(purchase.expires_at)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {classes.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSelectedClassId(item.id)}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                  item.id === selectedClassId
+                    ? "border-blue-600 bg-blue-50 text-blue-700"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-blue-200"
+                )}
+              >
+                {t({ en: item.name, bn: item.name })}
+              </button>
+            ))}
+          </div>
+
+          {loading && (
+            <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
+              {t({ en: "Loading pricing...", bn: "Loading pricing..." })}
             </div>
           )}
-          <div className="grid gap-6 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`rounded-3xl border p-6 shadow-sm ${
-                  plan.highlight ? "border-primary bg-primary/5" : "border-border bg-card"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{t(plan.name)}</h3>
-                  {plan.highlight && (
-                    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                      {t({ en: "Most popular", bn: "সবচেয়ে জনপ্রিয়" })}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">BDT {plan.price}</span>
-                  <span className="text-sm text-muted-foreground">{t(plan.period)}</span>
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">{t(plan.description)}</p>
-                <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
-                  {plan.features.map((feature) => (
-                    <li key={feature.en} className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                      {t(feature)}
-                    </li>
-                  ))}
-                </ul>
-                {plan.id === "plan-free" ? (
-                  <Link to={user ? "/courses" : "/signup"} className="mt-6 inline-block w-full">
-                    <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
-                      {t(plan.cta)}
-                    </Button>
-                  </Link>
-                ) : (
-                  <div className="mt-6">
-                    <Button
-                      className="w-full"
-                      variant={plan.highlight ? "default" : "outline"}
-                      onClick={() => openCheckout(plan.id)}
-                    >
-                      {t({ en: "Pay now", bn: "এখনই পেমেন্ট করুন" })}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="bg-muted/40 py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl px-4">
-          <div className="text-center">
-            <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "Pricing FAQ", bn: "মূল্য FAQ" })}</div>
-            <h2 className="mt-3 text-3xl font-bold font-heading sm:text-4xl">{t({ en: "Questions, answered", bn: "প্রশ্নের উত্তর" })}</h2>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {faqs.map((faq) => (
-              <div key={faq.id} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <HelpCircle className="h-5 w-5 text-primary" />
-                <h3 className="mt-4 text-lg font-semibold">{t(faq.question)}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{t(faq.answer)}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link to="/contact">
-              <Button variant="outline">{t({ en: "Talk to sales", bn: "সেলস টিমের সাথে কথা বলুন" })}</Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 py-6">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">
-                  {t({ en: "Choose a subject", bn: "কোর্স নির্বাচন করুন" })}
-                </h3>
-                <p className="text-sm text-slate-500">
-                  {t({
-                    en: "Select which subject to unlock with this plan.",
-                    bn: "এই প্ল্যান দিয়ে কোন কোর্স আনলক করবেন তা নির্বাচন করুন।",
-                  })}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closeCheckout}
-                className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
-                aria-label={t({ en: "Close", bn: "বন্ধ করুন" })}
-              >
-                <X className="h-4 w-4" />
-              </button>
+          {error && (
+            <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+              {error}
             </div>
+          )}
 
-            <div className="mt-4 space-y-4">
-              {paidCourses.length === 0 ? (
-                courses.length === 0 ? (
-                  <>
-                    <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                      {t({
-                        en: "No courses are available for your class yet. Select your class and refresh.",
-                        bn: "আপনার ক্লাসের জন্য এখনো কোর্স নেই। ক্লাস নির্বাচন করে রিফ্রেশ করুন।",
+          {!loading && !error && filteredSubjects.length === 0 && (
+            <div className="mt-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
+              {t({ en: "No subjects found for this class yet.", bn: "No subjects found for this class yet." })}
+            </div>
+          )}
+
+          {!loading && !error && filteredSubjects.length > 0 && (
+            <div className="mt-8 grid gap-6 lg:grid-cols-2">
+              {filteredSubjects.map((subject) => {
+                const subjectCourse = courseBySubject.get(subject.id);
+                const subjectChapters = chaptersBySubject.get(subject.id) ?? [];
+                const subjectPrice = subject.price_full ?? 0;
+                const subjectFirstFree = subject.first_chapter_free ?? subject.free_first_chapter ?? false;
+                const isSubjectPurchased = subjectCourse ? purchasedCourseSet.has(subjectCourse.id) : false;
+
+                return (
+                  <div key={subject.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          {t({ en: selectedClass?.name ?? "Class", bn: selectedClass?.name ?? "Class" })}
+                        </div>
+                        <h3 className="mt-2 text-xl font-semibold text-slate-900">
+                          {t({ en: subject.name, bn: subject.name })}
+                        </h3>
+                        <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                          <span>{t({ en: "Subject price", bn: "Subject price" })}:</span>
+                          <span className="font-semibold text-slate-700">{formatPrice(subjectPrice)}</span>
+                          {subjectFirstFree && (
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                              {t({ en: "First chapter free", bn: "First chapter free" })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {isSubjectPurchased ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                          <CheckCircle2 className="h-4 w-4" />
+                          {t({ en: "Unlocked", bn: "Unlocked" })}
+                        </span>
+                      ) : (
+                        <Button
+                          onClick={() => handleBuySubject(subjectCourse?.id ?? "", subjectPrice)}
+                          disabled={isPaying || !subjectCourse?.id}
+                        >
+                          {isPaying ? t({ en: "Redirecting...", bn: "Redirecting..." }) : t({ en: "Buy Subject", bn: "Buy Subject" })}
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="mt-5 space-y-3">
+                      {subjectChapters.map((chapter) => {
+                        const chapterTitle = chapter.name ?? chapter.title ?? "Chapter";
+                        const isFirstChapter = chapter.order_no === 1;
+                        const isFree = Boolean(chapter.is_free) || (subjectFirstFree && isFirstChapter);
+                        const isUnlocked = isFree || purchasedChapterSet.has(chapter.id) || isSubjectPurchased;
+                        const priceLabel = isFree ? t({ en: "FREE", bn: "FREE" }) : formatPrice(chapter.price ?? 0);
+
+                        return (
+                          <div key={chapter.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                            <div>
+                              <div className="text-sm font-semibold text-slate-800">
+                                {t({ en: "Chapter", bn: "Chapter" })} {chapter.order_no}: {chapterTitle}
+                              </div>
+                              <div className="text-xs text-slate-500">{priceLabel}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isUnlocked ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  {t({ en: "Unlocked", bn: "Unlocked" })}
+                                </span>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleBuyChapter(chapter.id, chapter.price ?? 0)}
+                                  disabled={isPaying}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Lock className="h-4 w-4" />
+                                  {t({ en: "Buy Chapter", bn: "Buy Chapter" })}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
                       })}
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">
-                        {t({ en: "Class", bn: "ক্লাস" })}
-                      </label>
-                      <select
-                        value={selectedClassLevel}
-                        onChange={(event) => setSelectedClassLevel(event.target.value)}
-                        className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                      >
-                        <option value="" disabled>
-                          {t({ en: "Select class", bn: "ক্লাস নির্বাচন করুন" })}
-                        </option>
-                        {CLASS_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={handleClassUpdate}
-                      disabled={!selectedClassLevel || isUpdatingClass}
-                      className="w-full"
-                    >
-                      {isUpdatingClass
-                        ? t({ en: "Refreshing...", bn: "রিফ্রেশ হচ্ছে..." })
-                        : t({ en: "Refresh courses", bn: "কোর্স রিফ্রেশ করুন" })}
-                    </Button>
-                  </>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                    {t({
-                      en: "All available courses are free right now. No payment required.",
-                      bn: "এখন সব উপলব্ধ কোর্স ফ্রি। পেমেন্ট প্রয়োজন নেই।",
-                    })}
                   </div>
-                )
-              ) : (
-                <>
-                  <label className="text-sm font-medium text-slate-700">{t({ en: "Subject", bn: "Subject" })}</label>
-                  <select
-                    value={selectedCourseId}
-                    onChange={(event) => setSelectedCourseId(event.target.value)}
-                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  >
-                    <option value="" disabled>
-                      {t({ en: "Select a subject", bn: "কোর্স নির্বাচন করুন" })}
-                    </option>
-                    {paidCourses.map((course) => (
-                      <option key={course.id} value={course.id}>
-                        {course.title}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedCourseChapters.length > 0 && (
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
-                      <div className="flex items-center justify-between text-xs font-semibold uppercase text-slate-500">
-                        <span>{t({ en: "Chapter pricing", bn: "Chapter pricing" })}</span>
-                        <span>{selectedCourseChapters.length} chapters</span>
-                      </div>
-                      <div className="mt-3 max-h-36 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
-                        {selectedCourseChapters.map((chapter) => (
-                          <div key={chapter.id} className="flex items-center justify-between gap-4">
-                            <span className="text-slate-700">
-                              {t({ en: "Chapter", bn: "Chapter" })} {chapter.order ?? 1}: {chapter.title}
-                            </span>
-                            <span className={chapter.isFree ? "font-semibold text-emerald-600" : ""}>
-                              {chapter.isFree
-                                ? t({ en: "Free", bn: "Free" })
-                                : `BDT ${chapter.price ?? 0}`}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                );
+              })}
             </div>
+          )}
 
-            {selectedPurchase && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-                Active {resolvePlanLabel(selectedPurchase.plan_id)} plan until{" "}
-                {formatExpiryLabel(selectedPurchase.expires_at)}.
+          {paymentError && (
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+              {paymentError}
+            </div>
+          )}
+
+          <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+            <div className="font-semibold text-slate-800">{t({ en: "How unlocking works", bn: "How unlocking works" })}</div>
+            <ul className="mt-3 space-y-2">
+              <li>� {t({ en: "Free chapters are always unlocked.", bn: "Free chapters are always unlocked." })}</li>
+              <li>� {t({ en: "Buying a subject unlocks all its chapters.", bn: "Buying a subject unlocks all its chapters." })}</li>
+              <li>� {t({ en: "Buying a chapter unlocks only that chapter.", bn: "Buying a chapter unlocks only that chapter." })}</li>
+            </ul>
+            {!user && (
+              <div className="mt-4">
+                <Link to="/login" className="text-sm font-semibold text-blue-600 hover:underline">
+                  {t({ en: "Sign in to purchase", bn: "Sign in to purchase" })}
+                </Link>
               </div>
             )}
-
-            {paymentError && <p className="mt-3 text-sm text-red-500">{paymentError}</p>}
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1 text-sm text-slate-500">
-                <div>
-                  {t({ en: "Subject price", bn: "Subject price" })}:{" "}
-                  <span className="font-semibold text-slate-800">
-                    BDT {selectedCoursePrice ?? 0}
-                  </span>
-                </div>
-                {selectedChapter && (
-                  <div>
-                    {t({ en: "Chapter price", bn: "Chapter price" })}:{" "}
-                    <span className="font-semibold text-slate-800">
-                      {selectedChapter.isFree
-                        ? t({ en: "Free", bn: "Free" })
-                        : `BDT ${selectedChapter.price ?? 0}`}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <Button
-                onClick={handleCheckout}
-                disabled={
-                  isPaying ||
-                  !selectedCourseId ||
-                  paidCourses.length === 0 ||
-                  Boolean(selectedPurchase)
-                }
-              >
-                {isPaying ? t({ en: "Redirecting...", bn: "রিডাইরেক্ট হচ্ছে..." }) : t({ en: "Pay now", bn: "পেমেন্ট করুন" })}
-              </Button>
-            </div>
           </div>
         </div>
-      )}
+      </section>
     </MarketingShell>
   );
 }

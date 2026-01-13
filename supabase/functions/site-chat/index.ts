@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getSupabaseAdmin, getUserFromRequest } from "../_shared/supabase.ts";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -14,7 +15,81 @@ type ChatPayload = {
   chapter?: string;
   classLevel?: string;
   language?: "en" | "bn";
+  chapterId?: string;
+  subjectId?: string;
+  courseId?: string;
 };
+
+type ChapterAccess = {
+  allowed: boolean;
+  courseId?: string | null;
+  subjectId?: string | null;
+  error?: string;
+};
+
+async function checkChapterAccess(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+  chapterId: string
+): Promise<ChapterAccess> {
+  const { data: chapter, error } = await supabaseAdmin
+    .from("chapters")
+    .select("id,is_free,order_no,course_id,subject_id,subject:subjects(first_chapter_free,free_first_chapter)")
+    .eq("id", chapterId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Chapter lookup failed", error);
+    return { allowed: false, error: "Chapter lookup failed." };
+  }
+
+  if (!chapter) {
+    return { allowed: false, error: "Chapter not found." };
+  }
+
+  const subjectFree =
+    chapter.subject?.first_chapter_free ?? chapter.subject?.free_first_chapter ?? false;
+  const isFree = Boolean(chapter.is_free) || chapter.order_no === 1 || Boolean(subjectFree);
+  if (isFree) {
+    return { allowed: true, courseId: chapter.course_id, subjectId: chapter.subject_id };
+  }
+
+  const { count: chapterCount, error: chapterError } = await supabaseAdmin
+    .from("purchased_chapters")
+    .select("chapter_id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("chapter_id", chapterId);
+
+  if (chapterError) {
+    console.error("Chapter purchase lookup failed", chapterError);
+    return { allowed: false, error: "Purchase lookup failed." };
+  }
+
+  if ((chapterCount ?? 0) > 0) {
+    return { allowed: true, courseId: chapter.course_id, subjectId: chapter.subject_id };
+  }
+
+  if (chapter.course_id) {
+    const nowIso = new Date().toISOString();
+    const { count: courseCount, error: courseError } = await supabaseAdmin
+      .from("purchased_courses")
+      .select("course_id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("course_id", chapter.course_id)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+
+    if (courseError) {
+      console.error("Course purchase lookup failed", courseError);
+      return { allowed: false, error: "Purchase lookup failed." };
+    }
+
+    if ((courseCount ?? 0) > 0) {
+      return { allowed: true, courseId: chapter.course_id, subjectId: chapter.subject_id };
+    }
+  }
+
+  return { allowed: false, error: "Chapter locked." };
+}
 
 function buildSystemPrompt(payload: ChatPayload) {
   const mode = payload.mode ?? "chat";
@@ -29,7 +104,7 @@ function buildSystemPrompt(payload: ChatPayload) {
 
   if (mode === "brainbite") {
     return [
-      "You are BrainBite — a fast, strict exam coach.",
+      "You are BrainBite, a fast, strict exam coach.",
       `Student is studying: Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
       "Answer short, clear, and exam-relevant.",
       "Correct wrong concepts firmly.",
@@ -50,7 +125,7 @@ function buildSystemPrompt(payload: ChatPayload) {
       "Do not give long essays, fluff, or irrelevant theory.",
       `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
       "Create a lesson in this exact format:",
-      "1) Chapter overview (3–4 lines)",
+      "1) Chapter overview (3-4 lines)",
       "2) Key concepts (bullet points)",
       "3) Important definitions",
       "4) Board exam notes",
@@ -81,11 +156,39 @@ serve(async (req) => {
   try {
     const payload = (await req.json()) as ChatPayload;
     const { message, history = [] } = payload;
+    const mode = payload.mode ?? "chat";
+    const auth = await getUserFromRequest(req);
+    const user = auth.user;
     if (!message || typeof message !== "string") {
       return new Response(JSON.stringify({ error: "Message is required." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (mode !== "chat" && !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((mode === "brainbite" || mode === "lesson") && !payload.chapterId) {
+      return new Response(JSON.stringify({ error: "Chapter id is required." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((mode === "brainbite" || mode === "lesson") && user) {
+      const supabaseAdmin = getSupabaseAdmin();
+      const access = await checkChapterAccess(supabaseAdmin, user.id, payload.chapterId ?? "");
+      if (!access.allowed) {
+        return new Response(JSON.stringify({ error: access.error ?? "Chapter locked." }), {
+          status: access.error === "Chapter not found." ? 404 : 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const openAiKey = Deno.env.get("OPENAI_API_KEY");

@@ -376,7 +376,13 @@ function isPurchaseActive(purchase: PurchasedCourseRecord) {
 
 function buildActivityDateSet(activityLog: StudentActivityRecord[]) {
   const dates = new Set<string>();
-  const streakTypes = new Set(["lesson_completed"]);
+  const streakTypes = new Set([
+    "lesson_completed",
+    "brainbite_generated",
+    "lesson_ai",
+    "homeschool_ai",
+    "quiz_completed",
+  ]);
   activityLog.forEach((item) => {
     if (!streakTypes.has(item.type)) return;
     dates.add(formatDateKey(new Date(item.created_at)));
@@ -565,34 +571,12 @@ function buildCourses(
       course.subject?.first_chapter_free ?? course.subject?.free_first_chapter ?? false;
     const courseChapters = (chaptersByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
     const courseLessons = lessonsByCourse[course.id] ?? [];
-    const chapterIds = new Set(courseChapters.map((chapter) => chapter.id));
-    const looseLessons = courseLessons.filter(
-      (lesson) => !lesson.chapter_id || !chapterIds.has(lesson.chapter_id)
-    );
     const isFree = course.is_free ?? false;
     const isPurchased = purchasedSet.has(course.id);
-    const usingFallbackChapter = courseChapters.length === 0;
-    const resolvedChapters = courseChapters.length
-      ? courseChapters
-      : [
-          {
-            id: `${course.id}-chapter-1`,
-            course_id: course.id,
-            title: "Chapter 1",
-            order_no: 1,
-            is_free: true,
-            duration_minutes: null,
-            price: null,
-          } satisfies ChapterRecord,
-        ];
-    const chapterData: CourseChapter[] = resolvedChapters.map((chapter) => {
-      const chapterLessons = (lessonsByChapter[chapter.id] ?? []).sort((a, b) => a.order_no - b.order_no);
-      const fallbackLessons = usingFallbackChapter
-        ? courseLessons
-        : chapterLessons.length === 0 && looseLessons.length
-          ? looseLessons
-          : [];
-      const resolvedLessons = chapterLessons.length ? chapterLessons : fallbackLessons;
+    const chapterData: CourseChapter[] = courseChapters.map((chapter) => {
+      const chapterLessons = (lessonsByChapter[chapter.id] ?? []).sort(
+        (a, b) => a.order_no - b.order_no
+      );
       const isFirstChapter = chapter.order_no === 1;
       const chapterIsFree = Boolean(chapter.is_free) || isFirstChapter || freeFirstChapter;
       return {
@@ -603,7 +587,7 @@ function buildCourses(
         isPurchased: purchasedChapterSet.has(chapter.id),
         durationMinutes: chapter.duration_minutes ?? undefined,
         price: chapterIsFree ? 0 : chapter.price ?? null,
-        lessons: resolvedLessons.map((lesson) => ({
+        lessons: chapterLessons.map((lesson) => ({
           id: lesson.id,
           title: lesson.title,
           type: lesson.type,

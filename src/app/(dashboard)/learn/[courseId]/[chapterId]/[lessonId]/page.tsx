@@ -86,7 +86,7 @@ export default function LessonPlayerPage() {
     }, [courseId, lessonId, course?.id, lesson?.id, hasAccess]);
 
     const handleComplete = async () => {
-        await markLessonComplete(courseId, lessonId);
+        await markLessonComplete(courseId, lessonId, undefined, { chapterId });
         if (isQuiz) {
             setQuizCompleted(true);
         }

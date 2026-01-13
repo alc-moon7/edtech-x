@@ -87,6 +87,9 @@ type GenerateQuizPayload = {
   language?: "en" | "bn";
   count?: number;
   difficulty?: "easy" | "medium" | "hard";
+  chapterId?: string;
+  courseId?: string;
+  subjectId?: string;
 };
 
 type OpenAiQuestion = {
@@ -104,6 +107,69 @@ type OpenAiMessages = {
   system: string;
   user: string;
 };
+
+type ChapterAccess = {
+  allowed: boolean;
+  error?: string;
+};
+
+async function checkChapterAccess(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+  chapterId: string
+): Promise<ChapterAccess> {
+  const { data: chapter, error } = await supabaseAdmin
+    .from("chapters")
+    .select("id,is_free,order_no,course_id,subject:subjects(first_chapter_free,free_first_chapter)")
+    .eq("id", chapterId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Chapter lookup failed", error);
+    return { allowed: false, error: "Chapter lookup failed." };
+  }
+
+  if (!chapter) {
+    return { allowed: false, error: "Chapter not found." };
+  }
+
+  const subjectFree =
+    chapter.subject?.first_chapter_free ?? chapter.subject?.free_first_chapter ?? false;
+  const isFree = Boolean(chapter.is_free) || chapter.order_no === 1 || Boolean(subjectFree);
+  if (isFree) return { allowed: true };
+
+  const { count: chapterCount, error: chapterError } = await supabaseAdmin
+    .from("purchased_chapters")
+    .select("chapter_id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("chapter_id", chapterId);
+
+  if (chapterError) {
+    console.error("Chapter purchase lookup failed", chapterError);
+    return { allowed: false, error: "Purchase lookup failed." };
+  }
+
+  if ((chapterCount ?? 0) > 0) return { allowed: true };
+
+  if (chapter.course_id) {
+    const nowIso = new Date().toISOString();
+    const { count: courseCount, error: courseError } = await supabaseAdmin
+      .from("purchased_courses")
+      .select("course_id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("course_id", chapter.course_id)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+
+    if (courseError) {
+      console.error("Course purchase lookup failed", courseError);
+      return { allowed: false, error: "Purchase lookup failed." };
+    }
+
+    if ((courseCount ?? 0) > 0) return { allowed: true };
+  }
+
+  return { allowed: false, error: "Chapter locked." };
+}
 
 function normalizeText(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -315,6 +381,24 @@ serve(async (req) => {
     }
 
     const supabaseAdmin = getSupabaseAdmin();
+    const payload = (await req.json()) as GenerateQuizPayload;
+    const chapterId = (payload.chapterId ?? "").trim();
+
+    if (!chapterId) {
+      return new Response(JSON.stringify({ error: "Chapter id is required." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const access = await checkChapterAccess(supabaseAdmin, user.id, chapterId);
+    if (!access.allowed) {
+      return new Response(JSON.stringify({ error: access.error ?? "Chapter locked." }), {
+        status: access.error === "Chapter not found." ? 404 : 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const isPremium = await isPremiumUser(supabaseAdmin, user.id);
     if (!isPremium) {
       const usage = await checkAndIncrementUsage(supabaseAdmin, user.id);
@@ -332,7 +416,6 @@ serve(async (req) => {
       }
     }
 
-    const payload = (await req.json()) as GenerateQuizPayload;
     const language = payload.language === "bn" ? "bn" : "en";
     const count = Math.max(1, payload.count ?? 10);
     const difficulty = payload.difficulty ?? "medium";

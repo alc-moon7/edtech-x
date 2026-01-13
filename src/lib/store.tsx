@@ -44,7 +44,12 @@ type StudentContextType = {
   purchasedChapters: PurchasedChapterRecord[];
   refresh: () => Promise<void>;
   markLessonStarted: (courseId: string, lessonId?: string | null) => Promise<void>;
-  markLessonComplete: (courseId: string, lessonId: string, content?: string) => Promise<void>;
+  markLessonComplete: (
+    courseId: string,
+    lessonId: string,
+    content?: string,
+    options?: { chapterId?: string | null }
+  ) => Promise<void>;
   saveQuizScore: (courseId: string, quizId: string, score: number) => Promise<void>;
   logActivity: (
     type: string,
@@ -152,6 +157,118 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const [studySessions, setStudySessions] = useState<StudySessionRecord[]>([]);
   const [purchasedCourses, setPurchasedCourses] = useState<PurchasedCourseRecord[]>([]);
   const [purchasedChapters, setPurchasedChapters] = useState<PurchasedChapterRecord[]>([]);
+
+  const isCoursePurchaseActive = (courseId: string) => {
+    if (!courseId) return false;
+    return purchasedCourses.some((purchase) => {
+      if (purchase.course_id !== courseId) return false;
+      if (!purchase.expires_at) return true;
+      const expiry = new Date(purchase.expires_at).getTime();
+      return Number.isFinite(expiry) && expiry > Date.now();
+    });
+  };
+
+  const isChapterPurchased = (chapterId: string) =>
+    Boolean(chapterId && purchasedChapters.some((purchase) => purchase.chapter_id === chapterId));
+
+  const resolveLessonMeta = async (
+    courseId: string,
+    lessonId: string,
+    options?: { chapterId?: string | null }
+  ) => {
+    const course = courses.find((item) => item.id === courseId);
+    const { lesson, chapter } = findLessonById(course, lessonId);
+    let resolvedCourseId = course?.id ?? courseId;
+    let resolvedChapterId = chapter?.id ?? options?.chapterId ?? null;
+    let durationMinutes = lesson?.durationMinutes ?? null;
+    let subjectId = course?.subjectId ?? null;
+
+    if (!resolvedChapterId) {
+      const { data: lessonRow, error: lessonError } = await supabase
+        .from("lessons")
+        .select("id,course_id,chapter_id,duration_minutes")
+        .eq("id", lessonId)
+        .maybeSingle();
+
+      if (lessonError) {
+        setError(lessonError.message);
+      }
+
+      if (lessonRow) {
+        resolvedCourseId = lessonRow.course_id ?? resolvedCourseId;
+        resolvedChapterId = lessonRow.chapter_id ?? resolvedChapterId;
+        durationMinutes = lessonRow.duration_minutes ?? durationMinutes;
+      }
+    }
+
+    if (!subjectId && resolvedCourseId) {
+      const { data: courseRow, error: courseError } = await supabase
+        .from("courses")
+        .select("subject_id")
+        .eq("id", resolvedCourseId)
+        .maybeSingle();
+
+      if (courseError) {
+        setError(courseError.message);
+      }
+
+      subjectId = courseRow?.subject_id ?? subjectId;
+    }
+
+    if (!subjectId && resolvedChapterId) {
+      const { data: chapterRow, error: chapterError } = await supabase
+        .from("chapters")
+        .select("subject_id")
+        .eq("id", resolvedChapterId)
+        .maybeSingle();
+
+      if (chapterError) {
+        setError(chapterError.message);
+      }
+
+      subjectId = chapterRow?.subject_id ?? subjectId;
+    }
+
+    return {
+      course,
+      resolvedCourseId,
+      resolvedChapterId,
+      durationMinutes,
+      subjectId,
+    };
+  };
+
+  const hasChapterAccess = async (
+    courseId: string,
+    chapterId: string,
+    course?: CourseData | null
+  ) => {
+    if (!chapterId) return false;
+    const inCourse = course?.chapters.find((item) => item.id === chapterId) ?? null;
+    if (course && (course.isFree || course.isPurchased)) return true;
+    if (inCourse && (inCourse.isFree || inCourse.isPurchased)) return true;
+    if (isCoursePurchaseActive(courseId)) return true;
+    if (isChapterPurchased(chapterId)) return true;
+
+    const { data: chapterRow, error: chapterError } = await supabase
+      .from("chapters")
+      .select("id,is_free,order_no,subject:subjects(first_chapter_free,free_first_chapter)")
+      .eq("id", chapterId)
+      .maybeSingle();
+
+    if (chapterError) {
+      setError(chapterError.message);
+      return false;
+    }
+
+    if (!chapterRow) return false;
+
+    const subjectFree =
+      chapterRow.subject?.first_chapter_free ?? chapterRow.subject?.free_first_chapter ?? false;
+    const isFree =
+      Boolean(chapterRow.is_free) || chapterRow.order_no === 1 || Boolean(subjectFree);
+    return isFree;
+  };
 
   const resetState = () => {
     setCourses([]);
@@ -333,18 +450,28 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     void refresh();
   };
 
-  const markLessonComplete = async (courseId: string, lessonId: string, content?: string) => {
+  const markLessonComplete = async (
+    courseId: string,
+    lessonId: string,
+    content?: string,
+    options?: { chapterId?: string | null }
+  ) => {
     if (!user || !isSupabaseConfigured) return;
 
-    const course = courses.find((item) => item.id === courseId);
-    const { lesson } = findLessonById(course, lessonId);
-    const hasAccess = isLessonUnlocked(course, lessonId);
+    const { course, resolvedCourseId, resolvedChapterId, durationMinutes, subjectId } =
+      await resolveLessonMeta(courseId, lessonId, options);
+    if (!resolvedChapterId) {
+      setError("Lesson is not linked to a chapter.");
+      return;
+    }
 
-    if (course && !hasAccess) {
+    const hasAccess = await hasChapterAccess(resolvedCourseId, resolvedChapterId, course ?? null);
+    if (!hasAccess) {
       setError("Chapter locked.");
       return;
     }
-    const alreadyCompleted = progress[courseId]?.completedLessons.includes(lessonId);
+
+    const alreadyCompleted = progress[resolvedCourseId]?.completedLessons.includes(lessonId);
 
     if (alreadyCompleted && !content) return;
     if (alreadyCompleted && content) {
@@ -363,7 +490,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     const { error: courseError } = await supabase.from("student_courses").upsert(
       {
         user_id: user.id,
-        course_id: courseId,
+        course_id: resolvedCourseId,
       },
       { onConflict: "user_id,course_id" }
     );
@@ -376,7 +503,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     const lessonPayload = {
       user_id: user.id,
       lesson_id: lessonId,
-      chapter_id: findLessonById(course, lessonId).chapter?.id ?? course?.chapters?.[0]?.id ?? null,
+      chapter_id: resolvedChapterId,
       status: "completed",
       progress: 100,
       completed: true,
@@ -395,20 +522,17 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       user_id: user.id,
       type: "lesson_completed",
       ref_id: lessonId,
-      meta: { course_id: courseId },
+      meta: { course_id: resolvedCourseId, chapter_id: resolvedChapterId },
     });
 
     if (activityError) {
       setError(activityError.message);
     }
 
-    const durationMinutes =
-      lesson?.durationMinutes ?? (lesson?.type === "quiz" ? 10 : 20);
-
     const { error: sessionError } = await supabase.from("study_sessions").insert({
       user_id: user.id,
-      subject_id: course?.subjectId ?? null,
-      duration_minutes: durationMinutes,
+      subject_id: subjectId ?? null,
+      duration_minutes: durationMinutes ?? 20,
       session_date: formatDateKey(getBangladeshToday()),
     });
 
@@ -418,10 +542,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
 
     setProgress((prev) => {
       const next = { ...prev };
-      const courseProgress = next[courseId] || { completedLessons: [], quizScores: {} };
+      const courseProgress = next[resolvedCourseId] || { completedLessons: [], quizScores: {} };
       const updatedLessons = new Set(courseProgress.completedLessons);
       updatedLessons.add(lessonId);
-      next[courseId] = {
+      next[resolvedCourseId] = {
         ...courseProgress,
         completedLessons: Array.from(updatedLessons),
       };
@@ -434,12 +558,17 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const saveQuizScore = async (courseId: string, quizId: string, score: number) => {
     if (!user || !isSupabaseConfigured) return;
 
-    const course = courses.find((item) => item.id === courseId);
-    const { lesson } = findLessonById(course, quizId);
-    const resolvedLessonId = lesson?.id ?? quizId;
-    const hasAccess = isLessonUnlocked(course, resolvedLessonId);
+    const { course, resolvedCourseId, resolvedChapterId, durationMinutes, subjectId } =
+      await resolveLessonMeta(courseId, quizId);
+    const resolvedLessonId = quizId;
 
-    if (course && !hasAccess) {
+    if (!resolvedChapterId) {
+      setError("Lesson is not linked to a chapter.");
+      return;
+    }
+
+    const hasAccess = await hasChapterAccess(resolvedCourseId, resolvedChapterId, course ?? null);
+    if (!hasAccess) {
       setError("Chapter locked.");
       return;
     }
@@ -456,13 +585,13 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const alreadyCompleted = progress[courseId]?.completedLessons.includes(resolvedLessonId);
+    const alreadyCompleted = progress[resolvedCourseId]?.completedLessons.includes(resolvedLessonId);
 
     if (!alreadyCompleted) {
       const { error: courseError } = await supabase.from("student_courses").upsert(
         {
           user_id: user.id,
-          course_id: courseId,
+          course_id: resolvedCourseId,
         },
         { onConflict: "user_id,course_id" }
       );
@@ -475,7 +604,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         {
           user_id: user.id,
           lesson_id: resolvedLessonId,
-          chapter_id: findLessonById(course, resolvedLessonId).chapter?.id ?? course?.chapters?.[0]?.id ?? null,
+          chapter_id: resolvedChapterId,
           status: "completed",
           progress: 100,
           completed: true,
@@ -491,18 +620,17 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         user_id: user.id,
         type: "lesson_completed",
         ref_id: resolvedLessonId,
-        meta: { course_id: courseId },
+        meta: { course_id: resolvedCourseId, chapter_id: resolvedChapterId },
       });
 
       if (activityError) {
         setError(activityError.message);
       }
 
-      const durationMinutes = lesson?.durationMinutes ?? 10;
       const { error: sessionError } = await supabase.from("study_sessions").insert({
         user_id: user.id,
-        subject_id: course?.subjectId ?? null,
-        duration_minutes: durationMinutes,
+        subject_id: subjectId ?? null,
+        duration_minutes: durationMinutes ?? 10,
         session_date: formatDateKey(getBangladeshToday()),
       });
 
@@ -513,10 +641,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
 
     setProgress((prev) => {
       const next = { ...prev };
-      const courseProgress = next[courseId] || { completedLessons: [], quizScores: {} };
+      const courseProgress = next[resolvedCourseId] || { completedLessons: [], quizScores: {} };
       const updatedLessons = new Set(courseProgress.completedLessons);
       updatedLessons.add(resolvedLessonId);
-      next[courseId] = {
+      next[resolvedCourseId] = {
         ...courseProgress,
         completedLessons: Array.from(updatedLessons),
         quizScores: {

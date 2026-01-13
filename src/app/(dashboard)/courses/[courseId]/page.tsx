@@ -192,6 +192,9 @@ function BrainBitePanel({
       chapter,
       classLevel,
       language,
+      chapterId,
+      subjectId,
+      courseId,
     });
 
     if (fnError || !data?.reply) {
@@ -208,7 +211,9 @@ function BrainBitePanel({
 
     setEntries((prev) => [...prev, data.reply as string]);
     if (resolvedLessonId) {
-      void markLessonComplete(courseId, resolvedLessonId, data.reply as string);
+      void markLessonComplete(courseId, resolvedLessonId, data.reply as string, {
+        chapterId,
+      });
     }
     void logActivity("brainbite_generated", {
       courseId,
@@ -367,6 +372,9 @@ function LessonGeneratorPanel({
       chapter,
       classLevel,
       language,
+      chapterId,
+      subjectId,
+      courseId,
     });
 
     if (fnError || !data?.reply) {
@@ -383,7 +391,9 @@ function LessonGeneratorPanel({
 
     setMessages((prev) => [...prev, { role: "assistant", content: data.reply as string }]);
     if (resolvedLessonId) {
-      void markLessonComplete(courseId, resolvedLessonId, data.reply as string);
+      void markLessonComplete(courseId, resolvedLessonId, data.reply as string, {
+        chapterId,
+      });
     }
     void logActivity("lesson_ai", {
       courseId,
@@ -490,6 +500,8 @@ function QuizGeneratorPanel({
       language,
       count: 10,
       difficulty: "medium",
+      chapterId: selectedChapter.id,
+      courseId,
     });
 
     if (fnError) {

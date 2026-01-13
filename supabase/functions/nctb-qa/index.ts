@@ -8,6 +8,9 @@ type QaPayload = {
   subject?: string;
   chapter?: string;
   language?: "en" | "bn";
+  chapterId?: string;
+  subjectId?: string;
+  courseId?: string;
 };
 
 type ChunkRow = {
@@ -23,11 +26,74 @@ const CHAT_MODEL = Deno.env.get("OPENAI_MODEL") ?? "gpt-4o-mini";
 const DAILY_LIMIT = 3;
 const USAGE_TYPE = "home_qa";
 
+type ChapterAccess = {
+  allowed: boolean;
+  error?: string;
+};
+
 function getBangladeshDateKey() {
   const now = new Date();
   const utcMs = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
   const bd = new Date(utcMs + 6 * 60 * 60 * 1000);
   return bd.toISOString().slice(0, 10);
+}
+
+async function checkChapterAccess(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+  chapterId: string
+): Promise<ChapterAccess> {
+  const { data: chapter, error } = await supabaseAdmin
+    .from("chapters")
+    .select("id,is_free,order_no,course_id,subject:subjects(first_chapter_free,free_first_chapter)")
+    .eq("id", chapterId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Chapter lookup failed", error);
+    return { allowed: false, error: "Chapter lookup failed." };
+  }
+
+  if (!chapter) {
+    return { allowed: false, error: "Chapter not found." };
+  }
+
+  const subjectFree =
+    chapter.subject?.first_chapter_free ?? chapter.subject?.free_first_chapter ?? false;
+  const isFree = Boolean(chapter.is_free) || chapter.order_no === 1 || Boolean(subjectFree);
+  if (isFree) return { allowed: true };
+
+  const { count: chapterCount, error: chapterError } = await supabaseAdmin
+    .from("purchased_chapters")
+    .select("chapter_id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("chapter_id", chapterId);
+
+  if (chapterError) {
+    console.error("Chapter purchase lookup failed", chapterError);
+    return { allowed: false, error: "Purchase lookup failed." };
+  }
+
+  if ((chapterCount ?? 0) > 0) return { allowed: true };
+
+  if (chapter.course_id) {
+    const nowIso = new Date().toISOString();
+    const { count: courseCount, error: courseError } = await supabaseAdmin
+      .from("purchased_courses")
+      .select("course_id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("course_id", chapter.course_id)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+
+    if (courseError) {
+      console.error("Course purchase lookup failed", courseError);
+      return { allowed: false, error: "Purchase lookup failed." };
+    }
+
+    if ((courseCount ?? 0) > 0) return { allowed: true };
+  }
+
+  return { allowed: false, error: "Chapter locked." };
 }
 
 async function isPremiumUser(supabaseAdmin: ReturnType<typeof getSupabaseAdmin>, userId: string) {
@@ -95,13 +161,16 @@ function buildSystemPrompt(
 ) {
   const languageLine = language === "bn" ? "Use Bangla only." : "Use English only.";
   return [
-    "You are a private tutor for Bangladeshi students.",
+    "You are a private tutor for Bangladeshi students trained in NCTB, SSC, and HSC syllabus.",
+    "Teach in an exam-focused, board-ready style (MCQ + CQ success).",
     `Student is studying: Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
-    "You must explain concepts, give examples, ask follow-up questions, and prepare for exams.",
+    "Explain concepts clearly with short notes and bullet points.",
+    "Ask a brief follow-up question when helpful.",
     "Never answer beyond this chapter.",
     `If the question is outside the chapter, say: \"This topic is not covered in ${chapter}.\"`,
-    "Never guess or hallucinate.",
-    "If you do not know from the chapter, say: \"This topic is not covered in the chapter.\"",
+    "Never guess or hallucinate. Never say you're unsure.",
+    "If the topic is not in the syllabus, say: \"This topic is not covered in the syllabus.\"",
+    "No emojis. No markdown. No fluff.",
     languageLine,
   ].join(" ");
 }
@@ -132,6 +201,7 @@ serve(async (req) => {
     const classLevel = (payload.classLevel ?? "").trim();
     const subject = (payload.subject ?? "").trim();
     const chapter = (payload.chapter ?? "").trim();
+    const chapterId = (payload.chapterId ?? "").trim();
     const language = payload.language === "bn" ? "bn" : "en";
 
     if (!question) {
@@ -146,6 +216,12 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (!chapterId) {
+      return new Response(JSON.stringify({ error: "Chapter id is required." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openAiKey) {
@@ -156,6 +232,13 @@ serve(async (req) => {
     }
 
     const supabaseAdmin = getSupabaseAdmin();
+    const access = await checkChapterAccess(supabaseAdmin, user.id, chapterId);
+    if (!access.allowed) {
+      return new Response(JSON.stringify({ error: access.error ?? "Chapter locked." }), {
+        status: access.error === "Chapter not found." ? 404 : 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const isPremium = await isPremiumUser(supabaseAdmin, user.id);
 
     if (!isPremium) {
