@@ -7,6 +7,10 @@ type CheckoutOptions = {
   amount?: number;
 };
 
+type ChapterCheckoutOptions = {
+  amount?: number;
+};
+
 export async function startCourseCheckout(courseId: string, options?: CheckoutOptions) {
   if (!courseId) {
     throw new Error("Invalid course payment request.");
@@ -28,6 +32,45 @@ export async function startCourseCheckout(courseId: string, options?: CheckoutOp
     body: JSON.stringify({
       courseId,
       planId: options?.planId ?? "premium",
+      amount: options?.amount,
+      currency: "BDT",
+    }),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = payload?.error || payload?.details || "Payment failed. Please try again.";
+    throw new Error(message);
+  }
+
+  const url = payload?.url;
+  if (!url) {
+    throw new Error("Payment gateway URL missing.");
+  }
+
+  window.location.href = url;
+}
+
+export async function startChapterCheckout(chapterId: string, options?: ChapterCheckoutOptions) {
+  if (!chapterId) {
+    throw new Error("Invalid chapter payment request.");
+  }
+
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session) {
+    throw new Error("Not logged in");
+  }
+  const accessToken = session.access_token;
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "http://127.0.0.1:54321";
+  const response = await fetch(`${supabaseUrl}/functions/v1/create-payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({
+      chapterId,
       amount: options?.amount,
       currency: "BDT",
     }),

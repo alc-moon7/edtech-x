@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
 import { invokeEdgeFunction } from "@/lib/supabaseClient";
-import { startCourseCheckout } from "@/lib/payments";
+import { startChapterCheckout, startCourseCheckout } from "@/lib/payments";
 import type { CourseChapter } from "@/lib/dashboardData";
 
 type TabKey = "brainbite" | "lesson" | "quiz";
@@ -66,10 +66,12 @@ function LockedChapterNotice({
   onUpgrade,
   isPaying,
   errorMessage,
+  ctaLabel,
 }: {
   onUpgrade: () => void;
   isPaying: boolean;
   errorMessage: string | null;
+  ctaLabel?: string;
 }) {
   return (
     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-slate-700">
@@ -86,7 +88,7 @@ function LockedChapterNotice({
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Button onClick={onUpgrade} disabled={isPaying}>
-          {isPaying ? "Redirecting..." : "Upgrade plan"}
+          {isPaying ? "Redirecting..." : ctaLabel ?? "Upgrade plan"}
         </Button>
         {errorMessage && <span className="text-sm text-red-600">{errorMessage}</span>}
       </div>
@@ -459,6 +461,8 @@ export default function CourseDetailPage() {
   const [selectedChapterId, setSelectedChapterId] = useState<string>("");
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [isChapterPaying, setIsChapterPaying] = useState(false);
+  const [chapterPaymentError, setChapterPaymentError] = useState<string | null>(null);
 
   const courseId = params.courseId as string;
   const course = courses.find((item) => item.id === courseId);
@@ -510,6 +514,20 @@ export default function CourseDetailPage() {
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
       setIsPaying(false);
+    }
+  };
+
+  const handleBuyChapter = async () => {
+    if (!selectedChapter || selectedChapter.isFree) return;
+    setChapterPaymentError(null);
+    setIsChapterPaying(true);
+    try {
+      await startChapterCheckout(selectedChapter.id, {
+        amount: selectedChapter.price ?? undefined,
+      });
+    } catch (error) {
+      setChapterPaymentError(error instanceof Error ? error.message : "Payment failed. Please try again.");
+      setIsChapterPaying(false);
     }
   };
 
@@ -640,7 +658,12 @@ export default function CourseDetailPage() {
 
           <div className="p-6">
             {isChapterLocked ? (
-              <LockedChapterNotice onUpgrade={handleBuyCourse} isPaying={isPaying} errorMessage={paymentError} />
+              <LockedChapterNotice
+                onUpgrade={handleBuyChapter}
+                isPaying={isChapterPaying}
+                errorMessage={chapterPaymentError}
+                ctaLabel={t({ en: "Unlock chapter", bn: "Unlock chapter" })}
+              />
             ) : (
               <>
                 {activeTab === "brainbite" && selectedChapter && (

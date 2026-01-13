@@ -5,6 +5,7 @@ import { getSslcommerzInitUrl } from "../_shared/sslcommerz.ts";
 
 type CreatePaymentPayload = {
   courseId?: string;
+  chapterId?: string;
   planId?: string;
   amount?: number;
   currency?: string;
@@ -36,13 +37,14 @@ serve(async (req) => {
 
     const payload = (await req.json()) as CreatePaymentPayload;
     const courseId = payload.courseId?.trim();
+    const chapterId = payload.chapterId?.trim();
     const planId = typeof payload.planId === "string" ? payload.planId.toLowerCase() : "premium";
     const planAmount = PLAN_PRICES[planId];
-    const amount = planAmount ?? Number(payload.amount);
+    let amount = planAmount ?? Number(payload.amount);
     const currency = (payload.currency ?? "BDT").toUpperCase();
 
-    if (!courseId || Number.isNaN(amount) || amount <= 0) {
-      return jsonResponse(400, { error: "courseId and plan are required." });
+    if (!courseId && !chapterId) {
+      return jsonResponse(400, { error: "courseId or chapterId is required." });
     }
 
     const rawPhone =
@@ -59,21 +61,59 @@ serve(async (req) => {
     }
 
     const supabase = getSupabaseAdmin();
+    let resolvedCourseId = courseId ?? "";
+    let resolvedChapterId: string | null = null;
+    let productName = "Course";
+
+    if (chapterId) {
+      const { data: chapter, error: chapterError } = await supabase
+        .from("chapters")
+        .select("id,title,price,is_free,course_id,course:courses(id,title)")
+        .eq("id", chapterId)
+        .maybeSingle();
+
+      if (chapterError || !chapter) {
+        return jsonResponse(404, { error: "Chapter not found." });
+      }
+
+      if (chapter.is_free) {
+        return jsonResponse(409, { error: "Chapter is already free." });
+      }
+
+      const chapterPrice = Number(chapter.price ?? payload.amount);
+      if (!Number.isFinite(chapterPrice) || chapterPrice <= 0) {
+        return jsonResponse(400, { error: "Invalid chapter price." });
+      }
+
+      resolvedCourseId = chapter.course_id;
+      resolvedChapterId = chapter.id;
+      amount = chapterPrice;
+      productName = `${chapter.course?.title ?? "Course"} - ${chapter.title}`;
+    }
+
+    if (!resolvedCourseId) {
+      return jsonResponse(400, { error: "courseId is required." });
+    }
+
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .select("id,title")
-      .eq("id", courseId)
+      .eq("id", resolvedCourseId)
       .maybeSingle();
 
     if (courseError || !course) {
       return jsonResponse(404, { error: "Course not found." });
     }
 
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return jsonResponse(400, { error: "Invalid payment amount." });
+    }
+
     const { data: activePurchase, error: activeError } = await supabase
       .from("purchased_courses")
       .select("course_id,plan_id,expires_at")
       .eq("user_id", user.id)
-      .eq("course_id", courseId)
+      .eq("course_id", resolvedCourseId)
       .maybeSingle();
 
     if (activeError) {
@@ -91,17 +131,35 @@ serve(async (req) => {
       }
     }
 
+    if (resolvedChapterId) {
+      const { data: existingChapter, error: chapterPurchaseError } = await supabase
+        .from("purchased_chapters")
+        .select("chapter_id")
+        .eq("user_id", user.id)
+        .eq("chapter_id", resolvedChapterId)
+        .maybeSingle();
+
+      if (chapterPurchaseError) {
+        return jsonResponse(500, { error: chapterPurchaseError.message });
+      }
+
+      if (existingChapter) {
+        return jsonResponse(409, { error: "Chapter already unlocked." });
+      }
+    }
+
     const orderId = crypto.randomUUID();
     const tranId = `HS-${orderId.replace(/-/g, "").slice(0, 20)}`;
 
     const { error: orderError } = await supabase.from("orders").insert({
       id: orderId,
       user_id: user.id,
-      course_id: courseId,
+      course_id: resolvedCourseId,
+      chapter_id: resolvedChapterId,
       amount,
       currency,
       status: "pending",
-      plan_id: planId,
+      plan_id: resolvedChapterId ? "chapter" : planId,
     });
 
     if (orderError) {
@@ -118,7 +176,7 @@ serve(async (req) => {
       fail_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-fail`,
       cancel_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-cancel`,
       ipn_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-ipn`,
-      product_name: course.title ?? "Course",
+      product_name: productName || course.title || "Course",
       product_category: "Education",
       product_profile: "general",
       cus_name: user.user_metadata?.full_name ?? user.email ?? "Student",
@@ -131,7 +189,7 @@ serve(async (req) => {
       num_of_item: "1",
       value_a: orderId,
       value_b: user.id,
-      value_c: courseId,
+      value_c: resolvedChapterId ?? resolvedCourseId,
       value_d: SITE_URL,
     });
 

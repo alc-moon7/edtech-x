@@ -42,7 +42,7 @@ serve(async (req) => {
 
     const { data: order } = await supabase
       .from("orders")
-      .select("id,user_id,course_id,amount,currency,status,plan_id")
+      .select("id,user_id,course_id,chapter_id,amount,currency,status,plan_id")
       .eq("id", resolvedOrderId)
       .maybeSingle();
 
@@ -78,18 +78,29 @@ serve(async (req) => {
       { onConflict: "tran_id" }
     );
 
-    const expiresAt = new Date(Date.now() + SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    if (order.chapter_id) {
+      await supabase.from("purchased_chapters").upsert(
+        {
+          user_id: order.user_id,
+          chapter_id: order.chapter_id,
+          purchased_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,chapter_id" }
+      );
+    } else {
+      const expiresAt = new Date(Date.now() + SUBSCRIPTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    await supabase.from("purchased_courses").upsert(
-      {
-        user_id: order.user_id,
-        course_id: order.course_id,
-        plan_id: order.plan_id ?? null,
-        purchased_at: new Date().toISOString(),
-        expires_at: expiresAt,
-      },
-      { onConflict: "user_id,course_id" }
-    );
+      await supabase.from("purchased_courses").upsert(
+        {
+          user_id: order.user_id,
+          course_id: order.course_id,
+          plan_id: order.plan_id ?? null,
+          purchased_at: new Date().toISOString(),
+          expires_at: expiresAt,
+        },
+        { onConflict: "user_id,course_id" }
+      );
+    }
 
     return redirect(`${SITE_URL}/payment/success?order=${order.id}`);
   } catch (error) {
