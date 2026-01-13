@@ -56,7 +56,7 @@ export function AiQuizCard({ context = "dashboard" }: AiQuizCardProps) {
             const { data } = await supabase
                 .from("classes")
                 .select("name,level")
-                .in("level", ["school", "college"])
+                .in("level", ["school", "ssc", "hsc"])
                 .order("name", { ascending: true });
             if (!isActive) return;
             const sorted = (data ?? []).sort((a, b) => {

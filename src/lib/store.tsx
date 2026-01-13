@@ -12,6 +12,7 @@ import {
   type LeaderboardRecord,
   type PerformanceBar,
   type ProgressMap,
+  type PurchasedChapterRecord,
   type PurchasedCourseRecord,
   type StudySessionRecord,
   type SubjectCard,
@@ -40,6 +41,7 @@ type StudentContextType = {
   calendarEvents: CalendarEventRecord[];
   studySessions: StudySessionRecord[];
   purchasedCourses: PurchasedCourseRecord[];
+  purchasedChapters: PurchasedChapterRecord[];
   refresh: () => Promise<void>;
   markLessonStarted: (courseId: string, lessonId?: string | null) => Promise<void>;
   markLessonComplete: (courseId: string, lessonId: string) => Promise<void>;
@@ -94,7 +96,7 @@ function isLessonUnlocked(course: CourseData | undefined, lessonId?: string | nu
   if (!course || !lessonId) return false;
   if (course.isFree || course.isPurchased) return true;
   const { chapter } = findLessonById(course, lessonId);
-  return chapter?.isFree ?? false;
+  return Boolean(chapter?.isFree || chapter?.isPurchased);
 }
 
 function getFirstLessonId(course: CourseData | undefined) {
@@ -149,6 +151,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEventRecord[]>([]);
   const [studySessions, setStudySessions] = useState<StudySessionRecord[]>([]);
   const [purchasedCourses, setPurchasedCourses] = useState<PurchasedCourseRecord[]>([]);
+  const [purchasedChapters, setPurchasedChapters] = useState<PurchasedChapterRecord[]>([]);
 
   const resetState = () => {
     setCourses([]);
@@ -162,6 +165,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
     setCalendarEvents([]);
     setStudySessions([]);
     setPurchasedCourses([]);
+    setPurchasedChapters([]);
   };
 
   const refresh = async () => {
@@ -210,6 +214,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       setCalendarEvents(data.calendarEvents);
       setStudySessions(data.studySessions);
       setPurchasedCourses(data.purchasedCourses);
+      setPurchasedChapters(data.purchasedChapters);
       setLeaderboard(buildLeaderboardEntries(data.leaderboard, user.id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
@@ -301,8 +306,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       {
         user_id: user.id,
         lesson_id: resolvedLessonId,
+        chapter_id: findLessonById(course, resolvedLessonId).chapter?.id ?? null,
         status: "started",
         progress: 1,
+        completed: false,
       },
       { onConflict: "user_id,lesson_id", ignoreDuplicates: true }
     );
@@ -358,8 +365,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       {
         user_id: user.id,
         lesson_id: lessonId,
+        chapter_id: findLessonById(course, lessonId).chapter?.id ?? course?.chapters?.[0]?.id ?? null,
         status: "completed",
         progress: 100,
+        completed: true,
       },
       { onConflict: "user_id,lesson_id" }
     );
@@ -453,8 +462,10 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         {
           user_id: user.id,
           lesson_id: resolvedLessonId,
+          chapter_id: findLessonById(course, resolvedLessonId).chapter?.id ?? course?.chapters?.[0]?.id ?? null,
           status: "completed",
           progress: 100,
+          completed: true,
         },
         { onConflict: "user_id,lesson_id" }
       );
@@ -522,6 +533,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         calendarEvents,
         studySessions,
         purchasedCourses,
+        purchasedChapters,
         refresh,
         markLessonStarted,
         markLessonComplete,

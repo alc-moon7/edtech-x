@@ -5,8 +5,8 @@ values
   ('Class 6', 'school'),
   ('Class 7', 'school'),
   ('Class 8', 'school'),
-  ('Class 9-10', 'school'),
-  ('Class 11-12', 'college'),
+  ('Class 9-10', 'ssc'),
+  ('Class 11-12', 'hsc'),
   ('Admission', 'admission')
 
 on conflict (name) do update set level = excluded.level;
@@ -1532,4 +1532,19 @@ values
   ('varsity', 'Package 2', 5, 250.00, '{"total_marks": 100, "time": "1 Hour", "question_type": "MCQs", "negative_marking": "0.25", "distribution": {"Bangla": 15, "English": 15, "Physics": 20, "Chemistry": 20, "Mathematics_or_Biology": 20, "General Knowledge": 10}}'::jsonb),
   ('varsity', 'Package 3', 10, 450.00, '{"total_marks": 100, "time": "1 Hour", "question_type": "MCQs", "negative_marking": "0.25", "distribution": {"Bangla": 15, "English": 15, "Physics": 20, "Chemistry": 20, "Mathematics_or_Biology": 20, "General Knowledge": 10}}'::jsonb)
 on conflict (type, name) do update set number_of_sets = excluded.number_of_sets, price = excluded.price, details = excluded.details;
+
+update public.subjects
+set first_chapter_free = free_first_chapter
+where first_chapter_free is distinct from free_first_chapter;
+
+update public.chapters
+set name = coalesce(name, title)
+where name is null;
+
+update public.chapters ch
+set subject_id = s.id
+from public.courses c
+join public.subjects s on s.id = c.subject_id
+where ch.course_id = c.id
+  and ch.subject_id is null;
 

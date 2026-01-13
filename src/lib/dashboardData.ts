@@ -11,6 +11,7 @@ export type SubjectRecord = {
   class_level: string;
   price_full: number | null;
   free_first_chapter: boolean | null;
+  first_chapter_free: boolean | null;
 };
 
 export type CourseRecord = {
@@ -25,6 +26,7 @@ export type CourseRecord = {
     name: string;
     price_full: number | null;
     free_first_chapter: boolean | null;
+    first_chapter_free: boolean | null;
   } | null;
 };
 
@@ -93,6 +95,11 @@ export type PurchasedCourseRecord = {
   expires_at?: string | null;
 };
 
+export type PurchasedChapterRecord = {
+  chapter_id: string;
+  purchased_at: string;
+};
+
 export type LessonProgressRecord = {
   lesson_id: string;
   course_id: string;
@@ -135,6 +142,7 @@ export type CourseChapter = {
   title: string;
   order?: number;
   isFree?: boolean;
+  isPurchased?: boolean;
   durationMinutes?: number;
   price?: number | null;
   lessons: CourseLesson[];
@@ -216,6 +224,7 @@ export type DashboardData = {
   enrollments: EnrollmentRecord[];
   quizAttempts: QuizAttemptRecord[];
   purchasedCourses: PurchasedCourseRecord[];
+  purchasedChapters: PurchasedChapterRecord[];
 };
 
 const SUBJECT_STYLES: Record<
@@ -521,7 +530,8 @@ function buildCourses(
   chapters: ChapterRecord[],
   lessons: LessonRecord[],
   enrollments: EnrollmentRecord[],
-  purchasedCourses: PurchasedCourseRecord[]
+  purchasedCourses: PurchasedCourseRecord[],
+  purchasedChapters: PurchasedChapterRecord[]
 ) {
   const lessonsByChapter = lessons.reduce<Record<string, LessonRecord[]>>((acc, lesson) => {
     if (!lesson.chapter_id) return acc;
@@ -543,12 +553,14 @@ function buildCourses(
   const purchasedSet = new Set(
     purchasedCourses.filter((purchase) => isPurchaseActive(purchase)).map((item) => item.course_id)
   );
+  const purchasedChapterSet = new Set(purchasedChapters.map((item) => item.chapter_id));
 
   return courses.map((course) => {
     const subjectName = course.subject?.name ?? "";
     const style = getSubjectStyle(subjectName || course.title);
     const priceFull = course.subject?.price_full ?? null;
-    const freeFirstChapter = course.subject?.free_first_chapter ?? false;
+    const freeFirstChapter =
+      course.subject?.first_chapter_free ?? course.subject?.free_first_chapter ?? false;
     const courseChapters = (chaptersByCourse[course.id] ?? []).sort((a, b) => a.order_no - b.order_no);
     const courseLessons = lessonsByCourse[course.id] ?? [];
     const chapterIds = new Set(courseChapters.map((chapter) => chapter.id));
@@ -584,6 +596,7 @@ function buildCourses(
         title: chapter.title,
         order: chapter.order_no,
         isFree: chapter.is_free ?? false,
+        isPurchased: purchasedChapterSet.has(chapter.id),
         durationMinutes: chapter.duration_minutes ?? undefined,
         price: chapter.price ?? null,
         lessons: resolvedLessons.map((lesson) => ({
@@ -762,12 +775,13 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
       enrollments: [],
       quizAttempts: [],
       purchasedCourses: [],
+      purchasedChapters: [],
     };
   }
 
   const { data: subjects, error: subjectsError } = await supabase
     .from("subjects")
-    .select("id,name,class_level,price_full,free_first_chapter")
+    .select("id,name,class_level,price_full,free_first_chapter,first_chapter_free")
     .eq("class_level", resolvedClassLevel);
   if (subjectsError) {
     throw new Error(subjectsError.message);
@@ -775,7 +789,7 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
 
   const { data: courses, error: coursesError } = await supabase
     .from("courses")
-    .select("id,title,class_level,description,is_free,subject_id,subject:subjects(id,name,price_full,free_first_chapter)")
+    .select("id,title,class_level,description,is_free,subject_id,subject:subjects(id,name,price_full,free_first_chapter,first_chapter_free)")
     .eq("class_level", resolvedClassLevel);
   if (coursesError) {
     throw new Error(coursesError.message);
@@ -811,6 +825,14 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     .eq("user_id", userId);
   if (purchaseError) {
     throw new Error(purchaseError.message);
+  }
+
+  const { data: purchasedChapters, error: purchasedChapterError } = await supabase
+    .from("purchased_chapters")
+    .select("chapter_id,purchased_at")
+    .eq("user_id", userId);
+  if (purchasedChapterError) {
+    throw new Error(purchasedChapterError.message);
   }
 
   const { data: studentCourses, error: studentCoursesError } = await supabase
@@ -926,7 +948,8 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     chapters ?? [],
     lessons ?? [],
     enrollments,
-    purchasedCourses ?? []
+    purchasedCourses ?? [],
+    purchasedChapters ?? []
   );
   const subjectCards = buildSubjectCards(subjects ?? [], courses ?? [], lessons ?? [], lessonProgress);
   const performanceBars = buildPerformanceBars(subjects ?? [], quizAttempts);
@@ -966,5 +989,6 @@ export async function fetchDashboardData(userId: string, classLevel?: string | n
     enrollments,
     quizAttempts,
     purchasedCourses: purchasedCourses ?? [],
+    purchasedChapters: purchasedChapters ?? [],
   };
 }

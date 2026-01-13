@@ -488,8 +488,9 @@ export default function CourseDetailPage() {
   const chapters = course.chapters ?? [];
   const selectedChapter = chapters.find((chapter) => chapter.id === selectedChapterId) ?? chapters[0];
   const hasCourseAccess = course.isPurchased === true || course.isFree === true;
-  const hasLockedChapters = chapters.some((chapter) => !chapter.isFree);
-  const isChapterLocked = !hasCourseAccess && !(selectedChapter?.isFree ?? false);
+  const hasLockedChapters = chapters.some((chapter) => !chapter.isFree && !chapter.isPurchased);
+  const isChapterLocked =
+    !hasCourseAccess && !(selectedChapter?.isFree || selectedChapter?.isPurchased);
   const chapterLabel = selectedChapter?.order ? `Chapter ${selectedChapter.order}` : "Chapter";
   const chapterTitle = selectedChapter ? `${chapterLabel}: ${selectedChapter.title}` : "Chapter";
   const chapterDuration = selectedChapter
@@ -555,7 +556,7 @@ export default function CourseDetailPage() {
           <div className="mt-3 space-y-3">
             {chapters.map((chapter) => {
               const isActive = chapter.id === selectedChapter?.id;
-              const isLocked = !hasCourseAccess && !chapter.isFree;
+              const isLocked = !hasCourseAccess && !chapter.isFree && !chapter.isPurchased;
               const completedCount = chapter.lessons.filter((lesson) =>
                 userProgress.completedLessons.includes(lesson.id)
               ).length;

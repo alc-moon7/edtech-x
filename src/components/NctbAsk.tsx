@@ -38,7 +38,7 @@ export function NctbAsk() {
       const { data: classesData } = await supabase
         .from("classes")
         .select("name,level")
-        .in("level", ["school", "college"])
+        .in("level", ["school", "ssc", "hsc"])
         .order("name", { ascending: true });
 
       const { data: subjectsData } = await supabase
