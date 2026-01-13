@@ -591,14 +591,16 @@ function buildCourses(
           ? looseLessons
           : [];
       const resolvedLessons = chapterLessons.length ? chapterLessons : fallbackLessons;
+      const isFirstChapter = chapter.order_no === 1;
+      const chapterIsFree = Boolean(chapter.is_free) || isFirstChapter || freeFirstChapter;
       return {
         id: chapter.id,
         title: chapter.title,
         order: chapter.order_no,
-        isFree: chapter.is_free ?? false,
+        isFree: chapterIsFree,
         isPurchased: purchasedChapterSet.has(chapter.id),
         durationMinutes: chapter.duration_minutes ?? undefined,
-        price: chapter.price ?? null,
+        price: chapterIsFree ? 0 : chapter.price ?? null,
         lessons: resolvedLessons.map((lesson) => ({
           id: lesson.id,
           title: lesson.title,

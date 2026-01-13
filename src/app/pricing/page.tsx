@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, HelpCircle, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -102,6 +102,7 @@ export default function PricingPage() {
   const t = useTranslate();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("");
   const [selectedClassLevel, setSelectedClassLevel] = useState("");
   const [isUpdatingClass, setIsUpdatingClass] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
@@ -123,6 +124,21 @@ export default function PricingPage() {
     ? courses.find((course) => course.id === selectedCourseId)
     : null;
   const selectedCoursePrice = selectedCourse?.priceFull ?? null;
+  const selectedCourseChapters = selectedCourse?.chapters ?? [];
+  const selectedChapter =
+    selectedCourseChapters.find((chapter) => chapter.id === selectedChapterId) ??
+    selectedCourseChapters[0] ??
+    null;
+
+  useEffect(() => {
+    if (!selectedCourse) {
+      setSelectedChapterId("");
+      return;
+    }
+    if (!selectedChapterId || !selectedCourseChapters.some((chapter) => chapter.id === selectedChapterId)) {
+      setSelectedChapterId(selectedCourseChapters[0]?.id ?? "");
+    }
+  }, [selectedCourseId, selectedCourse, selectedCourseChapters, selectedChapterId]);
 
   const openCheckout = (planId: string) => {
     if (!user) {
@@ -133,6 +149,8 @@ export default function PricingPage() {
     setPaymentError(null);
     const firstCourseId = paidCourses[0]?.id ?? "";
     setSelectedCourseId(firstCourseId);
+    const initialCourse = courses.find((course) => course.id === firstCourseId);
+    setSelectedChapterId(initialCourse?.chapters?.[0]?.id ?? "");
     if (!firstCourseId) {
       setSelectedClassLevel(user?.user_metadata?.class ?? "");
     }
@@ -142,6 +160,7 @@ export default function PricingPage() {
     if (isPaying) return;
     setSelectedPlanId(null);
     setPaymentError(null);
+    setSelectedChapterId("");
   };
 
   const handleClassUpdate = async () => {
@@ -400,6 +419,28 @@ export default function PricingPage() {
                       </option>
                     ))}
                   </select>
+                  {selectedCourseChapters.length > 0 && (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+                      <div className="flex items-center justify-between text-xs font-semibold uppercase text-slate-500">
+                        <span>{t({ en: "Chapter pricing", bn: "Chapter pricing" })}</span>
+                        <span>{selectedCourseChapters.length} chapters</span>
+                      </div>
+                      <div className="mt-3 max-h-36 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+                        {selectedCourseChapters.map((chapter) => (
+                          <div key={chapter.id} className="flex items-center justify-between gap-4">
+                            <span className="text-slate-700">
+                              {t({ en: "Chapter", bn: "Chapter" })} {chapter.order ?? 1}: {chapter.title}
+                            </span>
+                            <span className={chapter.isFree ? "font-semibold text-emerald-600" : ""}>
+                              {chapter.isFree
+                                ? t({ en: "Free", bn: "Free" })
+                                : `BDT ${chapter.price ?? 0}`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -414,11 +455,23 @@ export default function PricingPage() {
             {paymentError && <p className="mt-3 text-sm text-red-500">{paymentError}</p>}
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-slate-500">
-                {t({ en: "Plan price", bn: "প্ল্যান মূল্য" })}:{" "}
-                <span className="font-semibold text-slate-800">
-                  BDT {selectedCoursePrice ?? selectedPlan.price}
-                </span>
+              <div className="space-y-1 text-sm text-slate-500">
+                <div>
+                  {t({ en: "Subject price", bn: "Subject price" })}:{" "}
+                  <span className="font-semibold text-slate-800">
+                    BDT {selectedCoursePrice ?? selectedPlan.price}
+                  </span>
+                </div>
+                {selectedChapter && (
+                  <div>
+                    {t({ en: "Chapter price", bn: "Chapter price" })}:{" "}
+                    <span className="font-semibold text-slate-800">
+                      {selectedChapter.isFree
+                        ? t({ en: "Free", bn: "Free" })
+                        : `BDT ${selectedChapter.price ?? 0}`}
+                    </span>
+                  </div>
+                )}
               </div>
               <Button
                 onClick={handleCheckout}

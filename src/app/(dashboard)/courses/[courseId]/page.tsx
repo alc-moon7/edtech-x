@@ -593,7 +593,9 @@ export default function CourseDetailPage() {
       <div className="flex-1 space-y-6">
         <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-blue-600 to-sky-300 px-6 py-6 text-white shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wide text-white/70">
-            {course.title} &nbsp; &gt; &nbsp; {course.class} &nbsp; &gt; &nbsp; {selectedChapter?.order ?? 1}
+            {t({ en: "Class", bn: "Class" })}: {course.class} &nbsp; &gt; &nbsp;
+            {t({ en: "Subject", bn: "Subject" })}: {course.title} &nbsp; &gt; &nbsp;
+            {t({ en: "Chapter", bn: "Chapter" })}: {selectedChapter?.order ?? 1}
           </div>
           <div className="mt-3 text-2xl font-semibold sm:text-3xl">{chapterTitle}</div>
           <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-white/80">

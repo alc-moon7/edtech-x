@@ -1548,3 +1548,12 @@ join public.subjects s on s.id = c.subject_id
 where ch.course_id = c.id
   and ch.subject_id is null;
 
+update public.subjects
+set free_first_chapter = true,
+    first_chapter_free = true;
+
+update public.chapters
+set is_free = true,
+    price = 0
+where order_no = 1;
+
