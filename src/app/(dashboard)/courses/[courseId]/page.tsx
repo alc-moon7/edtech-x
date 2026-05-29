@@ -16,12 +16,14 @@ import {
   PenLine,
   Send,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { QuizComponent, type QuizQuestion } from "@/components/learning/QuizComponent";
+import ReactMarkdown from "react-markdown";
 import { invokeEdgeFunction, supabase } from "@/lib/supabaseClient";
 import { startChapterCheckout, startCourseCheckout } from "@/lib/payments";
 import type { CourseChapter } from "@/lib/dashboardData";
@@ -245,7 +247,13 @@ function BrainBitePanel({
       </div>
 
       <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-center text-sm text-slate-700">
-        {latest ?? t({ en: "Let's start!", bn: "Let's start!" })}
+        {latest ? (
+          <div className="prose prose-sm prose-slate mx-auto max-w-none text-left [&>p]:mb-3 [&>p:last-child]:mb-0 [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:mb-3 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:text-sm [&>h3]:font-bold [&>h3]:mb-1 [&>strong]:font-semibold text-slate-700">
+            <ReactMarkdown>{latest}</ReactMarkdown>
+          </div>
+        ) : (
+          t({ en: "Let's start!", bn: "Let's start!" })
+        )}
       </div>
 
       {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
@@ -424,13 +432,25 @@ function LessonGeneratorPanel({
           <div
             key={`${item.role}-${index}`}
             className={cn(
-              "rounded-2xl px-4 py-3",
-              item.role === "assistant" ? "bg-slate-100 text-slate-700" : "ml-auto bg-blue-600 text-white"
+              "rounded-2xl px-4 py-3 w-fit max-w-[85%]",
+              item.role === "assistant" ? "bg-slate-100 text-slate-800 shadow-sm" : "ml-auto bg-blue-600 text-white shadow-sm"
             )}
           >
-            {item.content}
+            {item.role === "assistant" ? (
+              <div className="prose prose-sm prose-slate max-w-none [&>p]:mb-3 [&>p:last-child]:mb-0 [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:mb-3 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:text-sm [&>h3]:font-bold [&>h3]:mb-1 [&>strong]:font-semibold [&>code]:bg-slate-200 [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-xs [&>pre]:bg-slate-800 [&>pre]:text-slate-50 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:mb-3 [&>pre_code]:bg-transparent [&>pre_code]:text-inherit [&>pre_code]:p-0">
+                <ReactMarkdown>{item.content}</ReactMarkdown>
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap">{item.content}</div>
+            )}
           </div>
         ))}
+        {loading && (
+          <div className="rounded-2xl px-4 py-3 w-fit max-w-[85%] bg-slate-100 text-slate-700 flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+            <span className="text-xs text-slate-500">{t({ en: "Thinking...", bn: "ভাবছে..." })}</span>
+          </div>
+        )}
       </div>
 
       {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
@@ -439,17 +459,23 @@ function LessonGeneratorPanel({
         <input
           value={input}
           onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              void handleSend();
+            }
+          }}
+          disabled={loading || disabled}
           placeholder={t({ en: "Ask your question...", bn: "Ask your question..." })}
-          className="h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
         />
         <button
           type="button"
           onClick={handleSend}
           disabled={loading || disabled}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60"
           aria-label={t({ en: "Send", bn: "Send" })}
         >
-          <Send className="h-5 w-5" />
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
         </button>
       </div>
     </div>

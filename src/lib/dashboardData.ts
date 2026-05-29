@@ -158,6 +158,7 @@ export type CourseData = {
   image: string;
   color: string;
   cover: string;
+  coverImage?: string;
   priceFull?: number | null;
   freeFirstChapter?: boolean;
   status?: "ongoing" | "completed";
@@ -180,6 +181,7 @@ export type SubjectCard = {
   lessons: string;
   progress: number;
   accent: string;
+  coverImage?: string;
 };
 
 export type PerformanceBar = {
@@ -234,6 +236,7 @@ const SUBJECT_STYLES: Record<
     cover: string;
     color: string;
     image: string;
+    coverImage?: string;
   }
 > = {
   mathematics: {
@@ -241,66 +244,77 @@ const SUBJECT_STYLES: Record<
     cover: "from-indigo-600 via-blue-500 to-indigo-700",
     color: "primary",
     image: "bg-blue-100",
+    coverImage: "/assets/book-covers/Rectangle 64.png"
   },
   science: {
     accent: "bg-emerald-500",
     cover: "from-emerald-600 via-emerald-500 to-emerald-700",
     color: "secondary",
     image: "bg-emerald-100",
+    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   english: {
     accent: "bg-fuchsia-500",
     cover: "from-fuchsia-600 via-purple-500 to-indigo-600",
     color: "secondary",
     image: "bg-fuchsia-100",
+    coverImage: "/assets/book-covers/Rectangle 62.png"
   },
   "social studies": {
     accent: "bg-orange-500",
     cover: "from-orange-600 via-amber-500 to-orange-700",
     color: "secondary",
     image: "bg-orange-100",
+    coverImage: "/assets/book-covers/Rectangle 66.png"
   },
   ict: {
     accent: "bg-slate-500",
     cover: "from-slate-600 via-slate-500 to-slate-700",
     color: "secondary",
     image: "bg-slate-100",
+    coverImage: "/assets/book-covers/Rectangle 65.png"
   },
   bangla: {
     accent: "bg-emerald-500",
     cover: "from-emerald-600 via-teal-500 to-emerald-700",
     color: "secondary",
     image: "bg-emerald-100",
+    coverImage: "/assets/book-covers/Rectangle 59.png"
   },
   physics: {
     accent: "bg-sky-500",
     cover: "from-sky-600 via-blue-500 to-sky-700",
     color: "secondary",
     image: "bg-sky-100",
+    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   chemistry: {
     accent: "bg-amber-500",
     cover: "from-amber-600 via-orange-500 to-amber-700",
     color: "secondary",
     image: "bg-amber-100",
+    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   biology: {
     accent: "bg-lime-500",
     cover: "from-lime-600 via-emerald-500 to-lime-700",
     color: "secondary",
     image: "bg-lime-100",
+    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   "higher math": {
     accent: "bg-indigo-500",
     cover: "from-indigo-600 via-blue-500 to-indigo-700",
     color: "secondary",
     image: "bg-indigo-100",
+    coverImage: "/assets/book-covers/Rectangle 64.png"
   },
   "bangladesh and global studies": {
     accent: "bg-orange-500",
     cover: "from-orange-600 via-amber-500 to-orange-700",
     color: "secondary",
     image: "bg-orange-100",
+    coverImage: "/assets/book-covers/Rectangle 66.png"
   },
 };
 
@@ -309,6 +323,7 @@ const DEFAULT_STYLE = {
   cover: "from-blue-600 via-blue-500 to-blue-700",
   color: "primary",
   image: "bg-blue-100",
+  coverImage: "/assets/book-covers/Rectangle 70.png"
 };
 
 export function getSubjectStyle(name?: string | null) {
@@ -608,6 +623,7 @@ function buildCourses(
       image: style.image,
       color: style.color,
       cover: style.cover,
+      coverImage: style.coverImage,
       priceFull,
       freeFirstChapter,
       status: enrollmentMap.get(course.id),
@@ -655,6 +671,7 @@ function buildSubjectCards(
       lessons: `${completed}/${total || 0}`,
       progress: clampedProgress,
       accent: style.accent,
+      coverImage: style.coverImage,
     } satisfies SubjectCard;
   });
 }

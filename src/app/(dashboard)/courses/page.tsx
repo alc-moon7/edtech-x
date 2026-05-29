@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useStudent } from "@/lib/store";
 import { useTranslate } from "@/lib/i18n";
@@ -32,6 +32,7 @@ export default function CoursesPage() {
       title: { en: course.title, bn: course.title },
       status: course.status ?? "ongoing",
       cover: course.cover,
+      coverImage: course.coverImage,
       courseId: course.id,
       classLabel: course.class,
       isPurchased: course.isPurchased === true,
@@ -107,15 +108,15 @@ export default function CoursesPage() {
             {visibleCards.map((card) => (
               <div
                 key={card.key}
-                className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-sm"
+                className={cn(
+                  "relative w-full overflow-hidden rounded-xl text-white shadow-sm aspect-[196/268] group transition-transform hover:-translate-y-1 hover:shadow-md",
+                  !card.coverImage && "bg-gradient-to-b",
+                  !card.coverImage && card.cover
+                )}
+                style={card.coverImage ? { backgroundImage: `url('${card.coverImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               >
-                <div
-                  className={cn(
-                    "relative w-full overflow-hidden rounded-xl bg-gradient-to-b text-white",
-                    card.cover
-                  )}
-                >
-                  <div className="absolute left-3 top-3 flex flex-col gap-1">
+                {!card.coverImage && (
+                  <div className="absolute left-3 top-3 flex flex-col gap-1 z-10">
                     <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
                       {t({ en: card.classLabel ?? "Class", bn: card.classLabel ?? "Class" })}
                     </span>
@@ -130,28 +131,32 @@ export default function CoursesPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex min-h-[160px] flex-col items-center justify-center px-3 text-center">
-                    <div className="text-sm font-semibold">{t(card.title)}</div>
+                )}
+                
+                {!card.coverImage && (
+                  <div className="flex h-full flex-col items-center justify-center px-3 text-center relative z-10">
+                    <div className="text-sm font-semibold text-white drop-shadow-md">{t(card.title)}</div>
                   </div>
-                  <div className="absolute bottom-3 left-3 right-3">
-                    {card.courseId ? (
-                      <Link
-                        to={`/courses/${card.courseId}`}
-                        className="block w-full rounded-full bg-white/90 py-1.5 text-center text-[11px] font-semibold text-slate-700 shadow-sm"
-                      >
-                        {card.isPurchased
-                          ? t({ en: "Continue Subject", bn: "Continue Subject" })
-                          : t({ en: "Buy Subject", bn: "Buy Subject" })}
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        className="w-full rounded-full bg-white/90 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm"
-                      >
-                        {t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })}
-                      </button>
-                    )}
-                  </div>
+                )}
+
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[85%] z-10">
+                  {card.courseId ? (
+                    <Link
+                      to={`/courses/${card.courseId}`}
+                      className="flex items-center justify-between w-full rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-4 py-2 text-center text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-white/30"
+                    >
+                      <span>{t({ en: "Continue Class", bn: "Continue Class" })}</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex items-center justify-between w-full rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-4 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-white/30"
+                    >
+                      <span>{t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })}</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

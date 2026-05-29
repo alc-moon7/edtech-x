@@ -21,8 +21,8 @@ type ChunkRow = {
   similarity: number;
 };
 
-const EMBEDDING_MODEL = "text-embedding-3-large";
-const CHAT_MODEL = Deno.env.get("OPENAI_MODEL") ?? "gpt-4o-mini";
+const EMBEDDING_MODEL = "openai/text-embedding-3-large";
+const CHAT_MODEL = Deno.env.get("OPENAI_MODEL") ?? "openai/gpt-4o-mini";
 const DAILY_LIMIT = 3;
 const USAGE_TYPE = "home_qa";
 
@@ -257,11 +257,13 @@ serve(async (req) => {
       }
     }
 
-    const embeddingRes = await fetch("https://api.openai.com/v1/embeddings", {
+    const embeddingRes = await fetch("https://openrouter.ai/api/v1/embeddings", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${openAiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://homeschool.app",
+        "X-Title": "HomeSchool",
       },
       body: JSON.stringify({
         model: EMBEDDING_MODEL,
@@ -343,11 +345,13 @@ serve(async (req) => {
       "Answer:",
     ].join("\n\n");
 
-    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+    const completion = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${openAiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://homeschool.app",
+        "X-Title": "HomeSchool",
       },
       body: JSON.stringify({
         model: CHAT_MODEL,

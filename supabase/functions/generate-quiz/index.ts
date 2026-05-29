@@ -438,11 +438,13 @@ serve(async (req) => {
 
     const messages = buildOpenAiMessages(payload, language, count, difficulty);
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://homeschool.app",
+        "X-Title": "HomeSchool",
       },
       body: JSON.stringify({
         model,

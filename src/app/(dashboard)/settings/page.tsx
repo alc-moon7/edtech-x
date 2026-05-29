@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -121,7 +121,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
         <div
-          className="flex items-center justify-between border-b border-slate-200 pb-2 text-sm font-medium text-slate-500"
+          className="flex items-center gap-8 border-b border-slate-200 pb-2 text-sm font-medium text-slate-500"
           role="tablist"
           aria-label="Settings tabs"
         >

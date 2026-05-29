@@ -205,14 +205,16 @@ serve(async (req) => {
       { role: "user", content: message },
     ];
 
-    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+    const completion = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${openAiKey}`,
+        "HTTP-Referer": "https://homeschool.app",
+        "X-Title": "HomeSchool",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: Deno.env.get("OPENAI_MODEL") ?? "openai/gpt-4o-mini",
         messages,
         max_tokens: 250,
         temperature: 0.6,
