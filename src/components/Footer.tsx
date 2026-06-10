@@ -22,8 +22,8 @@ export function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-[#1c75d8]" aria-hidden="true" />
-                <a href="mailto:alc.moon@hotmail.com" className="hover:text-[#1c75d8]">
-                  alc.moon@hotmail.com
+                <a href="mailto:homeschool.edu.bd@gmail.com" className="hover:text-[#1c75d8]">
+                  contact@homeschool.com
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -62,6 +62,9 @@ export function Footer() {
               </Link>
               <Link to="/pricing" className="hover:text-[#1c75d8]">
                 {t({ en: "Pricing", bn: "মূল্য" })}
+              </Link>
+              <Link to="/docs" className="hover:text-[#1c75d8]">
+                {t({ en: "Pitch Deck & Docs", bn: "পিচ ডেক ও ডক্স" })}
               </Link>
               <Link to="/contact" className="hover:text-[#1c75d8]">
                 {t({ en: "Contact", bn: "যোগাযোগ" })}

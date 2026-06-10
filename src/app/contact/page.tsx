@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -173,8 +173,8 @@ export default function ContactPage() {
               <div className="mt-6 space-y-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-primary" />
-                  <a href="mailto:alc.moon@hotmail.com" className="hover:text-primary">
-                    alc.moon@hotmail.com
+                  <a href="mailto:homeschool.edu.bd@gmail.com" className="hover:text-primary">
+                    contact@homeschool.com
                   </a>
                 </div>
                 <div className="flex items-center gap-3">

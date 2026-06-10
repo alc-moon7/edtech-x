@@ -125,7 +125,8 @@ function BrainBitePanel({
   const t = useTranslate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [entries, setEntries] = useState<string[]>([]);
+  const [entries, setEntries] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [userInput, setUserInput] = useState("");
   const [resolvedLessonId, setResolvedLessonId] = useState<string | null>(lessonId ?? null);
 
   useEffect(() => {
@@ -174,28 +175,67 @@ function BrainBitePanel({
       .limit(1);
     const meta = (data?.[0]?.meta ?? {}) as Record<string, unknown>;
     const content = typeof meta.content === "string" ? meta.content : null;
-    return content;
+    return content ? { role: "assistant" as const, content } : null;
   };
 
   const handleGenerate = async () => {
     if (disabled || loading) return;
     setLoading(true);
     setError(null);
-    const prompt = [
-      `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
-      "Create a fun, simple, and short recap for a kid.",
-      "Start with a bold title like '**How Plants Cook Food**'.",
-      "Then 2-3 short lines with emojis, explaining it simply.",
-      "Do not include a check question."
-    ].join(" ");
+    let prompt = "";
+    let systemInstruction = "";
+
+    const isEnglishSubject = subject.toLowerCase().includes("english");
+    const aiLang = isEnglishSubject ? "en" : language;
+
+    const langInstruction = aiLang === "bn" ? "RESPOND STRICTLY IN BENGALI (বাংলা) ONLY. Translate all your explanations to Bengali." : "RESPOND IN ENGLISH ONLY.";
+
+    if (entries.length === 0 && !userInput) {
+      prompt = [
+        `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+        aiLang === "bn" ? "একটি বাচ্চার জন্য এই অধ্যায়ের প্রথম মূল ধারণার একটি মজার, সহজ এবং ছোট সারসংক্ষেপ তৈরি করুন।" : "Create a fun, simple, and short recap for a kid of the first main concept.",
+        aiLang === "bn" ? "বিষয়বস্তুর সাথে প্রাসঙ্গিক একটি আকর্ষণীয় এবং গাঢ় শিরোনাম দিয়ে শুরু করুন।" : "Start with a catchy, bold title relevant to the topic.",
+        aiLang === "bn" ? "তারপর ২-৩ লাইনে ইমোজি দিয়ে সহজে ব্যাখ্যা করুন।" : "Then 2-3 short lines with emojis, explaining it simply.",
+        aiLang === "bn" ? "তাদের বোঝাপড়া যাচাই করতে একটি মজার, সহজ প্রশ্ন দিয়ে শেষ করুন।" : "End with a fun, simple question to check their understanding.",
+        langInstruction
+      ].join(" ");
+    } else if (userInput) {
+      prompt = userInput;
+      systemInstruction = [
+        `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+        aiLang === "bn" ? "ব্যবহারকারী আপনার আগের প্রশ্নের উত্তর দিচ্ছেন বা একটি প্রশ্ন জিজ্ঞাসা করছেন।" : "The user is replying to your previous question or asking a question.",
+        aiLang === "bn" ? "একটি বাচ্চার জন্য মজার, সহজ এবং ছোট উপায়ে উত্তর দিন। ইমোজি ব্যবহার করুন।" : "Respond in a fun, simple, short way for a kid. Use emojis.",
+        aiLang === "bn" ? "তাদের যুক্ত রাখতে আরেকটি সহজ প্রশ্ন দিয়ে শেষ করুন।" : "End with another simple question to keep them engaged.",
+        langInstruction
+      ].join(" ");
+    } else {
+      prompt = [
+        `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
+        aiLang === "bn" ? "একটি বাচ্চার জন্য এই অধ্যায়ের পরবর্তী মূল ধারণার একটি মজার, সহজ এবং ছোট সারসংক্ষেপ তৈরি করুন।" : "Create a fun, simple, and short recap for a kid of the NEXT main concept in this chapter.",
+        aiLang === "bn" ? "নিশ্চিত করুন যে এটি আগের বিষয়গুলোর চেয়ে ভিন্ন একটি বিষয়।" : "Make sure it is about a different topic than the previous ones.",
+        aiLang === "bn" ? "একটি গাঢ় শিরোনাম দিয়ে শুরু করুন।" : "Start with a bold title.",
+        aiLang === "bn" ? "তারপর ২-৩ লাইনে ইমোজি দিয়ে সহজে ব্যাখ্যা করুন।" : "Then 2-3 short lines with emojis, explaining it simply.",
+        aiLang === "bn" ? "তাদের বোঝাপড়া যাচাই করতে একটি মজার, সহজ প্রশ্ন দিয়ে শেষ করুন।" : "End with a fun, simple question to check their understanding.",
+        langInstruction
+      ].join(" ");
+    }
+
+    const history = [...entries];
+    if (userInput) {
+      history.push({ role: "user", content: userInput });
+      setEntries(history);
+      setUserInput("");
+    }
 
     const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
       message: prompt,
+      system: systemInstruction,
+      history,
       mode: "brainbite",
       subject,
       chapter,
       classLevel,
-      language,
+      language: aiLang,
       chapterId,
       subjectId,
       courseId,
@@ -205,15 +245,16 @@ function BrainBitePanel({
       const fallback = entries.length ? entries[entries.length - 1] : await loadFallbackEntry();
       if (fallback) {
         setEntries((prev) => (prev.length ? prev : [fallback]));
-        setError(t({ en: "Showing your last BrainBite instead.", bn: "Showing your last BrainBite instead." }));
+        setError(t({ en: "Showing your last BrainBite instead.", bn: "আপনার আগের ব্রেইনবাইট দেখানো হচ্ছে।" }));
       } else {
-        setError(t({ en: "BrainBite failed. Please try again.", bn: "BrainBite failed. Please try again." }));
+        setError(t({ en: "BrainBite failed. Please try again.", bn: "ব্রেইনবাইট ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।" }));
       }
       setLoading(false);
       return;
     }
 
-    setEntries((prev) => [...prev, data.reply as string]);
+    const newEntry = { role: "assistant" as const, content: data.reply as string };
+    setEntries((prev) => [...prev, newEntry]);
     if (resolvedLessonId) {
       void markLessonComplete(courseId, resolvedLessonId, data.reply as string, {
         chapterId,
@@ -234,34 +275,50 @@ function BrainBitePanel({
     setLoading(false);
   };
 
-  const latest = entries[entries.length - 1];
+  const latestAssistantEntry = [...entries].reverse().find(e => e.role === "assistant");
+  const latestText = latestAssistantEntry?.content;
 
   return (
     <div className="flex flex-col items-center rounded-[20px] bg-white p-8 min-h-[450px] shadow-sm border border-slate-100">
       <div className="flex-1 flex flex-col items-center w-full relative">
         <img src="/assets/brainbite_logo.png" alt="BrainBite" className="mb-6 h-[72px] w-[72px] object-contain" />
 
-        <div className="relative w-full max-w-2xl min-h-[160px] flex flex-col items-center justify-center rounded-[24px] border border-slate-500 bg-white p-8 md:px-12 md:py-10">
-          {latest ? (
-            <>
+        <div className="w-full max-w-2xl mt-4">
+          {latestText ? (
+            <div className="relative w-full flex flex-col items-center justify-center bg-white p-6 md:px-10 md:pt-4 md:pb-8 rounded-[24px]">
               <div className="absolute right-4 top-4 flex flex-col items-center">
                 <button
                   onClick={handleGenerate}
                   disabled={loading || disabled}
                   className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-[#89a2b8] text-white shadow-sm transition hover:bg-[#728ba1] disabled:opacity-50"
-                  title={t({ en: "Explain again", bn: "Explain again" })}
+                  title={t({ en: "Next concept", bn: "পরবর্তী ধারণা" })}
                 >
                   <RefreshCw className="h-5 w-5" />
                 </button>
-                <span className="mt-1.5 text-[10px] font-medium text-slate-700">{t({ en: "Explain again", bn: "Explain again" })}</span>
+                <span className="mt-1.5 text-[10px] font-medium text-slate-700">{t({ en: "Next concept", bn: "পরবর্তী ধারণা" })}</span>
               </div>
-              <div className="prose prose-lg mx-auto text-center font-medium leading-relaxed text-black [&>h1]:text-[22px] [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-[22px] [&>h2]:font-bold [&>h2]:mb-4 [&>h3]:text-[20px] [&>h3]:font-bold [&>h3]:mb-3 [&>p]:mb-4 [&>p]:leading-snug [&>ul]:text-left [&>ol]:text-left">
-                <ReactMarkdown>{latest}</ReactMarkdown>
+              <div className="prose prose-lg mx-auto text-center font-medium leading-relaxed text-black px-4 sm:px-16 [&>h1]:text-[22px] [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-[22px] [&>h2]:font-bold [&>h2]:mb-4 [&>h3]:text-[20px] [&>h3]:font-bold [&>h3]:mb-3 [&>p]:mb-4 [&>p:first-child]:mt-0 [&>p]:leading-snug [&>ul]:text-left [&>ol]:text-left">
+                <ReactMarkdown>{latestText}</ReactMarkdown>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="text-[24px] font-bold text-black text-center">
-              {t({ en: "Hi , I am Brainbite", bn: "Hi , I am Brainbite" })}
+            <div className="flex flex-col items-center justify-center min-h-[160px]">
+              <div className="text-[24px] font-bold text-black text-center mb-4">
+                {t({ en: "Hi, I am BrainBite", bn: "হ্যালো, আমি ব্রেইনবাইট" })}
+              </div>
+            </div>
+          )}
+
+          {entries.length > 0 && (
+            <div className="mt-6">
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder={t({ en: "Type your answer or question here...", bn: "এখানে আপনার উত্তর বা প্রশ্ন টাইপ করুন..." })}
+                className="w-full resize-none rounded-[16px] border border-slate-400 p-4 text-[15px] font-medium text-slate-700 outline-none transition focus:border-[#F2A430]"
+                rows={3}
+                disabled={loading || disabled}
+              />
             </div>
           )}
         </div>
@@ -275,7 +332,7 @@ function BrainBitePanel({
           disabled={loading || disabled}
           className="w-48 rounded-[12px] bg-[#F2A430] px-6 py-3.5 text-[15px] font-bold text-white shadow-sm transition hover:bg-[#e09329] disabled:opacity-50"
         >
-          {loading ? t({ en: "Thinking...", bn: "Thinking..." }) : t({ en: "Continue", bn: "Continue" })}
+          {loading ? t({ en: "Thinking...", bn: "ভাবছে..." }) : t({ en: "Continue", bn: "চালিয়ে যান" })}
         </button>
       </div>
     </div>
@@ -317,10 +374,15 @@ function LessonGeneratorPanel({
   const [resolvedLessonId, setResolvedLessonId] = useState<string | null>(lessonId ?? null);
 
   useEffect(() => {
+    const isEnglishSubject = subject.toLowerCase().includes("english");
+    const aiLang = isEnglishSubject ? "en" : language;
+
     setMessages([
       {
         role: "assistant",
-        content: `Hi! I'm your AI tutor for ${subject}. Ask me anything about ${chapter}.`,
+        content: aiLang === "bn" 
+          ? `হ্যালো! আমি আপনার ${subject} এর জন্য এআই টিউটর। ${chapter} সম্পর্কে আমাকে যেকোনো কিছু জিজ্ঞাসা করুন।`
+          : `Hi! I'm your AI tutor for ${subject}. Ask me anything about ${chapter}.`,
       },
     ]);
     setInput("");
@@ -380,11 +442,15 @@ function LessonGeneratorPanel({
     setMessages(nextHistory);
     setInput("");
 
+    const isEnglishSubject = subject.toLowerCase().includes("english");
+    const aiLang = isEnglishSubject ? "en" : language;
+
     const prompt = [
       `Class: ${classLevel}.`,
       `Subject: ${subject}.`,
       `Chapter: ${chapter}.`,
       `Question: ${trimmed}`,
+      aiLang === "bn" ? "RESPOND STRICTLY IN BENGALI (বাংলা) ONLY." : "RESPOND IN ENGLISH ONLY."
     ].join(" ");
 
     const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
@@ -394,7 +460,7 @@ function LessonGeneratorPanel({
       subject,
       chapter,
       classLevel,
-      language,
+      language: aiLang,
       chapterId,
       subjectId,
       courseId,
@@ -404,9 +470,9 @@ function LessonGeneratorPanel({
       const fallback = await loadFallbackMessage();
       if (fallback) {
         setMessages((prev) => [...prev, { role: "assistant", content: fallback }]);
-        setError(t({ en: "Showing your last saved answer.", bn: "Showing your last saved answer." }));
+        setError(t({ en: "Showing your last saved answer.", bn: "আপনার আগের সেভ করা উত্তর দেখানো হচ্ছে।" }));
       } else {
-        setError(t({ en: "AI reply failed. Please try again.", bn: "AI reply failed. Please try again." }));
+        setError(t({ en: "AI reply failed. Please try again.", bn: "এআই এর উত্তর ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।" }));
       }
       setLoading(false);
       return;
@@ -436,34 +502,54 @@ function LessonGeneratorPanel({
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="rounded-xl bg-gradient-to-r from-blue-600 to-sky-400 px-4 py-3 text-white">
-        <div className="text-sm font-semibold">{t({ en: "AI Tutor", bn: "AI Tutor" })}</div>
+        <div className="text-sm font-semibold">{t({ en: "AI Tutor", bn: "এআই টিউটর" })}</div>
         <div className="text-xs text-white/80">
-          {t({ en: `Ask about ${chapter}`, bn: `Ask about ${chapter}` })}
+          {t({ en: `Ask about ${chapter}`, bn: `${chapter} সম্পর্কে জিজ্ঞাসা করুন` })}
         </div>
       </div>
 
-      <div className="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1 text-sm text-slate-700">
+      <div className="mt-6 min-h-[400px] max-h-[600px] space-y-6 overflow-y-auto pr-2">
         {messages.map((item, index) => (
           <div
             key={`${item.role}-${index}`}
-            className={cn(
-              "rounded-2xl px-4 py-3 w-fit max-w-[85%]",
-              item.role === "assistant" ? "bg-slate-100 text-slate-800 shadow-sm" : "ml-auto bg-blue-600 text-white shadow-sm"
-            )}
+            className={cn("flex w-full gap-3 sm:gap-4", item.role === "user" ? "justify-end" : "justify-start")}
           >
-            {item.role === "assistant" ? (
-              <div className="prose prose-sm prose-slate max-w-none [&>p]:mb-3 [&>p:last-child]:mb-0 [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:mb-3 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:text-sm [&>h3]:font-bold [&>h3]:mb-1 [&>strong]:font-semibold [&>code]:bg-slate-200 [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-xs [&>pre]:bg-slate-800 [&>pre]:text-slate-50 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:mb-3 [&>pre_code]:bg-transparent [&>pre_code]:text-inherit [&>pre_code]:p-0">
-                <ReactMarkdown>{item.content}</ReactMarkdown>
+            {item.role === "assistant" && (
+              <div className="shrink-0 pt-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
+                  <Brain className="h-6 w-6 text-white" />
+                </div>
               </div>
-            ) : (
-              <div className="whitespace-pre-wrap">{item.content}</div>
             )}
+            <div
+              className={cn(
+                "rounded-[24px] px-6 py-5 w-fit max-w-[85%] shadow-sm",
+                item.role === "assistant" 
+                  ? "bg-slate-50 border-2 border-slate-100 text-slate-800" 
+                  : "bg-[#F2A430] text-white"
+              )}
+            >
+              {item.role === "assistant" ? (
+                <div className="prose prose-base sm:prose-lg prose-slate max-w-none [&>p]:mb-4 [&>p:last-child]:mb-0 [&>p]:leading-relaxed [&>ul]:mb-4 [&>ul]:list-none [&>ul>li]:relative [&>ul>li]:pl-6 [&>ul>li]:mb-2 [&>ul>li::before]:content-['⭐'] [&>ul>li::before]:absolute [&>ul>li::before]:left-0 [&>ul>li::before]:top-0.5 [&>ul>li::before]:text-[14px] [&>ol]:mb-4 [&>ol]:list-decimal [&>ol]:pl-6 [&>ol>li]:mb-2 [&>ol>li::marker]:font-bold [&>ol>li::marker]:text-[#F2A430] [&>h1]:text-[24px] [&>h1]:font-bold [&>h1]:mb-4 [&>h1]:text-blue-700 [&>h2]:text-[22px] [&>h2]:font-bold [&>h2]:mb-3 [&>h2]:text-indigo-600 [&>h3]:text-[20px] [&>h3]:font-bold [&>h3]:mb-2 [&>h3]:text-purple-600 [&>strong]:font-bold [&>strong]:text-slate-900">
+                  <ReactMarkdown>{item.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap text-[16px] font-medium leading-relaxed">{item.content}</div>
+              )}
+            </div>
           </div>
         ))}
         {loading && (
-          <div className="rounded-2xl px-4 py-3 w-fit max-w-[85%] bg-slate-100 text-slate-700 flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-            <span className="text-xs text-slate-500">{t({ en: "Thinking...", bn: "ভাবছে..." })}</span>
+          <div className="flex w-full gap-3 sm:gap-4 justify-start">
+            <div className="shrink-0 pt-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm opacity-70 animate-pulse">
+                <Brain className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <div className="rounded-[24px] px-6 py-4 w-fit max-w-[85%] bg-slate-50 border-2 border-slate-100 text-slate-700 flex items-center gap-3 shadow-sm">
+              <Loader2 className="h-5 w-5 animate-spin text-[#F2A430]" />
+              <span className="text-[15px] font-medium text-slate-500">{t({ en: "Thinking...", bn: "ভাবছে..." })}</span>
+            </div>
           </div>
         )}
       </div>
@@ -480,7 +566,7 @@ function LessonGeneratorPanel({
             }
           }}
           disabled={loading || disabled}
-          placeholder={t({ en: "Ask your question...", bn: "Ask your question..." })}
+          placeholder={t({ en: "Ask your question...", bn: "আপনার প্রশ্ন জিজ্ঞাসা করুন..." })}
           className="h-11 flex-1 rounded-xl border border-slate-200 px-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
         />
         <button
@@ -488,7 +574,7 @@ function LessonGeneratorPanel({
           onClick={handleSend}
           disabled={loading || disabled}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60"
-          aria-label={t({ en: "Send", bn: "Send" })}
+          aria-label={t({ en: "Send", bn: "পাঠান" })}
         >
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
         </button>
@@ -534,11 +620,19 @@ function QuizGeneratorPanel({
     if (!selectedChapter || disabled) return;
     setLoading(true);
     setError(null);
+    
+    const isEnglishSubject = subject.toLowerCase().includes("english");
+    const aiLang = isEnglishSubject ? "en" : language;
+
+    const chapterTitle = aiLang === "bn" 
+      ? `${selectedChapter.title} (CRITICAL INSTRUCTION: YOU MUST WRITE ALL QUESTIONS, OPTIONS, AND EXPLANATIONS STRICTLY IN BENGALI / BANGLA SCRIPT)`
+      : selectedChapter.title;
+
     const { data, error: fnError } = await invokeEdgeFunction<{ questions?: QuizQuestion[] }>("generate-quiz", {
       subject,
-      chapter: selectedChapter.title,
+      chapter: chapterTitle,
       classLevel,
-      language,
+      language: aiLang,
       count: 10,
       difficulty: "medium",
       chapterId: selectedChapter.id,
@@ -550,14 +644,14 @@ function QuizGeneratorPanel({
       const message =
         payload?.error ||
         fnError.message ||
-        t({ en: "Quiz generation failed. Please try again.", bn: "Quiz generation failed. Please try again." });
+        t({ en: "Quiz generation failed. Please try again.", bn: "কুইজ তৈরি ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।" });
       setError(message);
       setLoading(false);
       return;
     }
 
     if (!data?.questions?.length) {
-      setError(t({ en: "No questions returned. Try again.", bn: "No questions returned. Try again." }));
+      setError(t({ en: "No questions returned. Try again.", bn: "কোনো প্রশ্ন পাওয়া যায়নি। আবার চেষ্টা করুন।" }));
       setLoading(false);
       return;
     }
@@ -573,20 +667,20 @@ function QuizGeneratorPanel({
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-blue-50 to-white p-5 shadow-sm">
-        <h3 className="text-lg font-semibold">{t({ en: "AI Quiz Generator", bn: "AI Quiz Generator" })}</h3>
+        <h3 className="text-lg font-semibold">{t({ en: "AI Quiz Generator", bn: "এআই কুইজ জেনারেটর" })}</h3>
         <p className="mt-1 text-xs text-slate-500">
-          {t({ en: "Generate chapter-specific MCQs aligned with NCTB.", bn: "Generate chapter-specific MCQs aligned with NCTB." })}
+          {t({ en: "Generate chapter-specific MCQs aligned with NCTB.", bn: "এনসিটিবি (NCTB) সিলেবাস অনুযায়ী অধ্যায়-ভিত্তিক বহুনির্বাচনী প্রশ্ন তৈরি করুন।" })}
         </p>
 
         <div className="mt-5 space-y-3">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600">{t({ en: "Course", bn: "Course" })}</label>
+            <label className="text-xs font-semibold text-slate-600">{t({ en: "Course", bn: "কোর্স" })}</label>
             <div className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm leading-10 text-slate-700">
               {subject}
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600">{t({ en: "Chapter", bn: "Chapter" })}</label>
+            <label className="text-xs font-semibold text-slate-600">{t({ en: "Chapter", bn: "অধ্যায়" })}</label>
             <select
               value={selectedChapter?.id ?? ""}
               onChange={(event) => setChapterId(event.target.value)}
@@ -609,10 +703,10 @@ function QuizGeneratorPanel({
 
         <div className="mt-5 flex items-center gap-2">
           <Button onClick={handleGenerate} disabled={loading || disabled}>
-            {loading ? t({ en: "Generating...", bn: "Generating..." }) : t({ en: "Generate Quiz", bn: "Generate Quiz" })}
+            {loading ? t({ en: "Generating...", bn: "তৈরি হচ্ছে..." }) : t({ en: "Generate Quiz", bn: "কুইজ তৈরি করুন" })}
           </Button>
           <Button variant="outline" onClick={handleReset} disabled={!questions}>
-            {t({ en: "Reset", bn: "Reset" })}
+            {t({ en: "Reset", bn: "রিসেট করুন" })}
           </Button>
         </div>
         {error?.toLowerCase().includes("limit") && (
@@ -621,11 +715,11 @@ function QuizGeneratorPanel({
             onClick={() => navigate("/pricing")}
             className="mt-3 text-xs font-semibold text-blue-600 hover:underline"
           >
-            {t({ en: "Upgrade plan to continue", bn: "Upgrade plan to continue" })}
+            {t({ en: "Upgrade plan to continue", bn: "চালিয়ে যেতে প্ল্যান আপগ্রেড করুন" })}
           </button>
         )}
         <div className="mt-3 text-[11px] text-slate-400">
-          {t({ en: "10 questions - Medium difficulty - MCQ", bn: "10 questions - Medium difficulty - MCQ" })}
+          {t({ en: "10 questions - Medium difficulty - MCQ", bn: "১০টি প্রশ্ন - মাঝারি কাঠিন্য - বহুনির্বাচনী" })}
         </div>
       </div>
 
@@ -639,7 +733,7 @@ function QuizGeneratorPanel({
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-sm text-slate-400">
-            {t({ en: "Generate a quiz to see it here.", bn: "Generate a quiz to see it here." })}
+            {t({ en: "Generate a quiz to see it here.", bn: "এখানে দেখতে একটি কুইজ তৈরি করুন।" })}
           </div>
         )}
       </div>

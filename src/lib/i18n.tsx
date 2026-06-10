@@ -14,8 +14,10 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem("homeschool_lang");
     if (stored === "bn" || stored === "en") {
@@ -24,12 +26,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!mounted || typeof window === "undefined") return;
     window.localStorage.setItem("homeschool_lang", language);
     if (document?.documentElement) {
       document.documentElement.lang = language;
     }
-  }, [language]);
+  }, [language, mounted]);
 
   const value = useMemo<LanguageContextValue>(
     () => ({

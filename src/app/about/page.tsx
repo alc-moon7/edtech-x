@@ -26,10 +26,10 @@ const values = [
   },
 ];
 
-const milestones = [
-  { year: "2023", detail: { en: "Pilot programs with Class 6-10 learners in Dhaka.", bn: "ঢাকায় ক্লাস ৬-১০ শিক্ষার্থীদের সাথে পাইলট প্রোগ্রাম।" } },
-  { year: "2024", detail: { en: "Expanded to Class 6-12 syllabus coverage.", bn: "ক্লাস ৬-১২ সিলেবাস কভারেজে সম্প্রসারণ।" } },
-  { year: "2025", detail: { en: "Parent dashboards and progress alerts added.", bn: "অভিভাবক ড্যাশবোর্ড ও অগ্রগতি অ্যালার্ট যুক্ত হয়েছে।" } },
+const targets = [
+  { year: "2026", detail: { en: "Parent dashboards and progress alerts added.", bn: "অভিভাবক ড্যাশবোর্ড ও অগ্রগতি অ্যালার্ট যুক্ত করা।" } },
+  { year: "2027", detail: { en: "Pilot Programs with Class 6-10 learners.", bn: "ক্লাস ৬-১০ শিক্ষার্থীদের সাথে পাইলট প্রোগ্রাম।" } },
+  { year: "2028", detail: { en: "Expand to Class 6-12 syllabus coverage.", bn: "ক্লাস ৬-১২ সিলেবাস কভারেজে সম্প্রসারণ।" } },
 ];
 
 const teamMembers = {
@@ -134,12 +134,12 @@ export default function AboutPage() {
             </ul>
           </div>
           <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "Milestones", bn: "মাইলস্টোন" })}</div>
+            <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "Targets", bn: "আমাদের লক্ষ্য" })}</div>
             <div className="mt-4 space-y-4">
-              {milestones.map((milestone) => (
-                <div key={milestone.year} className="rounded-2xl border border-border bg-muted/30 p-4">
-                  <div className="text-xs font-semibold text-primary">{milestone.year}</div>
-                  <p className="mt-2 text-sm text-muted-foreground">{t(milestone.detail)}</p>
+              {targets.map((target) => (
+                <div key={target.year} className="rounded-2xl border border-border bg-muted/30 p-4">
+                  <div className="text-xs font-semibold text-primary">{target.year}</div>
+                  <p className="mt-2 text-sm text-muted-foreground">{t(target.detail)}</p>
                 </div>
               ))}
             </div>

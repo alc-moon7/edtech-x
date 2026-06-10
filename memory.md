@@ -9,8 +9,9 @@ HomeSchool is an interactive, bilingual (English & Bangla) learning platform tar
 - **Styling**: Tailwind CSS 4
 - **Routing**: React Router (v6)
 - **Backend/BaaS**: Supabase (Authentication, PostgreSQL Database, Edge Functions)
+- **AI Integration**: OpenRouter API (gpt-4o-mini) for BrainBite, Lesson Generator, and Quiz Generator
 - **UI/UX Tools**: Framer Motion (animations), Recharts (data visualization), Lucide React (icons)
-- **Other**: React Markdown, Date-fns, Sslcommerz-lts
+- **Other**: React Markdown, Date-fns
 
 ## Architecture & Directory Structure
 The application employs a standard modern React application structure grouped generally by feature/route and reusable libraries.
@@ -62,6 +63,7 @@ The application's routing (`src/App.tsx`) is split into two primary segments:
 2. **Protected Routes (`DashboardLayout`)** - Wrapped in `<ProtectedRoute />`
    - Main Dashboard (`/dashboard`)
    - Courses & Lessons (`/courses`, `/courses/:courseId`, `/learn/:courseId/:chapterId/:lessonId`)
+   - AI Study Tools: BrainBite, AI Lesson Generator, AI Quiz Generator integrated into course views.
    - Student Tools: Progress (`/progress`), Live Classes (`/live-classes`), Homeschool AI (`/homeschool-ai`)
    - Account: Settings (`/settings`), Parent Dashboard (`/parent`)
 
@@ -73,10 +75,11 @@ The application's routing (`src/App.tsx`) is split into two primary segments:
 ## Supabase Integrations
 - **Database**: Schemas located in `supabase/schema.sql` outlining tables and RLS policies.
 - **Edge Functions**:
-  - `generate-quiz`: Utilizes OpenAI API to generate dynamic MCQs.
+  - `generate-quiz`: Utilizes OpenRouter API to generate dynamic MCQs in English or Bengali.
+  - `site-chat`: Core AI handler for BrainBite and AI Lesson Generator, integrated with OpenRouter (gpt-4o-mini). Supports strict Bengali localization based on user language mode.
   - `contact-message`: Handles contact form submissions and triggers emails via Resend.
 - **Auth**: Email/Password and likely OAuth flows configured through Supabase Auth, deeply integrated with the `profiles` table.
 
 ## Notes & Future Scope
-- **Mocked Data**: Current course content, progress charts, and leaderboards use mock data. The next major integration phase will likely involve replacing these with active Supabase calls.
-- **AI Integration**: Features like `NctbAsk.tsx` and quiz generation rely heavily on external LLM services (OpenAI). Ensure `OPENAI_API_KEY` is present in the deployed Edge Functions.
+- **Mocked Data**: Current course content, progress charts, and leaderboards use mock data. The next major integration phase will involve replacing these with active Supabase calls.
+- **AI Integration**: Features like BrainBite, AI Lesson Generator, and Quiz generation rely heavily on external LLM services (OpenRouter). The system dynamically forces strict Bengali responses when `language === "bn"`, with special handling for the English subject. Ensure `OPENROUTER_API_KEY` is present in the deployed Edge Functions.
