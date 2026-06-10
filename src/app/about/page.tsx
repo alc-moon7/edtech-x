@@ -32,6 +32,41 @@ const milestones = [
   { year: "2025", detail: { en: "Parent dashboards and progress alerts added.", bn: "অভিভাবক ড্যাশবোর্ড ও অগ্রগতি অ্যালার্ট যুক্ত হয়েছে।" } },
 ];
 
+const teamMembers = {
+  leader: {
+    name: "Md. Mehedi Hasan Chowdhury",
+    role1: "TEAM LEADER",
+    role2: "AI & ANALYTICS LEAD",
+    image: "/assets/mehedi_hasan.png"
+  },
+  members: [
+    {
+      name: "Mahfuz Ahmad",
+      role1: "FULL STACK DEVELOPER",
+      role2: "AI ENGINEER",
+      image: "/assets/mahfuz_ahmad.jpeg"
+    },
+    {
+      name: "Mst. Soniya Akter",
+      role1: "PRODUCT DESIGN LEAD",
+      role2: "UI/UX DESIGNER",
+      image: "/assets/soniya.png"
+    },
+    {
+      name: "Oishi Farzana",
+      role1: "CURRICULUM LEAD",
+      role2: "LEARNING CONTENT STRATEGIST",
+      image: "/assets/oishi_farzana.png"
+    },
+    {
+      name: "Ehtisum Fariad",
+      role1: "BUSINESS STRATEGY &",
+      role2: "INTERNATIONAL GROWTH LEAD",
+      image: "/assets/ehtisum.png"
+    }
+  ]
+};
+
 export default function AboutPage() {
   const t = useTranslate();
 
@@ -133,6 +168,44 @@ export default function AboutPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-gradient-to-b from-[#eef2f6] via-[#8bb2f1] to-[#1f4068] py-20 sm:py-28">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="text-center mb-3">
+            <div className="text-sm font-semibold uppercase tracking-wider text-primary">{t({ en: "Meet our team", bn: "আমাদের টিমের সাথে পরিচিত হন" })}</div>
+          </div>
+          <h2 className="text-center text-5xl md:text-7xl font-bold mb-16 md:mb-24 tracking-tight">
+            <span className="text-black">NextGen </span>
+            <span className="text-[#4096EC]">Learners</span>
+          </h2>
+
+          <div className="flex flex-col items-center gap-12 md:gap-20">
+            {/* Leader */}
+            <div className="flex flex-col items-center text-center">
+              <div className="aspect-[3/4] w-52 md:w-60 mb-4 overflow-hidden shadow-2xl">
+                <img src={teamMembers.leader.image} alt={teamMembers.leader.name} className="h-full w-full object-cover" />
+              </div>
+              <h3 className="text-white font-bold text-lg">{teamMembers.leader.name}</h3>
+              <p className="text-white/80 text-xs uppercase tracking-widest mt-1">{teamMembers.leader.role1}</p>
+              <p className="text-white/80 text-xs uppercase tracking-widest">{teamMembers.leader.role2}</p>
+            </div>
+
+            {/* Other Members */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 w-full">
+              {teamMembers.members.map((member, i) => (
+                <div key={i} className="flex flex-col items-center text-center">
+                  <div className="aspect-[3/4] w-48 md:w-56 mb-4 overflow-hidden shadow-2xl">
+                    <img src={member.image} alt={member.name} className="h-full w-full object-cover" />
+                  </div>
+                  <h3 className="text-white font-bold text-base">{member.name}</h3>
+                  <p className="text-white/80 text-[10px] md:text-xs uppercase tracking-widest mt-1 leading-tight">{member.role1}</p>
+                  <p className="text-white/80 text-[10px] md:text-xs uppercase tracking-widest leading-tight">{member.role2}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

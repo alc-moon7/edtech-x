@@ -17,6 +17,7 @@ import {
   Send,
   Sparkles,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
@@ -182,9 +183,10 @@ function BrainBitePanel({
     setError(null);
     const prompt = [
       `Class: ${classLevel}. Subject: ${subject}. Chapter: ${chapter}.`,
-      "Create a short, exam-focused BrainBite recap.",
-      "Use 2-4 short sentences. No emojis.",
-      "End with one short check question.",
+      "Create a fun, simple, and short recap for a kid.",
+      "Start with a bold title like '**How Plants Cook Food**'.",
+      "Then 2-3 short lines with emojis, explaining it simply.",
+      "Do not include a check question."
     ].join(" ");
 
     const { data, error: fnError } = await invokeEdgeFunction<{ reply?: string }>("site-chat", {
@@ -235,33 +237,46 @@ function BrainBitePanel({
   const latest = entries[entries.length - 1];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-col items-center text-center">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-          <Sparkles className="h-6 w-6" />
-        </div>
-        <div className="text-lg font-semibold">{t({ en: "Hi, I am BrainBite", bn: "Hi, I am BrainBite" })}</div>
-        <div className="mt-1 text-sm text-slate-500">
-          {t({ en: "Topic", bn: "Topic" })}: {chapter}
+    <div className="flex flex-col items-center rounded-[20px] bg-white p-8 min-h-[450px] shadow-sm border border-slate-100">
+      <div className="flex-1 flex flex-col items-center w-full relative">
+        <img src="/assets/brainbite_logo.png" alt="BrainBite" className="mb-6 h-[72px] w-[72px] object-contain" />
+
+        <div className="relative w-full max-w-2xl min-h-[160px] flex flex-col items-center justify-center rounded-[24px] border border-slate-500 bg-white p-8 md:px-12 md:py-10">
+          {latest ? (
+            <>
+              <div className="absolute right-4 top-4 flex flex-col items-center">
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading || disabled}
+                  className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-[#89a2b8] text-white shadow-sm transition hover:bg-[#728ba1] disabled:opacity-50"
+                  title={t({ en: "Explain again", bn: "Explain again" })}
+                >
+                  <RefreshCw className="h-5 w-5" />
+                </button>
+                <span className="mt-1.5 text-[10px] font-medium text-slate-700">{t({ en: "Explain again", bn: "Explain again" })}</span>
+              </div>
+              <div className="prose prose-lg mx-auto text-center font-medium leading-relaxed text-black [&>h1]:text-[22px] [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-[22px] [&>h2]:font-bold [&>h2]:mb-4 [&>h3]:text-[20px] [&>h3]:font-bold [&>h3]:mb-3 [&>p]:mb-4 [&>p]:leading-snug [&>ul]:text-left [&>ol]:text-left">
+                <ReactMarkdown>{latest}</ReactMarkdown>
+              </div>
+            </>
+          ) : (
+            <div className="text-[24px] font-bold text-black text-center">
+              {t({ en: "Hi , I am Brainbite", bn: "Hi , I am Brainbite" })}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-center text-sm text-slate-700">
-        {latest ? (
-          <div className="prose prose-sm prose-slate mx-auto max-w-none text-left [&>p]:mb-3 [&>p:last-child]:mb-0 [&>ul]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:mb-3 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mb-2 [&>h2]:text-base [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:text-sm [&>h3]:font-bold [&>h3]:mb-1 [&>strong]:font-semibold text-slate-700">
-            <ReactMarkdown>{latest}</ReactMarkdown>
-          </div>
-        ) : (
-          t({ en: "Let's start!", bn: "Let's start!" })
-        )}
-      </div>
+      {error && <div className="mt-4 text-sm font-medium text-red-600">{error}</div>}
 
-      {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
-
-      <div className="mt-6 flex justify-center">
-        <Button onClick={handleGenerate} disabled={loading || disabled}>
-          {loading ? t({ en: "Generating...", bn: "Generating..." }) : t({ en: "Continue", bn: "Continue" })}
-        </Button>
+      <div className="mt-8 flex w-full justify-center">
+        <button
+          onClick={handleGenerate}
+          disabled={loading || disabled}
+          className="w-48 rounded-[12px] bg-[#F2A430] px-6 py-3.5 text-[15px] font-bold text-white shadow-sm transition hover:bg-[#e09329] disabled:opacity-50"
+        >
+          {loading ? t({ en: "Thinking...", bn: "Thinking..." }) : t({ en: "Continue", bn: "Continue" })}
+        </button>
       </div>
     </div>
   );

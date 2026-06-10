@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabaseClient";
 import { formatDateKey, getBangladeshToday, parseDateKey } from "@/lib/date";
+import { BOOK_COVERS } from "@/lib/bookCoversMap";
 
 const MS_DAY = 24 * 60 * 60 * 1000;
 
@@ -244,77 +245,66 @@ const SUBJECT_STYLES: Record<
     cover: "from-indigo-600 via-blue-500 to-indigo-700",
     color: "primary",
     image: "bg-blue-100",
-    coverImage: "/assets/book-covers/Rectangle 64.png"
   },
   science: {
     accent: "bg-emerald-500",
     cover: "from-emerald-600 via-emerald-500 to-emerald-700",
     color: "secondary",
     image: "bg-emerald-100",
-    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   english: {
     accent: "bg-fuchsia-500",
     cover: "from-fuchsia-600 via-purple-500 to-indigo-600",
     color: "secondary",
     image: "bg-fuchsia-100",
-    coverImage: "/assets/book-covers/Rectangle 62.png"
   },
   "social studies": {
     accent: "bg-orange-500",
     cover: "from-orange-600 via-amber-500 to-orange-700",
     color: "secondary",
     image: "bg-orange-100",
-    coverImage: "/assets/book-covers/Rectangle 66.png"
   },
   ict: {
     accent: "bg-slate-500",
     cover: "from-slate-600 via-slate-500 to-slate-700",
     color: "secondary",
     image: "bg-slate-100",
-    coverImage: "/assets/book-covers/Rectangle 65.png"
   },
   bangla: {
     accent: "bg-emerald-500",
     cover: "from-emerald-600 via-teal-500 to-emerald-700",
     color: "secondary",
     image: "bg-emerald-100",
-    coverImage: "/assets/book-covers/Rectangle 59.png"
   },
   physics: {
     accent: "bg-sky-500",
     cover: "from-sky-600 via-blue-500 to-sky-700",
     color: "secondary",
     image: "bg-sky-100",
-    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   chemistry: {
     accent: "bg-amber-500",
     cover: "from-amber-600 via-orange-500 to-amber-700",
     color: "secondary",
     image: "bg-amber-100",
-    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   biology: {
     accent: "bg-lime-500",
     cover: "from-lime-600 via-emerald-500 to-lime-700",
     color: "secondary",
     image: "bg-lime-100",
-    coverImage: "/assets/book-covers/Rectangle 67.png"
   },
   "higher math": {
     accent: "bg-indigo-500",
     cover: "from-indigo-600 via-blue-500 to-indigo-700",
     color: "secondary",
     image: "bg-indigo-100",
-    coverImage: "/assets/book-covers/Rectangle 64.png"
   },
   "bangladesh and global studies": {
     accent: "bg-orange-500",
     cover: "from-orange-600 via-amber-500 to-orange-700",
     color: "secondary",
     image: "bg-orange-100",
-    coverImage: "/assets/book-covers/Rectangle 66.png"
   },
 };
 
@@ -323,10 +313,9 @@ const DEFAULT_STYLE = {
   cover: "from-blue-600 via-blue-500 to-blue-700",
   color: "primary",
   image: "bg-blue-100",
-  coverImage: "/assets/book-covers/Rectangle 70.png"
 };
 
-export function getSubjectStyle(name?: string | null) {
+export function getSubjectStyle(name?: string | null, classLevel?: string | null) {
   if (!name) return DEFAULT_STYLE;
   const key = name
     .trim()
@@ -335,13 +324,32 @@ export function getSubjectStyle(name?: string | null) {
     .replace(/&/g, "and")
     .replace(/\s+/g, " ")
     .trim();
+
+  let coverImage: string | undefined = undefined;
+  if (classLevel && BOOK_COVERS[classLevel]) {
+    const rawKey = name.trim().toLowerCase();
+    coverImage = BOOK_COVERS[classLevel][rawKey] || BOOK_COVERS[classLevel][key];
+    
+    if (!coverImage) {
+      if (key === "english") coverImage = BOOK_COVERS[classLevel]["english for today"] || BOOK_COVERS[classLevel]["english for today (english 1st paper)"];
+      if (key === "bangla") coverImage = BOOK_COVERS[classLevel]["চারুপাঠ"] || BOOK_COVERS[classLevel]["সপ্তবর্ণা"] || BOOK_COVERS[classLevel]["সাহিত্য কণিকা"];
+      if (key === "ict") coverImage = BOOK_COVERS[classLevel]["information and commution technology"] || BOOK_COVERS[classLevel]["তথ্য ও যোগাযোগ প্রযুক্তি"];
+    }
+  }
+
+  let style = DEFAULT_STYLE;
   if (key.includes("bangladesh") || key.includes("global studies") || key === "bgs") {
-    return SUBJECT_STYLES["bangladesh and global studies"] ?? DEFAULT_STYLE;
+    style = SUBJECT_STYLES["bangladesh and global studies"] ?? DEFAULT_STYLE;
+  } else if (key.includes("higher math") || key.includes("higher mathematics")) {
+    style = SUBJECT_STYLES["higher math"] ?? DEFAULT_STYLE;
+  } else {
+    style = SUBJECT_STYLES[key] ?? DEFAULT_STYLE;
   }
-  if (key.includes("higher math") || key.includes("higher mathematics")) {
-    return SUBJECT_STYLES["higher math"] ?? DEFAULT_STYLE;
+
+  if (coverImage) {
+    return { ...style, coverImage };
   }
-  return SUBJECT_STYLES[key] ?? DEFAULT_STYLE;
+  return style;
 }
 
 export function slugify(value: string) {
@@ -354,6 +362,14 @@ export function slugify(value: string) {
 function normalizeClassLevel(value?: string | null) {
   if (!value) return null;
   const trimmed = value.trim();
+  const lower = trimmed.toLowerCase();
+  
+  if (lower === "class six" || lower === "six") return "Class 6";
+  if (lower === "class seven" || lower === "seven") return "Class 7";
+  if (lower === "class eight" || lower === "eight") return "Class 8";
+  if (lower === "class nine" || lower === "nine" || lower === "class ten" || lower === "ten") return "Class 9-10";
+  if (lower === "class eleven" || lower === "eleven" || lower === "class twelve" || lower === "twelve") return "Class 11-12";
+
   const numericMatch = trimmed.match(/^class\s*(\d{1,2})$/i) || trimmed.match(/^(\d{1,2})$/);
   if (numericMatch) {
     const level = numericMatch[1];
@@ -580,7 +596,7 @@ function buildCourses(
 
   return courses.map((course) => {
     const subjectName = course.subject?.name ?? "";
-    const style = getSubjectStyle(subjectName || course.title);
+    const style = getSubjectStyle(subjectName || course.title, course.class_level);
     const priceFull = course.subject?.price_full ?? null;
     const freeFirstChapter =
       course.subject?.first_chapter_free ?? course.subject?.free_first_chapter ?? false;
@@ -663,7 +679,7 @@ function buildSubjectCards(
     );
     const progress = total ? Math.round(totalProgress / total) : 0;
     const clampedProgress = Math.min(progress, 100);
-    const style = getSubjectStyle(subject.name);
+    const style = getSubjectStyle(subject.name, subject.class_level);
 
     return {
       key: slugify(subject.name),

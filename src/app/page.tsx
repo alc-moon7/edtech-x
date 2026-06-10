@@ -161,9 +161,9 @@ function HeroVisual({ t }: { t: Translate }) {
     <div className="animate-hero-up-delay-1 relative mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl -mt-6 sm:-mt-8 md:-mt-10 lg:-mt-12">
       <div className="relative">
         <img
-          src="/figma/hero-illustration.png"
+          src="/assets/hero_image.png"
           alt={t({ en: "Student learning illustration", bn: "শিক্ষার্থী শেখার ইলাস্ট্রেশন" })}
-          className="w-full"
+          className="mx-auto w-[85%] -translate-x-12 lg:-translate-x-16 -translate-y-10 sm:-translate-y-14 lg:-translate-y-20"
           loading="eager"
         />
 

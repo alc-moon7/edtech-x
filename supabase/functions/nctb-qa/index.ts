@@ -271,21 +271,16 @@ serve(async (req) => {
       }),
     });
 
+    let embedding = null;
     if (!embeddingRes.ok) {
       const errorText = await embeddingRes.text();
-      return new Response(JSON.stringify({ error: "Embedding failed.", details: errorText }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.warn("Embedding failed, falling back to no context.", errorText);
+    } else {
+      const embeddingData = await embeddingRes.json();
+      embedding = embeddingData?.data?.[0]?.embedding;
     }
-
-    const embeddingData = await embeddingRes.json();
-    const embedding = embeddingData?.data?.[0]?.embedding;
     if (!embedding) {
-      return new Response(JSON.stringify({ error: "Embedding missing." }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.warn("Embedding missing. Continuing without vector context.");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -297,25 +292,28 @@ serve(async (req) => {
       });
     }
 
-    const matchRes = await fetch(`${supabaseUrl}/rest/v1/rpc/match_nctb_chunks`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${serviceRoleKey}`,
-        apikey: serviceRoleKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query_embedding: embedding,
-        match_count: 6,
-        class_level: classLevel,
-        min_similarity: 0.7,
-      }),
-    });
+    let matchRes = null;
+    if (embedding) {
+      matchRes = await fetch(`${supabaseUrl}/rest/v1/rpc/match_nctb_chunks`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          apikey: serviceRoleKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query_embedding: embedding,
+          match_count: 6,
+          class_level: classLevel,
+          min_similarity: 0.7,
+        }),
+      });
+    }
 
     let chunks: ChunkRow[] = [];
-    if (matchRes.ok) {
+    if (matchRes && matchRes.ok) {
       chunks = (await matchRes.json()) as ChunkRow[];
-    } else {
+    } else if (matchRes) {
       const errorText = await matchRes.text();
       console.warn("Chunk search failed, falling back to direct answer.", errorText);
     }
