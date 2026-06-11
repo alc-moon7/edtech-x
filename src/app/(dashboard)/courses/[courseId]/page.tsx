@@ -18,6 +18,8 @@ import {
   Sparkles,
   Loader2,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
@@ -762,12 +764,20 @@ export default function CourseDetailPage() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [isChapterPaying, setIsChapterPaying] = useState(false);
   const [chapterPaymentError, setChapterPaymentError] = useState<string | null>(null);
+  const [isSubjectsOpen, setIsSubjectsOpen] = useState(false);
 
   const courseId = params.courseId as string;
   const course = courses.find((item) => item.id === courseId);
   const classCourses = useMemo(() => {
     if (!course) return courses;
-    return courses.filter((item) => item.class === course.class);
+    const filtered = courses.filter((item) => item.class === course.class);
+    return filtered.sort((a, b) => {
+      const aIsAgri = a.title.toLowerCase().includes("agriculture");
+      const bIsAgri = b.title.toLowerCase().includes("agriculture");
+      if (aIsAgri && !bIsAgri) return 1;
+      if (!aIsAgri && bIsAgri) return -1;
+      return 0;
+    });
   }, [courses, course]);
 
   useEffect(() => {
@@ -848,33 +858,41 @@ export default function CourseDetailPage() {
             </button>
           </div>
 
-          <div className="mt-4 text-xs font-semibold uppercase text-slate-400">
-            {t({ en: "Select Subject", bn: "Select Subject" })}
-          </div>
-          <div className="mt-3 space-y-2">
-            {classCourses.map((item) => {
-              const isActive = item.id === course.id;
-              const Icon = getSubjectIcon(item.title);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => navigate(`/courses/${item.id}`)}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition",
-                    isActive
-                      ? "bg-gradient-to-r from-blue-700 via-blue-600 to-sky-300 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.title}
-                </button>
-              );
-            })}
-          </div>
+          <button 
+            type="button"
+            onClick={() => setIsSubjectsOpen(p => !p)}
+            className="mt-4 w-full flex items-center justify-between text-xs font-semibold uppercase text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <span>{t({ en: "Select Subject", bn: "Select Subject" })}</span>
+            {isSubjectsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+          
+          {isSubjectsOpen && (
+            <div className="mt-3 space-y-2">
+              {classCourses.map((item) => {
+                const isActive = item.id === course.id;
+                const Icon = getSubjectIcon(item.title);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigate(`/courses/${item.id}`)}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition",
+                      isActive
+                        ? "bg-gradient-to-r from-blue-700 via-blue-600 to-sky-300 text-white shadow-sm"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.title}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-          <div className="mt-5 text-xs font-semibold uppercase text-slate-400">
+          <div className={cn("text-xs font-semibold uppercase text-slate-400", isSubjectsOpen ? "mt-5" : "mt-6")}>
             {t({ en: "Chapters", bn: "Chapters" })}
           </div>
           <div className="mt-3 space-y-3">

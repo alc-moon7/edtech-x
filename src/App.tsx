@@ -14,6 +14,7 @@ import ForgotPasswordPage from "@/app/forgot-password/page";
 import ResetPasswordPage from "@/app/reset_pass/page";
 import HelpCenterPage from "@/app/help/page";
 import DocsPage from "@/app/docs/page";
+import ArchitecturePage from "@/app/architecture/page";
 import PaymentSuccessPage from "@/app/payment/success/page";
 import PaymentFailPage from "@/app/payment/fail/page";
 import PaymentCancelPage from "@/app/payment/cancel/page";
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="reset_pass" element={<ResetPasswordPage />} />
         <Route path="help" element={<HelpCenterPage />} />
         <Route path="docs" element={<DocsPage />} />
+        <Route path="architecture" element={<ArchitecturePage />} />
         <Route path="payment/success" element={<PaymentSuccessPage />} />
         <Route path="payment/fail" element={<PaymentFailPage />} />
         <Route path="payment/cancel" element={<PaymentCancelPage />} />

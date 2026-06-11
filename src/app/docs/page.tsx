@@ -20,7 +20,7 @@ const teamMembers = [
   {
     name: "Mst. Soniya Akter",
     role: "Product Design Lead / UI/UX Designer",
-    email: "contact@homeschool.com",
+    email: "soniya.akter1805@gmail.com",
     image: "/assets/soniya.png"
   },
   {
@@ -32,7 +32,7 @@ const teamMembers = [
   {
     name: "Ehtisum Fariad",
     role: "Business Strategy / International Growth Lead",
-    email: "contact@homeschool.com",
+    email: "ehtisumf@gmail.com",
     image: "/assets/ehtisum.png"
   }
 ];

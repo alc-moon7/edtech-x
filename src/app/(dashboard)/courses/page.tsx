@@ -27,7 +27,7 @@ export default function CoursesPage() {
     if (!courses.length) {
       return [];
     }
-    return courses.map((course) => ({
+    const mapped = courses.map((course) => ({
       key: course.id,
       title: { en: course.title, bn: course.title },
       status: course.status ?? "ongoing",
@@ -40,6 +40,14 @@ export default function CoursesPage() {
       hasFreeChapter: course.chapters?.some((chapter) => chapter.isFree) ?? false,
       priceFull: course.priceFull ?? null,
     }));
+    
+    return mapped.sort((a, b) => {
+      const aIsAgri = a.title.en.toLowerCase().includes("agriculture");
+      const bIsAgri = b.title.en.toLowerCase().includes("agriculture");
+      if (aIsAgri && !bIsAgri) return 1;
+      if (!aIsAgri && bIsAgri) return -1;
+      return 0;
+    });
   }, [courses, displayClass]);
 
   const visibleCards = useMemo(() => {
@@ -105,61 +113,64 @@ export default function CoursesPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {visibleCards.map((card) => (
-              <div
-                key={card.key}
-                className={cn(
-                  "relative w-full overflow-hidden rounded-xl text-white shadow-sm aspect-[196/268] group transition-transform hover:-translate-y-1 hover:shadow-md",
-                  !card.coverImage && "bg-gradient-to-b",
-                  !card.coverImage && card.cover
-                )}
-                style={card.coverImage ? { backgroundImage: `url('${card.coverImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-              >
-                {!card.coverImage && (
-                  <div className="absolute left-3 top-3 flex flex-col gap-1 z-10">
-                    <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
-                      {t({ en: card.classLabel ?? "Class", bn: card.classLabel ?? "Class" })}
-                    </span>
-                    {card.priceFull !== null && (
-                      <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
-                        BDT {card.priceFull}
+            {visibleCards.map((card) => {
+              const innerContent = (
+                <>
+                  {!card.coverImage && (
+                    <div className="absolute left-3 top-3 flex flex-col gap-1 z-10">
+                      <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-700">
+                        {t({ en: card.classLabel ?? "Class", bn: card.classLabel ?? "Class" })}
                       </span>
-                    )}
-                    {card.hasFreeChapter && (
-                      <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">
-                        {t({ en: "Free chapter", bn: "Free chapter" })}
-                      </span>
-                    )}
-                  </div>
-                )}
-                
-                {!card.coverImage && (
-                  <div className="flex h-full flex-col items-center justify-center px-3 text-center relative z-10">
-                    <div className="text-sm font-semibold text-white drop-shadow-md">{t(card.title)}</div>
-                  </div>
-                )}
+                      {card.priceFull !== null && (
+                        <span className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                          BDT {card.priceFull}
+                        </span>
+                      )}
+                      {card.hasFreeChapter && (
+                        <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-semibold uppercase text-white">
+                          {t({ en: "Free chapter", bn: "Free chapter" })}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!card.coverImage && (
+                    <div className="flex h-full flex-col items-center justify-center px-3 text-center relative z-10">
+                      <div className="text-sm font-semibold text-white drop-shadow-md">{t(card.title)}</div>
+                    </div>
+                  )}
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[85%] z-10">
-                  {card.courseId ? (
-                    <Link
-                      to={`/courses/${card.courseId}`}
-                      className="flex items-center justify-between w-full rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-4 py-2 text-center text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-white/30"
-                    >
-                      <span>{t({ en: "Continue Class", bn: "Continue Class" })}</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      className="flex items-center justify-between w-full rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-4 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-white/30"
-                    >
+                  <div className="absolute bottom-4 left-1/2 w-[85%] z-10 -translate-x-1/2 translate-y-16 transition-all duration-300 ease-out group-hover:translate-y-0 transform-gpu">
+                    <div className="flex items-center justify-between w-full rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-4 py-2 text-center text-[11px] font-semibold text-white shadow-sm hover:bg-white/30">
                       <span>{t({ en: "Continue Class", bn: "ক্লাস চালিয়ে যান" })}</span>
                       <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  )}
+                    </div>
+                  </div>
+                </>
+              );
+
+              const className = cn(
+                "relative block w-full overflow-hidden rounded-xl text-white shadow-sm aspect-[196/268] group transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer transform-gpu will-change-transform",
+                !card.coverImage && "bg-gradient-to-b",
+                !card.coverImage && card.cover
+              );
+              
+              const style = card.coverImage ? { backgroundImage: `url('${card.coverImage}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined;
+
+              if (card.courseId) {
+                return (
+                  <Link key={card.key} to={`/courses/${card.courseId}`} className={className} style={style}>
+                    {innerContent}
+                  </Link>
+                );
+              }
+              
+              return (
+                <div key={card.key} className={className} style={style}>
+                  {innerContent}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

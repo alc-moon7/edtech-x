@@ -66,6 +66,9 @@ export function Footer() {
               <Link to="/docs" className="hover:text-[#1c75d8]">
                 {t({ en: "Pitch Deck & Docs", bn: "পিচ ডেক ও ডক্স" })}
               </Link>
+              <Link to="/architecture" className="hover:text-[#1c75d8]">
+                {t({ en: "System Architecture", bn: "সিস্টেম আর্কিটেকচার" })}
+              </Link>
               <Link to="/contact" className="hover:text-[#1c75d8]">
                 {t({ en: "Contact", bn: "যোগাযোগ" })}
               </Link>

@@ -1,24 +1,29 @@
 "use client";
 
 import { useStudent } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
+import { Navigate } from "react-router-dom";
 import { BookOpen, AlertCircle, TrendingUp, Clock } from "lucide-react";
 import { useLanguage, useTranslate } from "@/lib/i18n";
 
-const scheduleItems = [
-    { id: "today", day: { en: "Today", bn: "আজ" }, subject: { en: "Math: Algebra", bn: "গণিত: বীজগণিত" }, time: "4:00 PM" },
-    { id: "tomorrow", day: { en: "Tomorrow", bn: "আগামীকাল" }, subject: { en: "English: Grammar", bn: "ইংরেজি: ব্যাকরণ" }, time: "5:30 PM" },
-    { id: "wed", day: { en: "Wed", bn: "বুধ" }, subject: { en: "Physics: Lab", bn: "পদার্থবিজ্ঞান: ল্যাব" }, time: "3:00 PM" },
-];
+
 
 export default function ParentDashboard() {
-    const { courses, progress, dashboardStats } = useStudent();
+    const { user, loading } = useAuth();
+    const { dashboardStats, subjectCards, upcomingTests } = useStudent();
     const t = useTranslate();
     const { language } = useLanguage();
 
+    if (loading) return null;
+    if (!user) return <Navigate to="/login" replace />;
+
+    const childName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Student";
+    const childClass = user?.user_metadata?.class || "Class 7";
+
     const child = {
-        name: "Arian Ahmed",
-        class: "Class 10",
-        school: "Dhaka Residential Model College",
+        name: childName,
+        class: childClass,
+        school: "HomeSchool Academy",
         avatar: "bg-blue-500"
     };
     const progressLabel = language === "bn"
@@ -26,6 +31,22 @@ export default function ParentDashboard() {
         : `Monitoring progress for ${child.name}`;
 
     const weeklyHours = dashboardStats.weeklyStudyHours[dashboardStats.weeklyStudyHours.length - 1] ?? 0;
+
+    const lowestSubject = subjectCards.length 
+        ? [...subjectCards].sort((a, b) => a.progress - b.progress)[0]
+        : null;
+
+    const needsAlert = lowestSubject && lowestSubject.progress < 50;
+
+    const alertMessage = needsAlert
+        ? t({
+            en: `Progress in ${lowestSubject.title} is at ${lowestSubject.progress}%. Suggested to review recent lessons.`,
+            bn: `${lowestSubject.title}-এ অগ্রগতি ${lowestSubject.progress}%। সাম্প্রতিক লেসনগুলো রিভিশন করার পরামর্শ দেওয়া হলো।`
+          })
+        : t({
+            en: "No performance alerts at this time. Keep up the good work!",
+            bn: "এই মুহূর্তে কোনো পারফরম্যান্স অ্যালার্ট নেই। ভালো কাজ চালিয়ে যান!"
+          });
 
     return (
         <div className="space-y-8">
@@ -71,60 +92,56 @@ export default function ParentDashboard() {
                     <div className="p-6 border-b border-border">
                         <h3 className="font-semibold text-lg">{t({ en: "Course Activity", bn: "কোর্স কার্যক্রম" })}</h3>
                     </div>
-                    <div>
-                        {courses.map(course => {
-                            const courseStats = progress[course.id as keyof typeof progress] || { completedLessons: [] };
-                            const total = course.chapters.reduce((acc, ch) => acc + ch.lessons.length, 0);
-                            const completed = courseStats.completedLessons.length;
-                            const percent = Math.round((completed / total) * 100) || 0;
-
-                            return (
-                                <div key={course.id} className="p-4 flex items-center justify-between border-b border-border last:border-0 hover:bg-muted/30">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`h-10 w-10 rounded-lg ${course.image} flex items-center justify-center text-xs font-bold`}>
-                                            {course.title.substring(0, 2)}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-sm">{course.title}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {completed}/{total} {t({ en: "Lessons", bn: "লেসন" })}
-                                            </p>
-                                        </div>
+                    <div className="divide-y divide-border">
+                        {subjectCards.length ? subjectCards.map(subject => (
+                            <div key={subject.key} className="p-4 flex items-center justify-between hover:bg-muted/30">
+                                <div className="flex items-center gap-4">
+                                    <div className={`h-10 w-10 rounded-lg ${subject.accent} flex items-center justify-center text-xs font-bold text-white`}>
+                                        {subject.title.substring(0, 2)}
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                                            <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
-                                        </div>
-                                        <span className="text-sm font-bold w-8 text-right">{percent}%</span>
+                                    <div>
+                                        <p className="font-medium text-sm">{subject.title}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {subject.lessons} {t({ en: "Lessons", bn: "লেসন" })}
+                                        </p>
                                     </div>
                                 </div>
-                            );
-                        })}
+                                <div className="flex items-center gap-4">
+                                    <div className="hidden sm:block w-24 h-2 bg-muted rounded-full overflow-hidden">
+                                        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${subject.progress}%` }} />
+                                    </div>
+                                    <span className="text-sm font-bold w-9 text-right">{subject.progress}%</span>
+                                </div>
+                            </div>
+                        )) : (
+                            <div className="p-6 text-center text-sm text-muted-foreground">
+                                {t({ en: "No activity yet.", bn: "কোনো কার্যক্রম নেই।" })}
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="space-y-6">
-                    <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-6">
+                    <div className={needsAlert ? "rounded-xl border border-yellow-200 bg-yellow-50 p-6" : "rounded-xl border border-emerald-200 bg-emerald-50 p-6"}>
                         <div className="flex items-start gap-3">
-                            <AlertCircle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+                            <AlertCircle className={`h-5 w-5 shrink-0 mt-0.5 ${needsAlert ? "text-yellow-600" : "text-emerald-600"}`} />
                             <div>
-                                <h4 className="font-semibold text-yellow-800">{t({ en: "Performance Alert", bn: "পারফরম্যান্স অ্যালার্ট" })}</h4>
-                                <p className="text-sm text-yellow-700 mt-1">
-                                    {t({
-                                        en: "Quiz scores in Physics - Motion dropped by 10% this week. Suggested revision: \"Equations of Motion\".",
-                                        bn: "এই সপ্তাহে পদার্থবিজ্ঞান - গতি বিষয়ে কুইজ স্কোর ১০% কমেছে। প্রস্তাবিত রিভিশন: \"গতি সমীকরণ\"।",
-                                    })}
+                                <h4 className={`font-semibold ${needsAlert ? "text-yellow-800" : "text-emerald-800"}`}>{t({ en: "Performance Alert", bn: "পারফরম্যান্স অ্যালার্ট" })}</h4>
+                                <p className={`text-sm mt-1 ${needsAlert ? "text-yellow-700" : "text-emerald-700"}`}>
+                                    {alertMessage}
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <div className="rounded-xl border border-border bg-card p-6">
-                        <h3 className="font-semibold text-lg mb-4">{t({ en: "Weekly Schedule", bn: "সাপ্তাহিক সময়সূচি" })}</h3>
+                        <h3 className="font-semibold text-lg mb-4">{t({ en: "Upcoming Schedule", bn: "আসন্ন সময়সূচি" })}</h3>
                         <div className="space-y-3">
-                            {scheduleItems.map((item) => (
-                                <ScheduleItem key={item.id} day={t(item.day)} subject={t(item.subject)} time={item.time} />
-                            ))}
+                            {upcomingTests.length ? upcomingTests.map((test) => (
+                                <ScheduleItem key={test.id} day={test.date} subject={test.title} time={test.time} />
+                            )) : (
+                                <div className="text-sm text-muted-foreground">{t({ en: "No upcoming schedule.", bn: "কোনো আসন্ন সময়সূচি নেই।" })}</div>
+                            )}
                         </div>
                     </div>
                 </div>

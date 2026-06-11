@@ -38,7 +38,7 @@ export function QuizComponent({
 
     const [currentPage, setCurrentPage] = useState(1);
     const [answers, setAnswers] = useState<Record<number, number>>({});
-    const [timeLeft, setTimeLeft] = useState(28 * 60 + 30); // 28:30
+    const [timeLeft, setTimeLeft] = useState(10 * 60); // 10:00
     const [showResult, setShowResult] = useState(false);
     const [finalScore, setFinalScore] = useState<number | null>(null);
 
@@ -74,7 +74,7 @@ export function QuizComponent({
         setAnswers({});
         setShowResult(false);
         setFinalScore(null);
-        setTimeLeft(30 * 60);
+        setTimeLeft(10 * 60);
     };
 
     const formatTime = (seconds: number) => {
@@ -154,7 +154,7 @@ export function QuizComponent({
                         Remaining Time: {formatTime(timeLeft)}
                     </div>
                     <div className="w-40 h-1.5 bg-slate-200 rounded-full mt-2 mb-1.5 overflow-hidden">
-                        <div className="h-full bg-[#5fa3f8] transition-all duration-1000" style={{ width: `${(timeLeft / (30 * 60)) * 100}%` }} />
+                        <div className="h-full bg-[#5fa3f8] transition-all duration-1000" style={{ width: `${(timeLeft / (10 * 60)) * 100}%` }} />
                     </div>
                     <div className="text-[10px] text-slate-400 font-medium">Submit by Feb 27, 2026 11:59 PM</div>
                 </div>
