@@ -115,6 +115,13 @@ export function MarketingNav() {
                     {t({ en: "Dashboard", bn: "ড্যাশবোর্ড" })}
                   </Link>
                   <Link
+                    to="/parent"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    {t({ en: "Parent Dashboard", bn: "প্যারেন্ট ড্যাশবোর্ড" })}
+                  </Link>
+                  <Link
                     to="/pricing"
                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                     onClick={() => setProfileOpen(false)}
@@ -180,6 +187,11 @@ export function MarketingNav() {
                 <Link to="/dashboard" onClick={() => setOpen(false)}>
                   <Button className="w-full rounded-full bg-slate-900 text-xs font-semibold text-white">
                     {t({ en: "Dashboard", bn: "ড্যাশবোর্ড" })}
+                  </Button>
+                </Link>
+                <Link to="/parent" onClick={() => setOpen(false)}>
+                  <Button className="w-full rounded-full bg-slate-100 text-xs font-semibold text-slate-900 hover:bg-slate-200">
+                    {t({ en: "Parent Dashboard", bn: "প্যারেন্ট ড্যাশবোর্ড" })}
                   </Button>
                 </Link>
                 <Link to="/pricing" onClick={() => setOpen(false)}>

@@ -5,6 +5,8 @@ import { invokeEdgeFunction } from "@/lib/supabaseClient";
 import { useStudent } from "@/lib/store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -17,7 +19,7 @@ export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: "Hi! I'm Homeschool AI. Ask me anything about this site." },
+    { role: "assistant", content: "Hi! I'm Support AI. Ask me anything about this site." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -86,7 +88,7 @@ export function ChatWidget() {
           <div className="flex h-[480px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 sm:h-[520px]">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <div>
-                <div className="text-sm font-semibold text-slate-900">Homeschool AI</div>
+                <div className="text-sm font-semibold text-slate-900">Support AI</div>
                 <div className="text-xs text-slate-500">Ask about this site</div>
               </div>
               <button
@@ -106,13 +108,20 @@ export function ChatWidget() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                    className={cn(
+                      "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
                       msg.role === "user"
                         ? "bg-[#060BF7] text-white"
                         : "bg-slate-100 text-slate-900 ring-1 ring-slate-200"
-                    }`}
+                    )}
                   >
-                    {msg.content}
+                    {msg.role === "user" ? (
+                      msg.content
+                    ) : (
+                      <div className="prose prose-sm prose-slate max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ul]:ml-4 [&>ul]:list-disc [&>ol]:mb-2 [&>ol]:ml-4 [&>ol]:list-decimal [&_strong]:font-bold [&_strong]:text-slate-900">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

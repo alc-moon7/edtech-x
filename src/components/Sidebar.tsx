@@ -1,12 +1,24 @@
 "use client";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { BookOpen, Bot, CalendarDays, LineChart, LogOut, Settings } from "lucide-react";
+import { BookOpen, Bot, CalendarDays, LayoutDashboard, LogOut, Settings, BrainCircuit, Globe2, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useTranslate } from "@/lib/i18n";
 
-const sidebarItems = [
+type SidebarItem = {
+  title: { en: string; bn: string };
+  href: string;
+  icon: React.ElementType;
+  isComingSoon?: boolean;
+};
+
+const sidebarItems: SidebarItem[] = [
+  {
+    title: { en: "Dashboard", bn: "ড্যাশবোর্ড" },
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
   {
     title: { en: "Class", bn: "ক্লাস" },
     href: "/courses",
@@ -23,9 +35,22 @@ const sidebarItems = [
     icon: Bot,
   },
   {
-    title: { en: "Progress", bn: "অগ্রগতি" },
-    href: "/progress",
-    icon: LineChart,
+    title: { en: "Brain Analytics", bn: "ব্রেইন অ্যানালিটিক্স" },
+    href: "#brain-analytics",
+    icon: BrainCircuit,
+    isComingSoon: true,
+  },
+  {
+    title: { en: "Global Arena", bn: "গ্লোবাল অ্যারেনা" },
+    href: "#global-arena",
+    icon: Globe2,
+    isComingSoon: true,
+  },
+  {
+    title: { en: "Skill Matrix", bn: "স্কিল ম্যাট্রিক্স" },
+    href: "#skill-matrix",
+    icon: Network,
+    isComingSoon: true,
   },
 ];
 
@@ -54,6 +79,23 @@ export function Sidebar() {
       <nav className="flex flex-1 flex-col gap-2 px-4 py-4" aria-label="Dashboard">
         {sidebarItems.map((item) => {
           const Icon = item.icon;
+
+          if (item.isComingSoon) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium text-slate-400/80 cursor-not-allowed select-none transition-colors hover:bg-slate-50/50"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-5 w-5 opacity-70" />
+                  {t(item.title)}
+                </div>
+                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#060BF7] bg-[#060BF7]/10 px-2 py-0.5 rounded-full ring-1 ring-[#060BF7]/20 shadow-sm">
+                  {t({ en: "Soon", bn: "আসছে" })}
+                </span>
+              </div>
+            );
+          }
 
           return (
             <NavLink

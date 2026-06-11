@@ -33,7 +33,7 @@ export function QuizComponent({
     const subjectName = course?.title || "English";
     const instructorName = "Atif Aslam";
 
-    const QUESTIONS_PER_PAGE = 2;
+    const QUESTIONS_PER_PAGE = 10;
     const totalPages = Math.ceil(activeQuestions.length / QUESTIONS_PER_PAGE);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -138,7 +138,7 @@ export function QuizComponent({
     const currentQuestions = activeQuestions.slice((currentPage - 1) * QUESTIONS_PER_PAGE, currentPage * QUESTIONS_PER_PAGE);
 
     return (
-        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden text-slate-800">
+        <div className="w-full bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden text-slate-800">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between bg-slate-50/50">
                 <div className="flex items-center gap-4">
@@ -182,8 +182,9 @@ export function QuizComponent({
 
                 <div className="grid lg:grid-cols-[1fr_320px] gap-8">
                     {/* Left: Questions List */}
-                    <div className="space-y-6">
-                        {currentQuestions.map((q, idx) => {
+                    <div className="flex flex-col gap-6">
+                        <div className="grid 2xl:grid-cols-2 gap-6">
+                            {currentQuestions.map((q, idx) => {
                             const absoluteIndex = (currentPage - 1) * QUESTIONS_PER_PAGE + idx;
                             return (
                                 <div key={q.id} className="border border-[#b9d2f0] rounded-xl overflow-hidden bg-white shadow-sm">
@@ -205,12 +206,12 @@ export function QuizComponent({
                                                         )}
                                                     >
                                                         <div className={cn(
-                                                            "w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold uppercase shrink-0 transition-colors",
-                                                            isSelected ? "border-[#4491e0] text-[#4491e0] bg-white" : "border-slate-300 text-slate-500 bg-white"
+                                                            "w-7 h-7 rounded-full border-2 flex items-center justify-center text-[12px] font-bold uppercase shrink-0 transition-colors shadow-sm",
+                                                            isSelected ? "border-[#4491e0] text-white bg-[#4491e0]" : "border-slate-300 text-slate-500 bg-white"
                                                         )}>
                                                             {String.fromCharCode(65 + optIdx)}
                                                         </div>
-                                                        <span className="text-sm text-slate-700">{opt}</span>
+                                                        <span className="text-[15px] text-slate-700 font-medium leading-snug">{opt}</span>
                                                     </div>
                                                 );
                                             })}
@@ -219,6 +220,7 @@ export function QuizComponent({
                                 </div>
                             );
                         })}
+                        </div>
 
                         {/* Bottom Actions */}
                         <div className="flex justify-between items-center pt-4">
@@ -254,7 +256,7 @@ export function QuizComponent({
                     </div>
 
                     {/* Right: Answer Grid */}
-                    <div className="border border-slate-200 rounded-xl overflow-hidden h-fit bg-slate-50 shadow-sm">
+                    <div className="border border-slate-200 rounded-xl overflow-hidden h-fit bg-slate-50 shadow-sm sticky top-6">
                         <div className="grid grid-cols-[70px_1fr] bg-slate-100 border-b border-slate-200 text-[13px] font-semibold text-slate-600 text-center py-3">
                             <div>S. No</div>
                             <div>Answer Options</div>

@@ -20,6 +20,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { useStudent } from "@/lib/store";
 import { useLanguage, useTranslate } from "@/lib/i18n";
@@ -765,6 +767,7 @@ export default function CourseDetailPage() {
   const [isChapterPaying, setIsChapterPaying] = useState(false);
   const [chapterPaymentError, setChapterPaymentError] = useState<string | null>(null);
   const [isSubjectsOpen, setIsSubjectsOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const courseId = params.courseId as string;
   const course = courses.find((item) => item.id === courseId);
@@ -940,8 +943,14 @@ export default function CourseDetailPage() {
         </div>
       </aside>
 
-      <div className="flex-1 space-y-6">
-        <div className="rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-sky-300 px-5 py-4 text-white shadow-sm">
+      <div className={cn(
+        "flex-1 space-y-4 sm:space-y-6 transition-all duration-300 flex flex-col",
+        isFullscreen ? "fixed inset-0 z-[100] w-screen h-screen overflow-auto bg-slate-50 p-4 sm:p-6" : ""
+      )}>
+        <div className={cn(
+          "bg-gradient-to-r from-blue-700 via-blue-600 to-sky-300 px-5 py-4 text-white shadow-sm shrink-0",
+          isFullscreen ? "rounded-xl" : "rounded-2xl"
+        )}>
           <div className="text-[11px] font-semibold uppercase tracking-wide text-white/80">
             {t({ en: "Class", bn: "Class" })}: {course.class} &nbsp; &gt; &nbsp;
             {t({ en: "Subject", bn: "Subject" })}: {course.title} &nbsp; &gt; &nbsp;
@@ -972,26 +981,40 @@ export default function CourseDetailPage() {
           )}
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 px-4 py-3">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={cn(
-                    "flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-semibold transition",
-                    isActive ? "border-blue-600 text-blue-600" : "border-transparent text-slate-600 hover:text-slate-900"
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {t(tab.label)}
-                </button>
-              );
-            })}
+        <div className={cn(
+          "bg-white shadow-sm transition-all duration-300 border border-slate-200 flex flex-col",
+          isFullscreen ? "rounded-xl flex-1" : "rounded-3xl"
+        )}>
+          <div className="flex flex-wrap items-center justify-between border-b border-slate-200 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-4">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveTab(tab.key)}
+                    className={cn(
+                      "flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-semibold transition",
+                      isActive ? "border-blue-600 text-blue-600" : "border-transparent text-slate-600 hover:text-slate-900"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {t(tab.label)}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 shadow-sm"
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4 text-slate-500" /> : <Maximize className="h-4 w-4 text-slate-500" />}
+              <span className="hidden sm:inline">{isFullscreen ? t({ en: "Exit Full Screen", bn: "ফুল স্ক্রিন বন্ধ করুন" }) : t({ en: "Full Screen", bn: "ফুল স্ক্রিন" })}</span>
+            </button>
           </div>
 
           <div className="p-4 sm:p-5">
