@@ -438,7 +438,12 @@ function calculateStreakDays(activityDates: Set<string>) {
   const today = startOfDay(new Date());
   let streak = 0;
 
-  for (let i = 0; i < 365; i += 1) {
+  let startOffset = 0;
+  if (!activityDates.has(toDateKey(today))) {
+    startOffset = 1;
+  }
+
+  for (let i = startOffset; i < 365; i += 1) {
     const dateKey = toDateKey(addDays(today, -i));
     if (activityDates.has(dateKey)) {
       streak += 1;
@@ -446,6 +451,22 @@ function calculateStreakDays(activityDates: Set<string>) {
       break;
     }
   }
+
+  // Forgiving UI: If current streak is 0 (missed yesterday), show the longest streak from this week instead of 0.
+  if (streak === 0) {
+    let maxStreak = 0;
+    let currentStreak = 0;
+    for (let i = 0; i < 7; i += 1) {
+      if (activityDates.has(toDateKey(addDays(today, -i)))) {
+        currentStreak += 1;
+        maxStreak = Math.max(maxStreak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
+    }
+    return maxStreak;
+  }
+
   return streak;
 }
 

@@ -33,7 +33,7 @@ export function QuizComponent({
     const subjectName = course?.title || "English";
     const instructorName = "Atif Aslam";
 
-    const QUESTIONS_PER_PAGE = 2;
+    const QUESTIONS_PER_PAGE = 5;
     const totalPages = Math.ceil(activeQuestions.length / QUESTIONS_PER_PAGE);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -221,27 +221,35 @@ export function QuizComponent({
                         })}
 
                         {/* Bottom Actions */}
-                        <div className="flex justify-center items-center gap-4 pt-4">
+                        <div className="flex justify-between items-center pt-4">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="w-9 h-9 rounded border border-[#b9d2f0] flex items-center justify-center text-[#5fa3f8] hover:bg-[#f4f9ff] disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                                className={cn(
+                                    "px-4 py-2 rounded border flex items-center gap-2 text-sm font-semibold transition-colors",
+                                    currentPage === 1 
+                                        ? "border-slate-200 text-slate-400 cursor-not-allowed" 
+                                        : "border-[#b9d2f0] text-[#5fa3f8] hover:bg-[#f4f9ff]"
+                                )}
                             >
-                                <ChevronLeft className="w-5 h-5" />
+                                <ChevronLeft className="w-4 h-4" /> {t({ en: "Previous", bn: "পূর্ববর্তী" })}
                             </button>
-                            <button
-                                onClick={handleSubmit}
-                                className="px-8 py-2 bg-[#5fa3f8] text-white rounded-md text-sm font-bold shadow-sm hover:bg-[#4491e0] transition-colors"
-                            >
-                                Submit Quiz
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="w-9 h-9 rounded border border-[#b9d2f0] flex items-center justify-center text-[#5fa3f8] hover:bg-[#f4f9ff] disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
+                            
+                            {currentPage === totalPages ? (
+                                <button
+                                    onClick={handleSubmit}
+                                    className="px-8 py-2 bg-emerald-500 text-white rounded-md text-sm font-bold shadow-sm hover:bg-emerald-600 transition-colors"
+                                >
+                                    {t({ en: "Submit Quiz", bn: "কুইজ জমা দিন" })}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    className="px-6 py-2 rounded border border-[#b9d2f0] flex items-center gap-2 text-[#5fa3f8] hover:bg-[#f4f9ff] transition-colors text-sm font-semibold"
+                                >
+                                    {t({ en: "Next", bn: "পরবর্তী" })} <ChevronRight className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -286,6 +294,14 @@ export function QuizComponent({
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                        <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-center">
+                            <button
+                                onClick={handleSubmit}
+                                className="w-full py-2.5 bg-emerald-500 text-white rounded-md text-sm font-bold shadow-sm hover:bg-emerald-600 transition-colors"
+                            >
+                                {t({ en: "Submit Quiz", bn: "কুইজ জমা দিন" })}
+                            </button>
                         </div>
                     </div>
                 </div>

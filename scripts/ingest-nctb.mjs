@@ -1,8 +1,16 @@
-﻿"use strict";
+"use strict";
 
 import { createClient } from "@supabase/supabase-js";
 import { createRequire } from "module";
 import { createHash } from "crypto";
+import { z } from "zod";
+
+const ChunkSchema = z.object({
+  content: z.string().min(10),
+  page: z.number().int().positive(),
+  hash: z.string().length(64),
+  lineage: z.any().optional()
+});
 
 const require = createRequire(import.meta.url);
 const PDFJS = require("pdf-parse/lib/pdf.js/v1.10.100/build/pdf.js");
@@ -150,11 +158,27 @@ async function flushBatch(state, subject) {
   );
 }
 
-async function enqueueChunk(content, page, state, subject) {
+async function enqueueChunk(content, page, state, subject, lineage = null) {
   const trimmed = content.trim();
   if (!trimmed) return;
   const hash = hashContent(trimmed);
-  state.batch.push({ content: trimmed, page, hash });
+  
+  const chunkData = { content: trimmed, page, hash, lineage };
+  
+  // Data Quality: Schema Validation via Zod
+  try {
+    ChunkSchema.parse(chunkData);
+  } catch (err) {
+    console.warn(`Data Quality Validation failed for page ${page}:`, err.issues);
+    return;
+  }
+
+  // Data Lineage: Log origin metadata for observability
+  if (lineage) {
+    console.log(`[Lineage] Extracted chunk from ${lineage.file} -> Page ${lineage.page} -> Paragraph ${lineage.paragraphIndex}`);
+  }
+
+  state.batch.push(chunkData);
   if (state.batch.length >= BATCH_SIZE) {
     await flushBatch(state, subject);
   }
@@ -186,24 +210,25 @@ async function ingestFile(path) {
     const pageText = await extractPageText(page);
     if (page.cleanup) page.cleanup();
 
-    const words = pageText.split(/\s+/).filter(Boolean);
-    if (words.length) {
-      state.carry.push(...words);
-      while (state.carry.length >= CHUNK_WORDS) {
-        const chunkWords = state.carry.slice(0, CHUNK_WORDS);
-        state.carry = state.carry.slice(CHUNK_WORDS);
-        await enqueueChunk(chunkWords.join(" "), pageNum, state, subject);
-      }
+    // Semantic Chunking: Split by paragraphs instead of arbitrary word counts
+    const paragraphs = pageText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    
+    for (let i = 0; i < paragraphs.length; i++) {
+      const pText = paragraphs[i].trim();
+      if (pText.length < 20) continue; // Skip very small noisy fragments
+      
+      // Contextual RAG: Prepend global context to every chunk
+      const contextualText = `[Subject: ${subject}, Class: ${CLASS_LEVEL}]\n${pText}`;
+      
+      // Data Lineage
+      const lineage = { file: path, page: pageNum, paragraphIndex: i };
+      
+      await enqueueChunk(contextualText, pageNum, state, subject, lineage);
     }
 
     if (pageNum % 5 === 0 || pageNum === totalPages) {
       console.log(`Processed page ${pageNum}/${totalPages}`);
     }
-  }
-
-  if (state.carry.length) {
-    await enqueueChunk(state.carry.join(" "), totalPages, state, subject);
-    state.carry.length = 0;
   }
 
   await flushBatch(state, subject);

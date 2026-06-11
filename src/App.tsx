@@ -26,6 +26,7 @@ import HomeschoolAIPage from "@/app/(dashboard)/homeschool-ai/page";
 import SettingsPage from "@/app/(dashboard)/settings/page";
 import LessonPlayerPage from "@/app/(dashboard)/learn/[courseId]/[chapterId]/[lessonId]/page";
 import ParentDashboard from "@/app/(dashboard)/parent/page";
+import KnowledgeGraphPage from "@/app/(dashboard)/knowledge-graph/page";
 import NotFoundPage from "@/pages/NotFound";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="learn/:courseId/:chapterId/:lessonId" element={<LessonPlayerPage />} />
             <Route path="parent" element={<ParentDashboard />} />
+            <Route path="knowledge-graph" element={<KnowledgeGraphPage />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />} />

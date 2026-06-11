@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { MessageCircle, X, Send } from "lucide-react";
 import { invokeEdgeFunction } from "@/lib/supabaseClient";
 import { useStudent } from "@/lib/store";
@@ -14,6 +15,7 @@ const ERROR_MESSAGE = "AI reply failed. Please try again.";
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: "Hi! I'm Homeschool AI. Ask me anything about this site." },
   ]);
@@ -60,6 +62,12 @@ export function ChatWidget() {
     const container = document.getElementById("chat-widget-body");
     if (container) container.scrollTop = container.scrollHeight;
   }, [open, shortMessages, loading]);
+
+  const isCourseDetailsPage = location.pathname.startsWith("/courses/") && location.pathname !== "/courses";
+
+  if (isCourseDetailsPage) {
+    return null;
+  }
 
   return (
     <>

@@ -1,0 +1,31 @@
+{
+  "format-version": 2,
+  "table-uuid": "e4b61d98-1234-5678-abcd-ef0123456789",
+  "location": "s3://home-school-lakehouse/lesson_progress",
+  "last-updated-ms": 1781156634578,
+  "schemas": [
+    {
+      "type": "struct",
+      "fields": [
+        {
+          "id": 1,
+          "name": "user_id",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "id": 2,
+          "name": "lesson_id",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "id": 3,
+          "name": "progress_percent",
+          "required": true,
+          "type": "int"
+        }
+      ]
+    }
+  ]
+}

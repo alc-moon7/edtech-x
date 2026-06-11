@@ -1,0 +1,18 @@
+[
+  {
+    "subject": "Mathematics",
+    "chapters": [
+      "Pattern and Algebraic Expressions",
+      "Measurement",
+      "Statistics"
+    ]
+  },
+  {
+    "subject": "Science",
+    "chapters": [
+      "Animal Kingdom",
+      "Reproduction in Plants",
+      "Structure of Matter"
+    ]
+  }
+]

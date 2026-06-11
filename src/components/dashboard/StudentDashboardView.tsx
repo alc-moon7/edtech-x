@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
 import {
   Bell,
   BookOpen,
@@ -16,6 +19,26 @@ import { useAuth } from "@/lib/auth";
 import { useStudent } from "@/lib/store";
 import { useTranslate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Filler
+);
 
 const SUBJECT_ICON_MAP: Record<string, typeof BookOpen> = {
   mathematics: BookOpen,
@@ -158,6 +181,25 @@ export function StudentDashboardView() {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Arjun";
   const displayClass = user?.user_metadata?.class || t({ en: "Class 7", bn: "ক্লাস ৭" });
 
+  const [realtimeUpdate, setRealtimeUpdate] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Competition Requirement: Realtime/Streaming Data
+    const channel = supabase
+      .channel('progress_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, (payload) => {
+        console.log('Realtime progress update received!', payload);
+        const progress = (payload.new as any)?.progress_percent ?? "100";
+        setRealtimeUpdate(`Lesson Progress Updated! New Progress: ${progress}%`);
+        setTimeout(() => setRealtimeUpdate(null), 6000);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const statValues: Record<string, string> = {
     streak: `${dashboardStats.streakDays}`,
     hours: `${dashboardStats.totalHours}`,
@@ -203,6 +245,15 @@ export function StudentDashboardView() {
 
   return (
     <div className="space-y-6">
+      {realtimeUpdate && (
+        <div className="bg-emerald-100 text-emerald-800 p-3 rounded-lg text-sm flex items-center justify-between shadow-sm border border-emerald-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="font-medium">Realtime Stream Active:</span> {realtimeUpdate}
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl bg-white px-5 py-4 shadow-sm ring-1 ring-slate-200/60">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -212,21 +263,6 @@ export function StudentDashboardView() {
             <p className="text-xs text-slate-500">
               {t({ en: "Class", bn: "ক্লাস" })}: {displayClass}
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm"
-              aria-label={t({ en: "Notifications", bn: "নোটিফিকেশন" })}
-            >
-              <Bell className="h-4 w-4" />
-            </button>
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-2 py-1.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-600">
-                {displayName.slice(0, 1).toUpperCase()}
-              </span>
-              <ChevronDown className="h-4 w-4 text-slate-500" />
-            </div>
           </div>
         </div>
       </div>
@@ -348,26 +384,37 @@ export function StudentDashboardView() {
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
           <h2 className="text-sm font-semibold text-slate-800">{t({ en: "Weekly Study Hours", bn: "সাপ্তাহিক পড়াশোনার সময়" })}</h2>
           <div className="mt-4 rounded-xl bg-slate-50 p-4">
-            <svg viewBox="0 0 260 140" className="h-40 w-full">
-              <polyline
-                fill="none"
-                stroke="#4F6EF7"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={points}
+            <div className="h-40 w-full">
+              <Line 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#64748b' } },
+                    y: { 
+                      grid: { color: '#e2e8f0' }, 
+                      border: { dash: [4, 4], display: false },
+                      ticks: { font: { size: 10 }, color: '#64748b', stepSize: 5 } 
+                    }
+                  }
+                }}
+                data={{
+                  labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                  datasets: [{
+                    fill: true,
+                    data: resolvedStudyHours,
+                    borderColor: '#4F6EF7',
+                    backgroundColor: 'rgba(79, 110, 247, 0.15)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#4F6EF7',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                  }]
+                }}
               />
-              {resolvedStudyHours.map((value, index) => {
-                const x = (index / (resolvedStudyHours.length - 1)) * 220 + 20;
-                const y = 120 - (value / maxHour) * 90;
-                return <circle key={index} cx={x} cy={y} r="4" fill="#4F6EF7" />;
-              })}
-            </svg>
-            <div className="mt-2 flex justify-between text-[11px] text-slate-500">
-              <span>Week 1</span>
-              <span>Week 2</span>
-              <span>Week 3</span>
-              <span>Week 4</span>
             </div>
           </div>
         </div>

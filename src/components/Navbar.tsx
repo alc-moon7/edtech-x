@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   Bell,
   Search,
@@ -48,6 +48,28 @@ export function Navbar() {
   const navigate = useNavigate();
   const t = useTranslate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const location = useLocation();
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setShowNotifications(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const dummyNotifications = [
+    { id: 1, text: { en: "Don't forget to complete your study today!", bn: "আজকের পড়াশোনা শেষ করতে ভুলবেন না!" }, time: "1h ago" },
+    { id: 2, text: { en: "You're on a 2-day streak! Keep it up!", bn: "আপনি ২ দিনের স্ট্রিকে আছেন! চালিয়ে যান!" }, time: "3h ago" },
+  ];
   const displayName =
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
@@ -87,14 +109,33 @@ export function Navbar() {
 
         <div className="flex items-center gap-4">
           <LanguageToggle variant="ghost" />
-          <button
-            type="button"
-            className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-            aria-label={t({ en: "Notifications", bn: "বিজ্ঞপ্তি" })}
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
-          </button>
+          <div className="relative" ref={notifRef}>
+            <button
+              type="button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+              aria-label={t({ en: "Notifications", bn: "বিজ্ঞপ্তি" })}
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+            </button>
+            
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-72 origin-top-right rounded-xl bg-white shadow-lg ring-1 ring-border focus:outline-none z-50 overflow-hidden">
+                <div className="p-3 border-b border-border bg-muted/30 font-semibold text-sm text-foreground">
+                  {t({ en: "Notifications", bn: "বিজ্ঞপ্তি" })}
+                </div>
+                <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
+                  {dummyNotifications.map((notif) => (
+                    <div key={notif.id} className="p-3 hover:bg-muted/50 transition-colors cursor-pointer">
+                      <p className="text-sm text-foreground">{t(notif.text)}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{notif.time}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-3 pl-4 border-l border-border">
             <div className="flex flex-col items-end hidden sm:flex">

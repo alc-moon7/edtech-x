@@ -1,0 +1,47 @@
+{
+  "name": "Supabase Welcome Email Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "supabase-webhook-signup",
+        "options": {}
+      },
+      "id": "e2f6a8e8-6973-4862-8aab-839ee6fa33a4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "welcome@homeschool.app",
+        "toEmail": "={{$json.body.record.email}}",
+        "subject": "Welcome to HomeSchool!",
+        "text": "Hello {{$json.body.record.full_name}},\n\nWelcome to HomeSchool. Get ready to start learning with our AI-powered NCTB platform!",
+        "options": {}
+      },
+      "id": "b3c4d5e6-f7a8-9b0c-1d2e-3f4a5b6c7d8e",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [450, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+}
