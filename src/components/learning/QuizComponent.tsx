@@ -33,7 +33,7 @@ export function QuizComponent({
     const subjectName = course?.title || "English";
     const instructorName = "Atif Aslam";
 
-    const QUESTIONS_PER_PAGE = 5;
+    const QUESTIONS_PER_PAGE = 2;
     const totalPages = Math.ceil(activeQuestions.length / QUESTIONS_PER_PAGE);
 
     const [currentPage, setCurrentPage] = useState(1);
