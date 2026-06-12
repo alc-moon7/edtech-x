@@ -107,7 +107,7 @@ export function QuizComponent({
                         {t({ en: "Continue Learning", bn: "শেখা চালিয়ে যান" })}
                     </button>
                 </div>
-                <div className="w-full pt-4 border-t border-slate-200 text-left space-y-4 mt-4">
+                <div className="w-full pt-4 border-t border-slate-200 text-left grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                     {activeQuestions.map((question, idx) => {
                         const selected = answers[idx];
                         const isCorrect = selected === question.correctAnswer;
@@ -240,9 +240,14 @@ export function QuizComponent({
                             {currentPage === totalPages ? (
                                 <button
                                     onClick={handleSubmit}
-                                    className="px-8 py-2 bg-emerald-500 text-white rounded-md text-sm font-bold shadow-sm hover:bg-emerald-600 transition-colors"
+                                    className={cn(
+                                        "px-8 py-2 text-white rounded-md text-sm font-bold shadow-sm transition-colors",
+                                        timeLeft === 0 ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"
+                                    )}
                                 >
-                                    {t({ en: "Submit Quiz", bn: "কুইজ জমা দিন" })}
+                                    {timeLeft === 0 
+                                        ? t({ en: "Time's Up! Submit Now", bn: "সময় শেষ! জমা দিন" }) 
+                                        : t({ en: "Submit Quiz", bn: "কুইজ জমা দিন" })}
                                 </button>
                             ) : (
                                 <button
@@ -300,9 +305,14 @@ export function QuizComponent({
                         <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-center">
                             <button
                                 onClick={handleSubmit}
-                                className="w-full py-2.5 bg-emerald-500 text-white rounded-md text-sm font-bold shadow-sm hover:bg-emerald-600 transition-colors"
+                                className={cn(
+                                    "w-full py-2.5 text-white rounded-md text-sm font-bold shadow-sm transition-colors",
+                                    timeLeft === 0 ? "bg-red-500 hover:bg-red-600" : "bg-emerald-500 hover:bg-emerald-600"
+                                )}
                             >
-                                {t({ en: "Submit Quiz", bn: "কুইজ জমা দিন" })}
+                                {timeLeft === 0 
+                                    ? t({ en: "Time's Up! Submit Now", bn: "সময় শেষ! জমা দিন" }) 
+                                    : t({ en: "Submit Quiz", bn: "কুইজ জমা দিন" })}
                             </button>
                         </div>
                     </div>
