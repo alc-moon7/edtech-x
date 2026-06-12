@@ -180,7 +180,7 @@ export default function SchedulePage() {
                   <div
                     key={day.key}
                     className={cn(
-                      "min-h-[92px] p-2 sm:p-3",
+                      "min-h-[92px] p-2 sm:p-3 relative",
                       !isLastRow && "border-b border-slate-200",
                       !isLastCol && "border-r border-slate-200"
                     )}
@@ -203,8 +203,25 @@ export default function SchedulePage() {
                           {day.date}
                         </span>
                       )}
-                      {day.flame && <Flame className="h-4 w-4 text-orange-400" />}
                     </div>
+                    {day.flame && (
+                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-end justify-center w-6 h-6 sm:w-7 sm:h-7 pointer-events-none">
+                        <div className="absolute -inset-1 bg-orange-500/40 blur-md rounded-full animate-ping opacity-40" style={{ animationDelay: `${(index % 5) * 200}ms`, animationDuration: '2.5s' }} />
+                        <div className="absolute -inset-1 bg-yellow-400/30 blur-sm rounded-full animate-pulse" style={{ animationDelay: `${(index % 3) * 150}ms` }} />
+                        <Flame 
+                          className="absolute bottom-0 h-full w-full text-orange-600 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] z-10 animate-flicker origin-bottom" 
+                          style={{ animationDelay: `${(index % 4) * 300}ms`, animationDuration: '3s' }} 
+                        />
+                        <Flame 
+                          className="absolute bottom-0 h-[75%] w-[75%] text-yellow-500 fill-yellow-400 z-20 animate-flicker origin-bottom opacity-90" 
+                          style={{ animationDelay: `${(index % 4) * 250 + 500}ms`, animationDuration: '2.5s' }} 
+                        />
+                        <Flame 
+                          className="absolute bottom-0 h-[45%] w-[45%] text-yellow-100 fill-white z-30 animate-flicker origin-bottom opacity-95" 
+                          style={{ animationDelay: `${(index % 4) * 200 + 300}ms`, animationDuration: '2s' }} 
+                        />
+                      </div>
+                    )}
                     {day.events && day.events.length > 0 && (
                       <div className="mt-2 space-y-1">
                         {day.events.map((event) => (
